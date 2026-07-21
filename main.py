@@ -274,7 +274,6 @@ SWAGGER_HTML = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
 <style>
   :root[data-theme="light"] {
     --bg: #f8fafc;
@@ -359,7 +358,6 @@ SWAGGER_HTML = """<!DOCTYPE html>
     padding: 36px 24px;
   }
 
-  /* Static Documentation Styles (Crawler & Human Friendly) */
   .doc-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -389,7 +387,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 22px;
     font-weight: 700;
-    margin-top: 36px;
+    margin-top: 10px;
     margin-bottom: 20px;
     border-bottom: 2px solid var(--border);
     padding-bottom: 10px;
@@ -482,138 +480,6 @@ SWAGGER_HTML = """<!DOCTYPE html>
     overflow-x: auto;
     margin-bottom: 20px;
   }
-
-  /* Swagger UI Overrides */
-  .swagger-ui { font-family: 'Inter', sans-serif !important; }
-
-  .swagger-ui .info {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 36px;
-    margin-bottom: 32px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  }
-
-  .swagger-ui .info .title {
-    color: var(--text) !important;
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-    font-size: 32px !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.6px;
-  }
-
-  .swagger-ui .info p {
-    color: var(--muted) !important;
-    font-size: 15px !important;
-    line-height: 1.6;
-  }
-
-  .swagger-ui .scheme-container { display: none !important; }
-
-  .swagger-ui .opblock-tag {
-    color: var(--text) !important;
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-    font-size: 22px !important;
-    font-weight: 700 !important;
-    border-bottom: 2px solid var(--border) !important;
-    padding: 16px 0 !important;
-    margin-bottom: 16px !important;
-  }
-
-  .swagger-ui .opblock {
-    background: var(--surface) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02) !important;
-    margin-bottom: 20px !important;
-    overflow: hidden;
-  }
-
-  .swagger-ui .opblock .opblock-summary {
-    padding: 16px 24px !important;
-  }
-
-  .swagger-ui .opblock .opblock-summary-method {
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    padding: 8px 16px !important;
-    font-size: 13px !important;
-  }
-
-  .swagger-ui .opblock-post .opblock-summary-method {
-    background: var(--badge-post) !important;
-    color: #ffffff !important;
-  }
-
-  .swagger-ui .opblock-get .opblock-summary-method {
-    background: var(--badge-get) !important;
-    color: #ffffff !important;
-  }
-
-  .swagger-ui .opblock .opblock-summary-path {
-    color: var(--text) !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-  }
-
-  .swagger-ui .opblock-body {
-    background: transparent !important;
-    padding: 28px !important;
-    border-top: 1px solid var(--border) !important;
-  }
-
-  .swagger-ui label, .swagger-ui .opblock-title {
-    color: var(--text) !important;
-    font-weight: 600 !important;
-  }
-
-  .swagger-ui table thead tr th {
-    color: var(--muted) !important;
-    font-weight: 600 !important;
-    border-bottom: 1px solid var(--border) !important;
-  }
-
-  .swagger-ui section.models {
-    background: var(--surface) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 20px !important;
-    padding: 24px !important;
-  }
-
-  .swagger-ui section.models h4 {
-    color: var(--text) !important;
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-    font-size: 20px !important;
-  }
-
-  .swagger-ui .btn {
-    border-radius: 10px !important;
-    border: 1px solid var(--border) !important;
-    color: var(--text) !important;
-    background: var(--btn-bg) !important;
-    font-weight: 600 !important;
-    padding: 8px 16px !important;
-  }
-
-  .swagger-ui .btn.execute {
-    background: var(--primary) !important;
-    color: #ffffff !important;
-    border: none !important;
-  }
-
-  .swagger-ui textarea, .swagger-ui input[type=text] {
-    background: var(--btn-bg) !important;
-    color: var(--text) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 10px !important;
-    padding: 10px 14px !important;
-  }
-
-  .swagger-ui .highlight-code {
-    background: var(--code-bg) !important;
-    border-radius: 12px !important;
-  }
 </style>
 </head>
 <body>
@@ -627,7 +493,6 @@ SWAGGER_HTML = """<!DOCTYPE html>
 
 <div class="main-wrapper">
 
-  <!-- Static HTML Content: Available immediately for Crawlers, LLMs, and Scrapers without JS -->
   <header class="doc-section">
     <h1 class="doc-title">Battle Cats Save File Editor API Documentation</h1>
     <p class="doc-subtitle">High-Performance Battle Cats Save Customization, Binary Patching, and PONOS Cloud Transfer REST Engine.</p>
@@ -639,7 +504,6 @@ SWAGGER_HTML = """<!DOCTYPE html>
     </div>
   </header>
 
-  <!-- Complete Static Semantic HTML Reference Section -->
   <section class="doc-section">
     <h2 class="section-heading">API Endpoints Reference</h2>
 
@@ -761,15 +625,8 @@ SWAGGER_HTML = """<!DOCTYPE html>
     </article>
   </section>
 
-  <!-- Interactive Swagger UI Container -->
-  <section class="doc-section">
-    <h2 class="section-heading">Interactive API Playground (Swagger UI)</h2>
-    <div id="swagger-ui"></div>
-  </section>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
 <script>
 function toggleTheme() {
   const html = document.documentElement;
@@ -778,16 +635,6 @@ function toggleTheme() {
   html.setAttribute('data-theme', next);
   document.getElementById('theme-text').textContent = next === 'dark' ? 'Light Mode' : 'Dark Mode';
 }
-
-SwaggerUIBundle({
-  url: '/openapi.json',
-  dom_id: '#swagger-ui',
-  presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
-  layout: 'BaseLayout',
-  docExpansion: 'list',
-  defaultModelsExpandDepth: 1,
-  defaultModelExpandDepth: 2
-});
 </script>
 </body>
 </html>"""
