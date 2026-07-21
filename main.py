@@ -819,6 +819,86 @@ int main(void) {
     return 0;
 }</code></pre>
 
+    <h3>Go (example.go)</h3>
+    <pre class="code-block"><code>package main
+
+import (
+    "bytes"
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    url := "https://battle-cats-save-file-editor-api.vercel.app/edit"
+    payload := []byte(`{"transfer_code":"1a2b3c4d5","confirmation_code":"1234","country_code":"kr","catfood":45000}`)
+
+    resp, err := http.Post(url, "application/json", bytes.NewBuffer(payload))
+    if err != nil { fmt.Println("Error:", err); return }
+    defer resp.Body.Close()
+
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}</code></pre>
+
+    <h3>Rust (example.rs)</h3>
+    <pre class="code-block"><code>use std::collections::HashMap;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = reqwest::Client::new();
+    let mut body = HashMap::new();
+    body.insert("transfer_code", "1a2b3c4d5");
+    body.insert("confirmation_code", "1234");
+    body.insert("country_code", "kr");
+
+    let res = client.post("https://battle-cats-save-file-editor-api.vercel.app/edit")
+        .json(&body).send().await?.text().await?;
+    println!("Response: {}", res);
+    Ok(())
+}</code></pre>
+
+    <h3>Java (example.java)</h3>
+    <pre class="code-block"><code>import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+public class example {
+    public static void main(String[] args) throws Exception {
+        String json = "{\"transfer_code\":\"1a2b3c4d5\",\"confirmation_code\":\"1234\",\"country_code\":\"kr\",\"catfood\":45000}";
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://battle-cats-save-file-editor-api.vercel.app/edit"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+        HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.body());
+    }
+}</code></pre>
+
+    <h3>TypeScript (example.ts)</h3>
+    <pre class="code-block"><code>async function editSave(): Promise&lt;void&gt; {
+  const res = await fetch('https://battle-cats-save-file-editor-api.vercel.app/edit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ transfer_code: '1a2b3c4d5', confirmation_code: '1234', country_code: 'kr', catfood: 45000 })
+  });
+  const data = await res.json();
+  console.log(data);
+}
+editSave();</code></pre>
+
+    <h3>PHP (example.php)</h3>
+    <pre class="code-block"><code>&lt;?php
+$url = "https://battle-cats-save-file-editor-api.vercel.app/edit";
+$data = ["transfer_code" =&gt; "1a2b3c4d5", "confirmation_code" =&gt; "1234", "country_code" =&gt; "kr", "catfood" =&gt; 45000];
+$options = ["http" =&gt; ["header" =&gt; "Content-Type: application/json\r\n", "method" =&gt; "POST", "content" =&gt; json_encode($data)]];
+$context = stream_context_create($options);
+echo file_get_contents($url, false, $context);
+?&gt;</code></pre>
+
     <h3>Mojo (example.mojo)</h3>
     <pre class="code-block"><code>from python import Python
 

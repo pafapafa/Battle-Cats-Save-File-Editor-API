@@ -38,9 +38,33 @@ bcsfe-api/
 
 ---
 
+## Code Integration Examples
+
+Standalone executable code examples are available for 17 popular programming languages:
+
+- **Python**: [`example.py`](example.py)
+- **JavaScript**: [`example.js`](example.js)
+- **TypeScript**: [`example.ts`](example.ts)
+- **Go**: [`example.go`](example.go)
+- **Rust**: [`example.rs`](example.rs)
+- **C++**: [`example.cpp`](example.cpp)
+- **C#**: [`example.cs`](example.cs)
+- **C**: [`example.c`](example.c)
+- **Java**: [`example.java`](example.java)
+- **Kotlin**: [`example.kt`](example.kt)
+- **Swift**: [`example.swift`](example.swift)
+- **PHP**: [`example.php`](example.php)
+- **Ruby**: [`example.rb`](example.rb)
+- **Dart**: [`example.dart`](example.dart)
+- **Mojo**: [`example.mojo`](example.mojo)
+- **Shell / Bash**: [`example.sh`](example.sh)
+- **PowerShell**: [`example.ps1`](example.ps1)
+
+---
+
 ## Quick Start (Live API)
 
-- **Interactive Swagger UI**: `https://battle-cats-save-file-editor-api.vercel.app/docs`
+- **API Documentation**: `https://battle-cats-save-file-editor-api.vercel.app/docs`
 - **Health Check Endpoint**: `https://battle-cats-save-file-editor-api.vercel.app/`
 
 For full API endpoint specifications, refer to [DOCS.md](DOCS.md).
