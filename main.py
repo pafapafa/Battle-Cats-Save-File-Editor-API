@@ -249,8 +249,8 @@ OPENAPI_SPEC = {
                 "properties": {
                     "success": {"type": "boolean"},
                     "message": {"type": "string"},
-                    "new_transfer_code": {"type": "string", "description": "Newly issued PONOS Transfer Code"},
-                    "new_confirmation_code": {"type": "string", "description": "Newly issued PONOS Confirmation PIN"}
+                    "transfer_code": {"type": "string", "description": "PONOS Transfer Code"},
+                    "confirmation_code": {"type": "string", "description": "PONOS Confirmation PIN"}
                 }
             },
             "ErrorResponse": {
@@ -504,7 +504,6 @@ SWAGGER_HTML = """<!DOCTYPE html>
     </div>
   </header>
 
-  <!-- Complete Static Semantic HTML Reference Section -->
   <section class="doc-section">
     <h2 class="section-heading">API Endpoints Reference</h2>
 
@@ -588,7 +587,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
             <tr><td><code>platinum_tickets</code></td><td>integer</td><td>No</td><td>Target Platinum Tickets count</td></tr>
             <tr><td><code>legend_tickets</code></td><td>integer</td><td>No</td><td>Target Legend Tickets count</td></tr>
             <tr><td><code>platinum_shards</code></td><td>integer</td><td>No</td><td>Target Platinum Shards count</td></tr>
-            <tr><td><code>np</code></td><td>integer</td><td>No</td><td>Target NP (Cat Point) balance</td></tr>
+            <tr><td><code>np</code></td><td>integer</td><td>No</td><td>Target NP balance</td></tr>
             <tr><td><code>leadership</code></td><td>integer</td><td>No</td><td>Target Leadership count</td></tr>
             <tr><td><code>unlock_cats</code></td><td>boolean</td><td>No</td><td>Unlock all obtainable characters</td></tr>
             <tr><td><code>unlock_cat_ids</code></td><td>array[int]</td><td>No</td><td>Specific Cat IDs to unlock (e.g. [0, 1, 555])</td></tr>
@@ -608,19 +607,17 @@ SWAGGER_HTML = """<!DOCTYPE html>
       <pre class="code-block"><code>{
   "success": true,
   "message": "Save modified and uploaded successfully.",
-  "new_transfer_code": "9z8y7x6w5",
-  "new_confirmation_code": "5678"
+  "transfer_code": "9z8y7x6w5",
+  "confirmation_code": "5678"
 }</code></pre>
     </article>
   </section>
 
-  <!-- Complete Reference Guide Tables Section -->
   <section class="doc-section">
     <h2 class="section-heading">Reference Guide & Mappings</h2>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
       
-      <!-- Chapter IDs Table -->
       <div>
         <h3>Chapter ID Mapping</h3>
         <div class="table-wrapper">
@@ -644,7 +641,6 @@ SWAGGER_HTML = """<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Treasure Quality & Country Codes -->
       <div>
         <h3>Treasure Quality Levels</h3>
         <div class="table-wrapper">
@@ -679,7 +675,6 @@ SWAGGER_HTML = """<!DOCTYPE html>
     </div>
   </section>
 
-  <!-- Multi-Language Code Integration Examples -->
   <section class="doc-section">
     <h2 class="section-heading">Code Integration Examples</h2>
 
@@ -695,7 +690,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
            "max_treasures": true
          }'</code></pre>
 
-    <h3>Python (requests)</h3>
+    <h3>Python (example.py)</h3>
     <pre class="code-block"><code>import requests
 
 url = "https://battle-cats-save-file-editor-api.vercel.app/edit"
@@ -713,14 +708,16 @@ response = requests.post(url, json=payload, timeout=45)
 data = response.json()
 
 if data.get("success"):
-    print("New Transfer Code:", data.get("new_transfer_code"))
-    print("New Confirmation PIN:", data.get("new_confirmation_code"))
+    print("Transfer Code:", data.get("transfer_code"))
+    print("Confirmation PIN:", data.get("confirmation_code"))
 else:
     print("Error:", data.get("message"))</code></pre>
 
-    <h3>JavaScript / Node.js (fetch)</h3>
-    <pre class="code-block"><code>async function editSave() {
-  const response = await fetch('https://battle-cats-save-file-editor-api.vercel.app/edit', {
+    <h3>JavaScript / Node.js (example.js)</h3>
+    <pre class="code-block"><code>const API_URL = 'https://battle-cats-save-file-editor-api.vercel.app/edit';
+
+async function editSave() {
+  const response = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -733,10 +730,110 @@ else:
     })
   });
   const data = await response.json();
-  console.log(data);
+  if (data.success) {
+    console.log('Transfer Code:', data.transfer_code);
+    console.log('Confirmation PIN:', data.confirmation_code);
+  }
 }
 
 editSave();</code></pre>
+
+    <h3>C++ (example.cpp)</h3>
+    <pre class="code-block"><code>#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;curl/curl.h&gt;
+
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    ((std::string*)userp)-&gt;append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
+int main() {
+    CURL* curl = curl_easy_init();
+    if (!curl) return 1;
+
+    std::string readBuffer;
+    const char* json_data = "{\"transfer_code\":\"1a2b3c4d5\",\"confirmation_code\":\"1234\",\"country_code\":\"kr\",\"catfood\":45000}";
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
+    curl_easy_setopt(curl, CURLOPT_URL, "https://battle-cats-save-file-editor-api.vercel.app/edit");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &amp;readBuffer);
+
+    CURLcode res = curl_easy_perform(curl);
+    if (res == CURLE_OK) std::cout &lt;&lt; "Response:\n" &lt;&lt; readBuffer &lt;&lt; std::endl;
+
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+    return 0;
+}</code></pre>
+
+    <h3>C# (example.cs)</h3>
+    <pre class="code-block"><code>using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+class Program {
+    private static readonly HttpClient client = new HttpClient();
+
+    static async Task Main() {
+        string url = "https://battle-cats-save-file-editor-api.vercel.app/edit";
+        string json = @"{
+            ""transfer_code"": ""1a2b3c4d5"",
+            ""confirmation_code"": ""1234"",
+            ""country_code"": ""kr"",
+            ""catfood"": 45000
+        }";
+
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await client.PostAsync(url, content);
+        string result = await response.Content.ReadAsStringAsync();
+
+        Console.WriteLine("Response Body:\n" + result);
+    }
+}</code></pre>
+
+    <h3>C (example.c)</h3>
+    <pre class="code-block"><code>#include &lt;stdio.h&gt;
+#include &lt;curl/curl.h&gt;
+
+int main(void) {
+    CURL *curl = curl_easy_init();
+    if(curl) {
+        const char *json = "{\"transfer_code\":\"1a2b3c4d5\",\"confirmation_code\":\"1234\",\"country_code\":\"kr\",\"catfood\":45000}";
+        struct curl_slist *headers = curl_slist_append(NULL, "Content-Type: application/json");
+
+        curl_easy_setopt(curl, CURLOPT_URL, "https://battle-cats-save-file-editor-api.vercel.app/edit");
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+        curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+    }
+    return 0;
+}</code></pre>
+
+    <h3>Mojo (example.mojo)</h3>
+    <pre class="code-block"><code>from python import Python
+
+fn main() raises:
+    let requests = Python.import_module("requests")
+    let url = "https://battle-cats-save-file-editor-api.vercel.app/edit"
+    let payload = Python.dict()
+    payload["transfer_code"] = "1a2b3c4d5"
+    payload["confirmation_code"] = "1234"
+    payload["country_code"] = "kr"
+    payload["catfood"] = 45000
+
+    let response = requests.post(url, json=payload, timeout=45)
+    print("Response Status:", response.status_code)
+    print("Response Body:", response.text)</code></pre>
   </section>
 
 </div>
