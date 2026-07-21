@@ -127,17 +127,17 @@ Applies target modifications, syncs server managed items, and issues new transfe
 | `platinum_tickets` | `integer` | No | Target Platinum Tickets count |
 | `legend_tickets` | `integer` | No | Target Legend Tickets count |
 | `platinum_shards` | `integer` | No | Target Platinum Shards count |
-| `np` | `integer` | No | Target NP (Cat Points) balance |
+| `np` | `integer` | No | Target NP balance |
 | `leadership` | `integer` | No | Target Leadership count |
 | `unlock_cats` | `boolean` | No | Unlock all obtainable characters |
-| `unlock_cat_ids` | `array[int]` | No | Specific Cat IDs to unlock (e.g., `[0, 1, 555]`) |
+| `unlock_cat_ids` | `array[int]` | No | Specific Cat IDs to unlock (e.g. `[0, 1, 555]`) |
 | `remove_cat_ids` | `array[int]` | No | Specific Cat IDs to lock/remove |
 | `clear_all_stages` | `boolean` | No | Clear all story chapters & Aku Realm |
-| `clear_chapters` | `array[int]` | No | Specific chapter IDs to clear (0=Eo1, 1=Eo2, 2=Eo3, 3=It1, 4=It2, 5=It3, 6=Co1, 7=Co2, 8=Co3, 9=Aku) |
-| `clear_stages` | `array[object]` | No | Specific stages to clear (e.g., `[{"chapter": 0, "stage": 47}]`) |
-| `max_treasures` | `boolean` | No | Set all story chapter treasures to Gold (Superior) |
-| `max_chapter_treasures` | `array[int]` | No | Specific chapter IDs to max treasures to Gold |
-| `stage_treasures` | `array[object]` | No | Specific stage treasure quality (`1`=Inferior/조잡, `2`=Normal/보통, `3`=Superior/Gold/최고) |
+| `clear_chapters` | `array[int]` | No | Specific chapter IDs to clear (0 to 9) |
+| `clear_stages` | `array[object]` | No | Specific stages to clear (e.g. `[{"chapter": 0, "stage": 47}]`) |
+| `max_treasures` | `boolean` | No | Set all story chapter treasures to Superior |
+| `max_chapter_treasures` | `array[int]` | No | Specific chapter IDs to max treasures to Superior |
+| `stage_treasures` | `array[object]` | No | Specific stage treasure quality (`1` = Inferior, `2` = Normal, `3` = Superior) |
 | `enable_safety` | `boolean` | No | Clamp Cat Food (max 45k) and XP (max 100M) |
 
 #### Response (`200 OK`)

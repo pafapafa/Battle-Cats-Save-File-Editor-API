@@ -594,11 +594,11 @@ SWAGGER_HTML = """<!DOCTYPE html>
             <tr><td><code>unlock_cat_ids</code></td><td>array[int]</td><td>No</td><td>Specific Cat IDs to unlock (e.g. [0, 1, 555])</td></tr>
             <tr><td><code>remove_cat_ids</code></td><td>array[int]</td><td>No</td><td>Specific Cat IDs to lock/remove</td></tr>
             <tr><td><code>clear_all_stages</code></td><td>boolean</td><td>No</td><td>Clear all story chapters & Aku Realm</td></tr>
-            <tr><td><code>clear_chapters</code></td><td>array[int]</td><td>No</td><td>Specific chapter IDs to clear (0=Eo1, 1=Eo2, 2=Eo3, 3=It1, 4=It2, 5=It3, 6=Co1, 7=Co2, 8=Co3, 9=Aku)</td></tr>
+            <tr><td><code>clear_chapters</code></td><td>array[int]</td><td>No</td><td>Specific chapter IDs to clear (0 to 9, refer to Chapter ID Mapping)</td></tr>
             <tr><td><code>clear_stages</code></td><td>array[obj]</td><td>No</td><td>Specific stages to clear (e.g. [{"chapter": 0, "stage": 47}])</td></tr>
-            <tr><td><code>max_treasures</code></td><td>boolean</td><td>No</td><td>Set all story chapter treasures to Gold (Superior)</td></tr>
-            <tr><td><code>max_chapter_treasures</code></td><td>array[int]</td><td>No</td><td>Specific chapter IDs to max treasures to Gold</td></tr>
-            <tr><td><code>stage_treasures</code></td><td>array[obj]</td><td>No</td><td>Specific stage treasure quality (1=Inferior/조잡, 2=Normal/보통, 3=Superior/Gold/최고)</td></tr>
+            <tr><td><code>max_treasures</code></td><td>boolean</td><td>No</td><td>Set all story chapter treasures to Superior</td></tr>
+            <tr><td><code>max_chapter_treasures</code></td><td>array[int]</td><td>No</td><td>Specific chapter IDs to max treasures to Superior</td></tr>
+            <tr><td><code>stage_treasures</code></td><td>array[obj]</td><td>No</td><td>Specific stage treasure quality (1=Inferior, 2=Normal, 3=Superior)</td></tr>
             <tr><td><code>enable_safety</code></td><td>boolean</td><td>No</td><td>Enable ban safety limit clamping</td></tr>
           </tbody>
         </table>
@@ -626,19 +626,19 @@ SWAGGER_HTML = """<!DOCTYPE html>
         <div class="table-wrapper">
           <table class="param-table">
             <thead>
-              <tr><th>ID</th><th>Chapter Name</th><th>한글 챕터명</th></tr>
+              <tr><th>ID</th><th>Chapter Name</th></tr>
             </thead>
             <tbody>
-              <tr><td><code>0</code></td><td>Empire of Cats Ch. 1</td><td>세계편 1장</td></tr>
-              <tr><td><code>1</code></td><td>Empire of Cats Ch. 2</td><td>세계편 2장</td></tr>
-              <tr><td><code>2</code></td><td>Empire of Cats Ch. 3</td><td>세계편 3장</td></tr>
-              <tr><td><code>3</code></td><td>Into the Future Ch. 1</td><td>미래편 1장</td></tr>
-              <tr><td><code>4</code></td><td>Into the Future Ch. 2</td><td>미래편 2장</td></tr>
-              <tr><td><code>5</code></td><td>Into the Future Ch. 3</td><td>미래편 3장</td></tr>
-              <tr><td><code>6</code></td><td>Cats of the Cosmos Ch. 1</td><td>우주편 1장</td></tr>
-              <tr><td><code>7</code></td><td>Cats of the Cosmos Ch. 2</td><td>우주편 2장</td></tr>
-              <tr><td><code>8</code></td><td>Cats of the Cosmos Ch. 3</td><td>우주편 3장</td></tr>
-              <tr><td><code>9</code></td><td>Aku Realm</td><td>마계 편</td></tr>
+              <tr><td><code>0</code></td><td>Empire of Cats Ch. 1</td></tr>
+              <tr><td><code>1</code></td><td>Empire of Cats Ch. 2</td></tr>
+              <tr><td><code>2</code></td><td>Empire of Cats Ch. 3</td></tr>
+              <tr><td><code>3</code></td><td>Into the Future Ch. 1</td></tr>
+              <tr><td><code>4</code></td><td>Into the Future Ch. 2</td></tr>
+              <tr><td><code>5</code></td><td>Into the Future Ch. 3</td></tr>
+              <tr><td><code>6</code></td><td>Cats of the Cosmos Ch. 1</td></tr>
+              <tr><td><code>7</code></td><td>Cats of the Cosmos Ch. 2</td></tr>
+              <tr><td><code>8</code></td><td>Cats of the Cosmos Ch. 3</td></tr>
+              <tr><td><code>9</code></td><td>Aku Realm</td></tr>
             </tbody>
           </table>
         </div>
@@ -650,12 +650,12 @@ SWAGGER_HTML = """<!DOCTYPE html>
         <div class="table-wrapper">
           <table class="param-table">
             <thead>
-              <tr><th>Value</th><th>Quality</th><th>한글 보물 등급</th></tr>
+              <tr><th>Value</th><th>Quality Level</th></tr>
             </thead>
             <tbody>
-              <tr><td><code>1</code></td><td>Inferior</td><td>조잡한 보물</td></tr>
-              <tr><td><code>2</code></td><td>Normal</td><td>보통의 보물</td></tr>
-              <tr><td><code>3</code></td><td>Superior (Gold)</td><td>최고의 보물</td></tr>
+              <tr><td><code>1</code></td><td>Inferior</td></tr>
+              <tr><td><code>2</code></td><td>Normal</td></tr>
+              <tr><td><code>3</code></td><td>Superior</td></tr>
             </tbody>
           </table>
         </div>
@@ -664,13 +664,13 @@ SWAGGER_HTML = """<!DOCTYPE html>
         <div class="table-wrapper">
           <table class="param-table">
             <thead>
-              <tr><th>Code</th><th>Region</th><th>설명</th></tr>
+              <tr><th>Code</th><th>Region</th></tr>
             </thead>
             <tbody>
-              <tr><td><code>kr</code></td><td>Korea</td><td>한국판</td></tr>
-              <tr><td><code>jp</code></td><td>Japan</td><td>일본판</td></tr>
-              <tr><td><code>en</code></td><td>Global / English</td><td>글로벌판</td></tr>
-              <tr><td><code>tw</code></td><td>Taiwan</td><td>대만판</td></tr>
+              <tr><td><code>kr</code></td><td>Korea</td></tr>
+              <tr><td><code>jp</code></td><td>Japan</td></tr>
+              <tr><td><code>en</code></td><td>English / Global</td></tr>
+              <tr><td><code>tw</code></td><td>Taiwan</td></tr>
             </tbody>
           </table>
         </div>
