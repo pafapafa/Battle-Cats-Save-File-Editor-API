@@ -47,6 +47,14 @@ For full API endpoint specifications, refer to [DOCS.md](DOCS.md).
 
 ---
 
+## Credits & Acknowledggments
+
+This project builds upon and utilizes the [bcsfe](https://github.com/fieryhenry/BCSFE-Python) library developed by **fieryhenry**. 
+- Core save data parsing, cryptographic algorithms, and PONOS transfer protocol handlers are powered by the official `bcsfe` engine.
+- Interactive CLI workflow (`cli.py`) is modeled after the original `BCSFE-Python` user interface structure.
+
+---
+
 ## License and Disclaimer
 
 Distributed under the **GNU General Public License v3.0 (GPL-3.0)**. See `LICENSE` for more information.
