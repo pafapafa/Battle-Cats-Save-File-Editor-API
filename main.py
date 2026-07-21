@@ -208,11 +208,22 @@ OPENAPI_SPEC = {
                     "country_code": {"type": "string", "description": "Region Code (kr, jp, en, tw)"},
                     "catfood": {"type": "integer", "description": "Target Cat Food balance"},
                     "xp": {"type": "integer", "description": "Target XP balance"},
+                    "normal_tickets": {"type": "integer", "description": "Target Normal Tickets count"},
                     "rare_tickets": {"type": "integer", "description": "Target Rare Tickets count"},
                     "platinum_tickets": {"type": "integer", "description": "Target Platinum Tickets count"},
                     "legend_tickets": {"type": "integer", "description": "Target Legend Tickets count"},
+                    "platinum_shards": {"type": "integer", "description": "Target Platinum Shards count"},
+                    "np": {"type": "integer", "description": "Target NP (Cat Point) balance"},
+                    "leadership": {"type": "integer", "description": "Target Leadership count"},
                     "unlock_cats": {"type": "boolean", "default": False, "description": "Unlock all obtainable characters"},
-                    "max_treasures": {"type": "boolean", "default": False, "description": "Set all chapter treasures to Gold"},
+                    "unlock_cat_ids": {"type": "array", "items": {"type": "integer"}, "description": "List of specific Cat IDs to unlock (e.g. [0, 1, 555])"},
+                    "remove_cat_ids": {"type": "array", "items": {"type": "integer"}, "description": "List of specific Cat IDs to remove/lock"},
+                    "clear_all_stages": {"type": "boolean", "default": False, "description": "Clear all story chapters & Aku Realm"},
+                    "clear_chapters": {"type": "array", "items": {"type": "integer"}, "description": "List of Chapter IDs to clear (0=Eo1, 1=Eo2, 2=Eo3, 3=It1, 4=It2, 5=It3, 6=Co1, 7=Co2, 8=Co3, 9=Aku)"},
+                    "clear_stages": {"type": "array", "items": {"type": "object", "properties": {"chapter": {"type": "integer"}, "stage": {"type": "integer"}}}, "description": "List of specific stages to clear"},
+                    "max_treasures": {"type": "boolean", "default": False, "description": "Set all story chapter treasures to Gold (Superior)"},
+                    "max_chapter_treasures": {"type": "array", "items": {"type": "integer"}, "description": "List of Chapter IDs to set all treasures to Gold"},
+                    "stage_treasures": {"type": "array", "items": {"type": "object", "properties": {"chapter": {"type": "integer"}, "stage": {"type": "integer"}, "treasure": {"type": "integer", "description": "1=Inferior (조잡), 2=Normal (보통), 3=Superior/Gold (최고)"}}}, "description": "List of specific stage treasure quality settings"},
                     "enable_safety": {"type": "boolean", "default": False, "description": "Enable ban safety limit clamping"}
                 }
             },
@@ -224,9 +235,13 @@ OPENAPI_SPEC = {
                     "game_version": {"type": "integer", "description": "Game version number"},
                     "catfood": {"type": "integer", "description": "Current Cat Food balance"},
                     "xp": {"type": "integer", "description": "Current XP balance"},
+                    "normal_tickets": {"type": "integer", "description": "Current Normal Tickets count"},
                     "rare_tickets": {"type": "integer", "description": "Current Rare Tickets count"},
                     "platinum_tickets": {"type": "integer", "description": "Current Platinum Tickets count"},
-                    "legend_tickets": {"type": "integer", "description": "Current Legend Tickets count"}
+                    "legend_tickets": {"type": "integer", "description": "Current Legend Tickets count"},
+                    "platinum_shards": {"type": "integer", "description": "Current Platinum Shards count"},
+                    "np": {"type": "integer", "description": "Current NP balance"},
+                    "leadership": {"type": "integer", "description": "Current Leadership count"}
                 }
             },
             "EditResponse": {
@@ -541,9 +556,13 @@ def inspect_save():
         "game_version": gv_val,
         "catfood": getattr(save_file, "catfood", 0),
         "xp": getattr(save_file, "xp", 0),
+        "normal_tickets": getattr(save_file, "normal_tickets", 0),
         "rare_tickets": getattr(save_file, "rare_tickets", 0),
         "platinum_tickets": getattr(save_file, "platinum_tickets", 0),
         "legend_tickets": getattr(save_file, "legend_tickets", 0),
+        "platinum_shards": getattr(save_file, "platinum_shards", 0),
+        "np": getattr(save_file, "np", 0),
+        "leadership": getattr(save_file, "leadership", 0),
     })
 
 
@@ -553,29 +572,78 @@ def edit_save():
     tc = str(data.get("transfer_code", "")).strip()
     cc = str(data.get("confirmation_code", "")).strip()
     country = str(data.get("country_code", "")).strip()
+
+    # Currencies & items
     catfood = data.get("catfood")
     xp = data.get("xp")
+    normal_tickets = data.get("normal_tickets")
     rare_tickets = data.get("rare_tickets")
     platinum_tickets = data.get("platinum_tickets")
     legend_tickets = data.get("legend_tickets")
+    platinum_shards = data.get("platinum_shards")
+    np = data.get("np")
+    leadership = data.get("leadership")
+
+    # Cats
     unlock_cats = bool(data.get("unlock_cats", False))
+    unlock_cat_ids = data.get("unlock_cat_ids")
+    remove_cat_ids = data.get("remove_cat_ids")
+
+    # Stages
+    clear_all_stages = bool(data.get("clear_all_stages", False))
+    clear_chapters = data.get("clear_chapters")
+    clear_stages = data.get("clear_stages")
+
+    # Treasures
     max_treasures = bool(data.get("max_treasures", False))
+    max_chapter_treasures = data.get("max_chapter_treasures")
+    stage_treasures = data.get("stage_treasures")
+
+    # Safety
     enable_safety = bool(data.get("enable_safety", False))
 
     if not validate_inputs(tc, cc) or not country:
         return jsonify({"success": False, "message": "transfer_code, confirmation_code, and country_code are required."}), 400
 
-    if all(v is None for v in [catfood, xp, rare_tickets, platinum_tickets, legend_tickets]) and not unlock_cats and not max_treasures:
-        return jsonify({"success": False, "message": "At least one modification value must be specified."}), 400
+    has_any_edit = any([
+        catfood is not None, xp is not None, normal_tickets is not None,
+        rare_tickets is not None, platinum_tickets is not None, legend_tickets is not None,
+        platinum_shards is not None, np is not None, leadership is not None,
+        unlock_cats, unlock_cat_ids, remove_cat_ids,
+        clear_all_stages, clear_chapters, clear_stages,
+        max_treasures, max_chapter_treasures, stage_treasures
+    ])
+
+    if not has_any_edit:
+        return jsonify({"success": False, "message": "At least one modification value or flag must be specified."}), 400
 
     save_file, server_handler = download_ponos_save(tc, cc, country)
     if save_file is None:
         return jsonify({"success": False, "message": "Invalid or expired transfer code / PIN."}), 400
 
     result, codes = patch_and_upload_save(
-        save_file, server_handler, country,
-        catfood, xp, rare_tickets, platinum_tickets, legend_tickets,
-        unlock_cats, max_treasures, enable_safety
+        save_file=save_file,
+        server_handler=server_handler,
+        cc_str=country,
+        catfood=catfood,
+        xp=xp,
+        normal_tickets=normal_tickets,
+        rare_tickets=rare_tickets,
+        platinum_tickets=platinum_tickets,
+        legend_tickets=legend_tickets,
+        platinum_shards=platinum_shards,
+        np=np,
+        leadership=leadership,
+        unlock_cats=unlock_cats,
+        unlock_cat_ids=unlock_cat_ids,
+        remove_cat_ids=remove_cat_ids,
+        clear_all_stages=clear_all_stages,
+        clear_chapters=clear_chapters,
+        clear_stages=clear_stages,
+        max_treasures=max_treasures,
+        max_chapter_treasures=max_chapter_treasures,
+        stage_treasures=stage_treasures,
+        enable_safety=enable_safety,
     )
 
     if codes is None:
@@ -587,4 +655,6 @@ def edit_save():
         "message": "Save modified and uploaded successfully.",
         "new_transfer_code": new_t,
         "new_confirmation_code": new_c,
+        "details": result,
     })
+

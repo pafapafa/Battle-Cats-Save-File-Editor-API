@@ -95,11 +95,22 @@ Applies target modifications, syncs server managed items, and issues new transfe
   "country_code": "kr",
   "catfood": 45000,
   "xp": 99999999,
+  "normal_tickets": 999,
   "rare_tickets": 999,
   "platinum_tickets": 99,
   "legend_tickets": 9,
+  "platinum_shards": 99,
+  "np": 9999,
+  "leadership": 99,
   "unlock_cats": true,
+  "unlock_cat_ids": [0, 1, 555],
+  "remove_cat_ids": [10, 11],
+  "clear_all_stages": true,
+  "clear_chapters": [0, 1, 2],
+  "clear_stages": [{"chapter": 0, "stage": 47}],
   "max_treasures": true,
+  "max_chapter_treasures": [0, 1, 2],
+  "stage_treasures": [{"chapter": 0, "stage": 0, "treasure": 3}],
   "enable_safety": false
 }
 ```
@@ -111,11 +122,22 @@ Applies target modifications, syncs server managed items, and issues new transfe
 | `country_code` | `string` | Yes | Region Code (`"kr"`, `"jp"`, `"en"`, `"tw"`) |
 | `catfood` | `integer` | No | Target Cat Food balance |
 | `xp` | `integer` | No | Target XP balance |
+| `normal_tickets` | `integer` | No | Target Normal Tickets count |
 | `rare_tickets` | `integer` | No | Target Rare Tickets count |
 | `platinum_tickets` | `integer` | No | Target Platinum Tickets count |
 | `legend_tickets` | `integer` | No | Target Legend Tickets count |
+| `platinum_shards` | `integer` | No | Target Platinum Shards count |
+| `np` | `integer` | No | Target NP (Cat Points) balance |
+| `leadership` | `integer` | No | Target Leadership count |
 | `unlock_cats` | `boolean` | No | Unlock all obtainable characters |
-| `max_treasures` | `boolean` | No | Set all chapter treasures to Gold |
+| `unlock_cat_ids` | `array[int]` | No | Specific Cat IDs to unlock (e.g., `[0, 1, 555]`) |
+| `remove_cat_ids` | `array[int]` | No | Specific Cat IDs to lock/remove |
+| `clear_all_stages` | `boolean` | No | Clear all story chapters & Aku Realm |
+| `clear_chapters` | `array[int]` | No | Specific chapter IDs to clear (0=Eo1, 1=Eo2, 2=Eo3, 3=It1, 4=It2, 5=It3, 6=Co1, 7=Co2, 8=Co3, 9=Aku) |
+| `clear_stages` | `array[object]` | No | Specific stages to clear (e.g., `[{"chapter": 0, "stage": 47}]`) |
+| `max_treasures` | `boolean` | No | Set all story chapter treasures to Gold (Superior) |
+| `max_chapter_treasures` | `array[int]` | No | Specific chapter IDs to max treasures to Gold |
+| `stage_treasures` | `array[object]` | No | Specific stage treasure quality (`1`=Inferior/조잡, `2`=Normal/보통, `3`=Superior/Gold/최고) |
 | `enable_safety` | `boolean` | No | Clamp Cat Food (max 45k) and XP (max 100M) |
 
 #### Response (`200 OK`)
