@@ -504,6 +504,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
     </div>
   </header>
 
+  <!-- Complete Static Semantic HTML Reference Section -->
   <section class="doc-section">
     <h2 class="section-heading">API Endpoints Reference</h2>
 
@@ -610,9 +611,80 @@ SWAGGER_HTML = """<!DOCTYPE html>
   "new_transfer_code": "9z8y7x6w5",
   "new_confirmation_code": "5678"
 }</code></pre>
+    </article>
+  </section>
 
-      <h4>cURL Example</h4>
-      <pre class="code-block"><code>curl -X POST "https://battle-cats-save-file-editor-api.vercel.app/edit" \\
+  <!-- Complete Reference Guide Tables Section -->
+  <section class="doc-section">
+    <h2 class="section-heading">Reference Guide & Mappings</h2>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+      
+      <!-- Chapter IDs Table -->
+      <div>
+        <h3>Chapter ID Mapping</h3>
+        <div class="table-wrapper">
+          <table class="param-table">
+            <thead>
+              <tr><th>ID</th><th>Chapter Name</th><th>한글 챕터명</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>0</code></td><td>Empire of Cats Ch. 1</td><td>세계편 1장</td></tr>
+              <tr><td><code>1</code></td><td>Empire of Cats Ch. 2</td><td>세계편 2장</td></tr>
+              <tr><td><code>2</code></td><td>Empire of Cats Ch. 3</td><td>세계편 3장</td></tr>
+              <tr><td><code>3</code></td><td>Into the Future Ch. 1</td><td>미래편 1장</td></tr>
+              <tr><td><code>4</code></td><td>Into the Future Ch. 2</td><td>미래편 2장</td></tr>
+              <tr><td><code>5</code></td><td>Into the Future Ch. 3</td><td>미래편 3장</td></tr>
+              <tr><td><code>6</code></td><td>Cats of the Cosmos Ch. 1</td><td>우주편 1장</td></tr>
+              <tr><td><code>7</code></td><td>Cats of the Cosmos Ch. 2</td><td>우주편 2장</td></tr>
+              <tr><td><code>8</code></td><td>Cats of the Cosmos Ch. 3</td><td>우주편 3장</td></tr>
+              <tr><td><code>9</code></td><td>Aku Realm</td><td>마계 편</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Treasure Quality & Country Codes -->
+      <div>
+        <h3>Treasure Quality Levels</h3>
+        <div class="table-wrapper">
+          <table class="param-table">
+            <thead>
+              <tr><th>Value</th><th>Quality</th><th>한글 보물 등급</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>1</code></td><td>Inferior</td><td>조잡한 보물</td></tr>
+              <tr><td><code>2</code></td><td>Normal</td><td>보통의 보물</td></tr>
+              <tr><td><code>3</code></td><td>Superior (Gold)</td><td>최고의 보물</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Country / Region Codes</h3>
+        <div class="table-wrapper">
+          <table class="param-table">
+            <thead>
+              <tr><th>Code</th><th>Region</th><th>설명</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>kr</code></td><td>Korea</td><td>한국판</td></tr>
+              <tr><td><code>jp</code></td><td>Japan</td><td>일본판</td></tr>
+              <tr><td><code>en</code></td><td>Global / English</td><td>글로벌판</td></tr>
+              <tr><td><code>tw</code></td><td>Taiwan</td><td>대만판</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Multi-Language Code Integration Examples -->
+  <section class="doc-section">
+    <h2 class="section-heading">Code Integration Examples</h2>
+
+    <h3>cURL</h3>
+    <pre class="code-block"><code>curl -X POST "https://battle-cats-save-file-editor-api.vercel.app/edit" \\
      -H "Content-Type: application/json" \\
      -d '{
            "transfer_code": "1a2b3c4d5",
@@ -622,7 +694,49 @@ SWAGGER_HTML = """<!DOCTYPE html>
            "unlock_cats": true,
            "max_treasures": true
          }'</code></pre>
-    </article>
+
+    <h3>Python (requests)</h3>
+    <pre class="code-block"><code>import requests
+
+url = "https://battle-cats-save-file-editor-api.vercel.app/edit"
+payload = {
+    "transfer_code": "1a2b3c4d5",
+    "confirmation_code": "1234",
+    "country_code": "kr",
+    "catfood": 45000,
+    "unlock_cat_ids": [0, 1, 555],
+    "clear_chapters": [0, 1, 2],
+    "max_treasures": True
+}
+
+response = requests.post(url, json=payload, timeout=45)
+data = response.json()
+
+if data.get("success"):
+    print("New Transfer Code:", data.get("new_transfer_code"))
+    print("New Confirmation PIN:", data.get("new_confirmation_code"))
+else:
+    print("Error:", data.get("message"))</code></pre>
+
+    <h3>JavaScript / Node.js (fetch)</h3>
+    <pre class="code-block"><code>async function editSave() {
+  const response = await fetch('https://battle-cats-save-file-editor-api.vercel.app/edit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      transfer_code: '1a2b3c4d5',
+      confirmation_code: '1234',
+      country_code: 'kr',
+      catfood: 45000,
+      unlock_cats: true,
+      max_treasures: true
+    })
+  });
+  const data = await response.json();
+  console.log(data);
+}
+
+editSave();</code></pre>
   </section>
 
 </div>
