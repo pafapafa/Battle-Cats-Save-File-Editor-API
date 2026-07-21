@@ -269,10 +269,11 @@ SWAGGER_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Battle Cats Save File Editor API</title>
+<title>Battle Cats Save File Editor API Documentation</title>
+<meta name="description" content="Official REST API Documentation for Battle Cats Save Customization, Binary Patching, and PONOS Cloud Sync Engine.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
 <style>
   :root[data-theme="light"] {
@@ -284,6 +285,10 @@ SWAGGER_HTML = """<!DOCTYPE html>
     --primary: #0284c7;
     --btn-bg: #f1f5f9;
     --code-bg: #0f172a;
+    --code-text: #f8fafc;
+    --badge-get: #0284c7;
+    --badge-post: #16a34a;
+    --table-header: #f1f5f9;
   }
 
   :root[data-theme="dark"] {
@@ -295,6 +300,10 @@ SWAGGER_HTML = """<!DOCTYPE html>
     --primary: #38bdf8;
     --btn-bg: #1f2937;
     --code-bg: #030712;
+    --code-text: #e5e7eb;
+    --badge-get: #38bdf8;
+    --badge-post: #22c55e;
+    --table-header: #1f2937;
   }
 
   * { box-sizing: border-box; }
@@ -350,7 +359,131 @@ SWAGGER_HTML = """<!DOCTYPE html>
     padding: 36px 24px;
   }
 
-  /* Ultra Clean Swagger Overrides */
+  /* Static Documentation Styles (Crawler & Human Friendly) */
+  .doc-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  }
+
+  .doc-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    margin-top: 0;
+    margin-bottom: 12px;
+    letter-spacing: -0.6px;
+  }
+
+  .doc-subtitle {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .section-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 36px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+  }
+
+  .endpoint-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
+  }
+
+  .endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .badge {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 13px;
+    color: #ffffff;
+    text-transform: uppercase;
+  }
+
+  .badge.get { background: var(--badge-get); }
+  .badge.post { background: var(--badge-post); }
+
+  .endpoint-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .endpoint-desc {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 24px;
+  }
+
+  .param-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .param-table th {
+    background: var(--table-header);
+    color: var(--text);
+    padding: 12px 16px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .param-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .param-table code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--btn-bg);
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  .code-block {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 20px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+
+  /* Swagger UI Overrides */
   .swagger-ui { font-family: 'Inter', sans-serif !important; }
 
   .swagger-ui .info {
@@ -409,7 +542,12 @@ SWAGGER_HTML = """<!DOCTYPE html>
   }
 
   .swagger-ui .opblock-post .opblock-summary-method {
-    background: var(--primary) !important;
+    background: var(--badge-post) !important;
+    color: #ffffff !important;
+  }
+
+  .swagger-ui .opblock-get .opblock-summary-method {
+    background: var(--badge-get) !important;
     color: #ffffff !important;
   }
 
@@ -488,7 +626,147 @@ SWAGGER_HTML = """<!DOCTYPE html>
 </div>
 
 <div class="main-wrapper">
-  <div id="swagger-ui"></div>
+
+  <!-- Static HTML Content: Available immediately for Crawlers, LLMs, and Scrapers without JS -->
+  <header class="doc-section">
+    <h1 class="doc-title">Battle Cats Save File Editor API Documentation</h1>
+    <p class="doc-subtitle">High-Performance Battle Cats Save Customization, Binary Patching, and PONOS Cloud Transfer REST Engine.</p>
+    
+    <div style="display:flex; gap:12px; font-size:14px; color:var(--muted);">
+      <div><strong>Base URL:</strong> <code>https://battle-cats-save-file-editor-api.vercel.app</code></div>
+      <div>|</div>
+      <div><strong>OpenAPI Spec:</strong> <a href="/openapi.json" style="color:var(--primary);">/openapi.json</a></div>
+    </div>
+  </header>
+
+  <!-- Complete Static Semantic HTML Reference Section -->
+  <section class="doc-section">
+    <h2 class="section-heading">API Endpoints Reference</h2>
+
+    <!-- GET / -->
+    <article class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="badge get">GET</span>
+        <span class="endpoint-path">/</span>
+      </div>
+      <p class="endpoint-desc">Retrieves API operational status and version information.</p>
+      
+      <h4>Response Example (200 OK)</h4>
+      <pre class="code-block"><code>{
+  "service": "Battle Cats Save File Editor API",
+  "status": "online",
+  "version": "1.0.0"
+}</code></pre>
+    </article>
+
+    <!-- POST /info -->
+    <article class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="badge post">POST</span>
+        <span class="endpoint-path">/info</span>
+      </div>
+      <p class="endpoint-desc">Inspect Save File Details. Downloads save metadata from PONOS servers using a valid Transfer Code, Confirmation PIN, and Country Code.</p>
+
+      <h4>Request Body (JSON)</h4>
+      <div class="table-wrapper">
+        <table class="param-table">
+          <thead>
+            <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>transfer_code</code></td><td>string</td><td>Yes</td><td>PONOS 9-digit Transfer Code</td></tr>
+            <tr><td><code>confirmation_code</code></td><td>string</td><td>Yes</td><td>PONOS 4-digit PIN Code</td></tr>
+            <tr><td><code>country_code</code></td><td>string</td><td>Yes</td><td>Region Code (kr, jp, en, tw)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Response Example (200 OK)</h4>
+      <pre class="code-block"><code>{
+  "success": true,
+  "message": "Save info retrieved successfully.",
+  "game_version": 140300,
+  "catfood": 6767,
+  "xp": 50000,
+  "normal_tickets": 99,
+  "rare_tickets": 10,
+  "platinum_tickets": 2,
+  "legend_tickets": 1,
+  "platinum_shards": 5,
+  "np": 500,
+  "leadership": 25
+}</code></pre>
+    </article>
+
+    <!-- POST /edit -->
+    <article class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="badge post">POST</span>
+        <span class="endpoint-path">/edit</span>
+      </div>
+      <p class="endpoint-desc">Modify Save File & Re-Upload. Applies target modifications (currencies, cat unlocks/locks, stage clear progression, treasure quality), syncs PONOS managed items, and issues new transfer credentials.</p>
+
+      <h4>Request Body (JSON)</h4>
+      <div class="table-wrapper">
+        <table class="param-table">
+          <thead>
+            <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>transfer_code</code></td><td>string</td><td>Yes</td><td>PONOS 9-digit Transfer Code</td></tr>
+            <tr><td><code>confirmation_code</code></td><td>string</td><td>Yes</td><td>PONOS 4-digit PIN Code</td></tr>
+            <tr><td><code>country_code</code></td><td>string</td><td>Yes</td><td>Region Code (kr, jp, en, tw)</td></tr>
+            <tr><td><code>catfood</code></td><td>integer</td><td>No</td><td>Target Cat Food balance</td></tr>
+            <tr><td><code>xp</code></td><td>integer</td><td>No</td><td>Target XP balance</td></tr>
+            <tr><td><code>normal_tickets</code></td><td>integer</td><td>No</td><td>Target Normal Tickets count</td></tr>
+            <tr><td><code>rare_tickets</code></td><td>integer</td><td>No</td><td>Target Rare Tickets count</td></tr>
+            <tr><td><code>platinum_tickets</code></td><td>integer</td><td>No</td><td>Target Platinum Tickets count</td></tr>
+            <tr><td><code>legend_tickets</code></td><td>integer</td><td>No</td><td>Target Legend Tickets count</td></tr>
+            <tr><td><code>platinum_shards</code></td><td>integer</td><td>No</td><td>Target Platinum Shards count</td></tr>
+            <tr><td><code>np</code></td><td>integer</td><td>No</td><td>Target NP (Cat Point) balance</td></tr>
+            <tr><td><code>leadership</code></td><td>integer</td><td>No</td><td>Target Leadership count</td></tr>
+            <tr><td><code>unlock_cats</code></td><td>boolean</td><td>No</td><td>Unlock all obtainable characters</td></tr>
+            <tr><td><code>unlock_cat_ids</code></td><td>array[int]</td><td>No</td><td>Specific Cat IDs to unlock (e.g. [0, 1, 555])</td></tr>
+            <tr><td><code>remove_cat_ids</code></td><td>array[int]</td><td>No</td><td>Specific Cat IDs to lock/remove</td></tr>
+            <tr><td><code>clear_all_stages</code></td><td>boolean</td><td>No</td><td>Clear all story chapters & Aku Realm</td></tr>
+            <tr><td><code>clear_chapters</code></td><td>array[int]</td><td>No</td><td>Specific chapter IDs to clear (0=Eo1, 1=Eo2, 2=Eo3, 3=It1, 4=It2, 5=It3, 6=Co1, 7=Co2, 8=Co3, 9=Aku)</td></tr>
+            <tr><td><code>clear_stages</code></td><td>array[obj]</td><td>No</td><td>Specific stages to clear (e.g. [{"chapter": 0, "stage": 47}])</td></tr>
+            <tr><td><code>max_treasures</code></td><td>boolean</td><td>No</td><td>Set all story chapter treasures to Gold (Superior)</td></tr>
+            <tr><td><code>max_chapter_treasures</code></td><td>array[int]</td><td>No</td><td>Specific chapter IDs to max treasures to Gold</td></tr>
+            <tr><td><code>stage_treasures</code></td><td>array[obj]</td><td>No</td><td>Specific stage treasure quality (1=Inferior/조잡, 2=Normal/보통, 3=Superior/Gold/최고)</td></tr>
+            <tr><td><code>enable_safety</code></td><td>boolean</td><td>No</td><td>Enable ban safety limit clamping</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Response Example (200 OK)</h4>
+      <pre class="code-block"><code>{
+  "success": true,
+  "message": "Save modified and uploaded successfully.",
+  "new_transfer_code": "9z8y7x6w5",
+  "new_confirmation_code": "5678"
+}</code></pre>
+
+      <h4>cURL Example</h4>
+      <pre class="code-block"><code>curl -X POST "https://battle-cats-save-file-editor-api.vercel.app/edit" \\
+     -H "Content-Type: application/json" \\
+     -d '{
+           "transfer_code": "1a2b3c4d5",
+           "confirmation_code": "1234",
+           "country_code": "kr",
+           "catfood": 45000,
+           "unlock_cats": true,
+           "max_treasures": true
+         }'</code></pre>
+    </article>
+  </section>
+
+  <!-- Interactive Swagger UI Container -->
+  <section class="doc-section">
+    <h2 class="section-heading">Interactive API Playground (Swagger UI)</h2>
+    <div id="swagger-ui"></div>
+  </section>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
