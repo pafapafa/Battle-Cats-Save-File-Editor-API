@@ -145,8 +145,8 @@ Applies target modifications, syncs server managed items, and issues new transfe
 {
   "success": true,
   "message": "Save modified and uploaded successfully.",
-  "new_transfer_code": "9z8y7x6w5",
-  "new_confirmation_code": "5678"
+  "transfer_code": "9z8y7x6w5",
+  "confirmation_code": "5678"
 }
 ```
 

@@ -1071,10 +1071,6 @@ def edit_save():
         "message": "Save modified and uploaded successfully.",
         "transfer_code": new_t,
         "confirmation_code": new_c,
-        "new_transfer_code": new_t,
-        "new_confirmation_code": new_c,
-        "tc": new_t,
-        "cc": new_c,
         "details": res,
     })
 
