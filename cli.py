@@ -288,10 +288,10 @@ def select_country_code() -> str | None:
         localize("country_kr"),
         localize("country_tw"),
     ]
-    idx = single_select(options, localize("select_country_code") + " ")
-    if idx is None:
+    selected_index = single_select(options, localize("select_country_code") + " ")
+    if selected_index is None:
         return None
-    return COUNTRY_CODES[idx]
+    return COUNTRY_CODES[selected_index]
 
 
 # ──────────────────────────────────────────────────────
@@ -299,55 +299,55 @@ def select_country_code() -> str | None:
 # ──────────────────────────────────────────────────────
 
 def download_save() -> dict | None:
-    tc = cinput(localize("enter_transfer_code"))
-    if not tc:
+    transfer_code = cinput(localize("enter_transfer_code"))
+    if not transfer_code:
         return None
 
-    cc_code = cinput(localize("enter_confirmation_code"))
-    if not cc_code:
+    confirmation_code = cinput(localize("enter_confirmation_code"))
+    if not confirmation_code:
         return None
 
-    country = select_country_code()
-    if country is None:
+    country_code = select_country_code()
+    if country_code is None:
         return None
 
     cprint(localize("downloading_save"), YELLOW)
 
     try:
-        r = requests.post(
+        api_response = requests.post(
             f"{API_URL}/info",
             json={
-                "transfer_code": tc,
-                "confirmation_code": cc_code,
-                "country_code": country,
+                "transfer_code": transfer_code,
+                "confirmation_code": confirmation_code,
+                "country_code": country_code,
             },
             timeout=30,
         )
-        data = r.json()
-    except Exception as e:
-        cprint(f"{localize('connection_error')}: {e}", RED)
+        response_data = api_response.json()
+    except Exception as connection_error:
+        cprint(f"{localize('connection_error')}: {connection_error}", RED)
         return None
 
-    if not data.get("success"):
+    if not response_data.get("success"):
         cprint(localize("invalid_codes"), RED)
         return None
 
     cprint(localize("save_downloaded"), GREEN)
 
     return {
-        "transfer_code": tc,
-        "confirmation_code": cc_code,
-        "country_code": country,
-        "game_version": data.get("game_version", 0),
-        "catfood": data.get("catfood", 0),
-        "xp": data.get("xp", 0),
-        "normal_tickets": data.get("normal_tickets", 0),
-        "rare_tickets": data.get("rare_tickets", 0),
-        "platinum_tickets": data.get("platinum_tickets", 0),
-        "legend_tickets": data.get("legend_tickets", 0),
-        "platinum_shards": data.get("platinum_shards", 0),
-        "np": data.get("np", 0),
-        "leadership": data.get("leadership", 0),
+        "transfer_code": transfer_code,
+        "confirmation_code": confirmation_code,
+        "country_code": country_code,
+        "game_version": response_data.get("game_version", 0),
+        "catfood": response_data.get("catfood", 0),
+        "xp": response_data.get("xp", 0),
+        "normal_tickets": response_data.get("normal_tickets", 0),
+        "rare_tickets": response_data.get("rare_tickets", 0),
+        "platinum_tickets": response_data.get("platinum_tickets", 0),
+        "legend_tickets": response_data.get("legend_tickets", 0),
+        "platinum_shards": response_data.get("platinum_shards", 0),
+        "np": response_data.get("np", 0),
+        "leadership": response_data.get("leadership", 0),
     }
 
 
