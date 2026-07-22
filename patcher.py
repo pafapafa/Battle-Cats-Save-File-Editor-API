@@ -86,8 +86,6 @@ def patch_and_upload_save(
     # Safety
     enable_safety: bool = False,
     save_file: Any = None,
-    country_code_str: Optional[str] = None,
-    country_code_name: Optional[str] = None,
     **kwargs: Any,
 ) -> Tuple[Dict[str, Any], Optional[Tuple[str, str]]]:
     if enable_safety:
