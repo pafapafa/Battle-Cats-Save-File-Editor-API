@@ -952,73 +952,73 @@ def health_check():
 
 @app.route("/info", methods=["POST"])
 def inspect_save():
-    request_payload = request.get_json(silent=True) or {}
-    transfer_code = str(request_payload.get("transfer_code", "")).strip()
-    confirmation_code = str(request_payload.get("confirmation_code", "")).strip()
-    country_code = str(request_payload.get("country_code", "")).strip()
+    data = request.get_json(silent=True) or {}
+    tc = str(data.get("transfer_code") or data.get("tc") or "").strip()
+    cc = str(data.get("confirmation_code") or data.get("cc") or data.get("confirmation_pin") or "").strip()
+    country = str(data.get("country_code") or data.get("country") or data.get("cc_str") or "").strip()
 
-    if not validate_inputs(transfer_code, confirmation_code) or not country_code:
+    if not validate_inputs(tc, cc) or not country:
         return jsonify({"success": False, "message": "transfer_code, confirmation_code, and country_code are required."}), 400
 
-    save_file, server_handler = download_ponos_save(transfer_code, confirmation_code, country_code)
-    if save_file is None:
+    sf, sh = download_ponos_save(tc, cc, country)
+    if sf is None:
         return jsonify({"success": False, "message": "Invalid or expired transfer code / PIN."}), 400
 
-    game_version = getattr(getattr(save_file, "game_version", None), "game_version", 140300)
+    gv = getattr(getattr(sf, "game_version", None), "game_version", 140300)
 
     return jsonify({
         "success": True,
         "message": "Save info retrieved successfully.",
-        "game_version": game_version,
-        "catfood": getattr(save_file, "catfood", 0),
-        "xp": getattr(save_file, "xp", 0),
-        "normal_tickets": getattr(save_file, "normal_tickets", 0),
-        "rare_tickets": getattr(save_file, "rare_tickets", 0),
-        "platinum_tickets": getattr(save_file, "platinum_tickets", 0),
-        "legend_tickets": getattr(save_file, "legend_tickets", 0),
-        "platinum_shards": getattr(save_file, "platinum_shards", 0),
-        "np": getattr(save_file, "np", 0),
-        "leadership": getattr(save_file, "leadership", 0),
+        "game_version": gv,
+        "catfood": getattr(sf, "catfood", 0),
+        "xp": getattr(sf, "xp", 0),
+        "normal_tickets": getattr(sf, "normal_tickets", 0),
+        "rare_tickets": getattr(sf, "rare_tickets", 0),
+        "platinum_tickets": getattr(sf, "platinum_tickets", 0),
+        "legend_tickets": getattr(sf, "legend_tickets", 0),
+        "platinum_shards": getattr(sf, "platinum_shards", 0),
+        "np": getattr(sf, "np", 0),
+        "leadership": getattr(sf, "leadership", 0),
     })
 
 
 @app.route("/edit", methods=["POST"])
 def edit_save():
-    request_payload = request.get_json(silent=True) or {}
-    transfer_code = str(request_payload.get("transfer_code", "")).strip()
-    confirmation_code = str(request_payload.get("confirmation_code", "")).strip()
-    country_code = str(request_payload.get("country_code", "")).strip()
+    data = request.get_json(silent=True) or {}
+    tc = str(data.get("transfer_code") or data.get("tc") or "").strip()
+    cc = str(data.get("confirmation_code") or data.get("cc") or data.get("confirmation_pin") or "").strip()
+    country = str(data.get("country_code") or data.get("country") or data.get("cc_str") or "").strip()
 
     # Currencies & items
-    catfood = request_payload.get("catfood")
-    xp = request_payload.get("xp")
-    normal_tickets = request_payload.get("normal_tickets")
-    rare_tickets = request_payload.get("rare_tickets")
-    platinum_tickets = request_payload.get("platinum_tickets")
-    legend_tickets = request_payload.get("legend_tickets")
-    platinum_shards = request_payload.get("platinum_shards")
-    np = request_payload.get("np")
-    leadership = request_payload.get("leadership")
+    catfood = data.get("catfood")
+    xp = data.get("xp")
+    normal_tickets = data.get("normal_tickets")
+    rare_tickets = data.get("rare_tickets")
+    platinum_tickets = data.get("platinum_tickets")
+    legend_tickets = data.get("legend_tickets")
+    platinum_shards = data.get("platinum_shards")
+    np = data.get("np")
+    leadership = data.get("leadership")
 
     # Cats
-    unlock_cats = bool(request_payload.get("unlock_cats", False))
-    unlock_cat_ids = request_payload.get("unlock_cat_ids")
-    remove_cat_ids = request_payload.get("remove_cat_ids")
+    unlock_cats = bool(data.get("unlock_cats", False))
+    unlock_cat_ids = data.get("unlock_cat_ids")
+    remove_cat_ids = data.get("remove_cat_ids")
 
     # Stages
-    clear_all_stages = bool(request_payload.get("clear_all_stages", False))
-    clear_chapters = request_payload.get("clear_chapters")
-    clear_stages = request_payload.get("clear_stages")
+    clear_all_stages = bool(data.get("clear_all_stages", False))
+    clear_chapters = data.get("clear_chapters")
+    clear_stages = data.get("clear_stages")
 
     # Treasures
-    max_treasures = bool(request_payload.get("max_treasures", False))
-    max_chapter_treasures = request_payload.get("max_chapter_treasures")
-    stage_treasures = request_payload.get("stage_treasures")
+    max_treasures = bool(data.get("max_treasures", False))
+    max_chapter_treasures = data.get("max_chapter_treasures")
+    stage_treasures = data.get("stage_treasures")
 
     # Safety
-    enable_safety = bool(request_payload.get("enable_safety", False))
+    enable_safety = bool(data.get("enable_safety", False))
 
-    if not validate_inputs(transfer_code, confirmation_code) or not country_code:
+    if not validate_inputs(tc, cc) or not country:
         return jsonify({"success": False, "message": "transfer_code, confirmation_code, and country_code are required."}), 400
 
     has_any_edit = any([
@@ -1033,14 +1033,14 @@ def edit_save():
     if not has_any_edit:
         return jsonify({"success": False, "message": "At least one modification value or flag must be specified."}), 400
 
-    save_file, server_handler = download_ponos_save(transfer_code, confirmation_code, country_code)
-    if save_file is None:
+    sf, sh = download_ponos_save(tc, cc, country)
+    if sf is None:
         return jsonify({"success": False, "message": "Invalid or expired transfer code / PIN."}), 400
 
-    modification_results, issued_credentials = patch_and_upload_save(
-        save_file=save_file,
-        server_handler=server_handler,
-        country_code_str=country_code,
+    res, codes = patch_and_upload_save(
+        save_file=sf,
+        server_handler=sh,
+        cc_str=country,
         catfood=catfood,
         xp=xp,
         normal_tickets=normal_tickets,
@@ -1062,17 +1062,19 @@ def edit_save():
         enable_safety=enable_safety,
     )
 
-    if issued_credentials is None:
+    if codes is None:
         return jsonify({"success": False, "message": "Failed to re-upload modified save to PONOS servers."}), 502
 
-    new_transfer_code, new_confirmation_code = issued_credentials
+    new_t, new_c = codes
     return jsonify({
         "success": True,
         "message": "Save modified and uploaded successfully.",
-        "transfer_code": new_transfer_code,
-        "confirmation_code": new_confirmation_code,
-        "new_transfer_code": new_transfer_code,
-        "new_confirmation_code": new_confirmation_code,
-        "details": modification_results,
+        "transfer_code": new_t,
+        "confirmation_code": new_c,
+        "new_transfer_code": new_t,
+        "new_confirmation_code": new_c,
+        "tc": new_t,
+        "cc": new_c,
+        "details": res,
     })
 
