@@ -16,26 +16,26 @@ try:
 except ImportError:
     core = None
 
-INT32_MAX = 2_147_483_647
-SAFE_CATFOOD_MAX = 45_000
-SAFE_XP_MAX = 99_999_999
+MAXIMUM_32BIT_INTEGER = 2_147_483_647
+MAXIMUM_SAFE_CATFOOD = 45_000
+MAXIMUM_SAFE_EXPERIENCE = 99_999_999
 
 
-def _get_country_code(country_code_str: str):
+def parse_country_code(country_code_name: str):
     if core is None:
-        return country_code_str
+        return country_code_name
     try:
-        return core.CountryCode.from_code(country_code_str.lower())
+        return core.CountryCode.from_code(country_code_name.lower())
     except Exception:
         return core.CountryCode.from_code("kr")
 
 
-def download_ponos_save(transfer_code: str, confirmation_code: str, country_code_str: str = "kr"):
+def download_ponos_save(transfer_code: str, confirmation_code: str, country_code_name: str = "kr"):
     if core is None:
         return None, None
 
     try:
-        country_code = _get_country_code(country_code_str)
+        country_code = parse_country_code(country_code_name)
         game_version = core.GameVersion(140300)
 
         # Call official bcsfe ServerHandler.from_codes
@@ -60,7 +60,7 @@ def download_ponos_save(transfer_code: str, confirmation_code: str, country_code
 def patch_and_upload_save(
     save_file_or_bytes: Any = None,
     server_handler: Any = None,
-    country_code_str: str = "kr",
+    country_code_name: str = "kr",
     # Currencies & Items
     catfood: Optional[int] = None,
     xp: Optional[int] = None,
@@ -87,12 +87,13 @@ def patch_and_upload_save(
     enable_safety: bool = False,
     save_file: Any = None,
     cc_str: Optional[str] = None,
+    country_code_str: Optional[str] = None,
 ) -> Tuple[Dict[str, Any], Optional[Tuple[str, str]]]:
     if enable_safety:
         if catfood is not None:
-            catfood = min(catfood, SAFE_CATFOOD_MAX)
+            catfood = min(catfood, MAXIMUM_SAFE_CATFOOD)
         if xp is not None:
-            xp = min(xp, SAFE_XP_MAX)
+            xp = min(xp, MAXIMUM_SAFE_EXPERIENCE)
 
     target_save_file = getattr(server_handler, "save_file", None) or save_file or save_file_or_bytes
 
@@ -107,56 +108,56 @@ def patch_and_upload_save(
     # 1. Modify currency & basic item fields safely
     if catfood is not None:
         try:
-            target_save_file.catfood = max(0, min(int(catfood), INT32_MAX))
+            target_save_file.catfood = max(0, min(int(catfood), MAXIMUM_32BIT_INTEGER))
             modification_results["new_catfood"] = target_save_file.catfood
         except Exception as exception_error:
             print(f"catfood patch error: {exception_error}")
 
     if xp is not None:
         try:
-            target_save_file.xp = max(0, min(int(xp), INT32_MAX))
+            target_save_file.xp = max(0, min(int(xp), MAXIMUM_32BIT_INTEGER))
             modification_results["new_xp"] = target_save_file.xp
         except Exception as exception_error:
             print(f"xp patch error: {exception_error}")
 
     if normal_tickets is not None and hasattr(target_save_file, "normal_tickets"):
         try:
-            target_save_file.normal_tickets = max(0, min(int(normal_tickets), INT32_MAX))
+            target_save_file.normal_tickets = max(0, min(int(normal_tickets), MAXIMUM_32BIT_INTEGER))
             modification_results["new_normal_tickets"] = target_save_file.normal_tickets
         except Exception as exception_error:
             print(f"normal_tickets patch error: {exception_error}")
 
     if rare_tickets is not None:
         try:
-            target_save_file.rare_tickets = max(0, min(int(rare_tickets), INT32_MAX))
+            target_save_file.rare_tickets = max(0, min(int(rare_tickets), MAXIMUM_32BIT_INTEGER))
             modification_results["new_rare_tickets"] = target_save_file.rare_tickets
         except Exception as exception_error:
             print(f"rare_tickets patch error: {exception_error}")
 
     if platinum_tickets is not None:
         try:
-            target_save_file.platinum_tickets = max(0, min(int(platinum_tickets), INT32_MAX))
+            target_save_file.platinum_tickets = max(0, min(int(platinum_tickets), MAXIMUM_32BIT_INTEGER))
             modification_results["new_platinum_tickets"] = target_save_file.platinum_tickets
         except Exception as exception_error:
             print(f"platinum_tickets patch error: {exception_error}")
 
     if legend_tickets is not None:
         try:
-            target_save_file.legend_tickets = max(0, min(int(legend_tickets), INT32_MAX))
+            target_save_file.legend_tickets = max(0, min(int(legend_tickets), MAXIMUM_32BIT_INTEGER))
             modification_results["new_legend_tickets"] = target_save_file.legend_tickets
         except Exception as exception_error:
             print(f"legend_tickets patch error: {exception_error}")
 
     if platinum_shards is not None and hasattr(target_save_file, "platinum_shards"):
         try:
-            target_save_file.platinum_shards = max(0, min(int(platinum_shards), INT32_MAX))
+            target_save_file.platinum_shards = max(0, min(int(platinum_shards), MAXIMUM_32BIT_INTEGER))
             modification_results["new_platinum_shards"] = target_save_file.platinum_shards
         except Exception as exception_error:
             print(f"platinum_shards patch error: {exception_error}")
 
     if np is not None and hasattr(target_save_file, "np"):
         try:
-            target_save_file.np = max(0, min(int(np), INT32_MAX))
+            target_save_file.np = max(0, min(int(np), MAXIMUM_32BIT_INTEGER))
             modification_results["new_np"] = target_save_file.np
         except Exception as exception_error:
             print(f"np patch error: {exception_error}")
