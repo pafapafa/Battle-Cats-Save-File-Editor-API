@@ -1069,6 +1069,8 @@ def edit_save():
     return jsonify({
         "success": True,
         "message": "Save modified and uploaded successfully.",
+        "transfer_code": new_t,
+        "confirmation_code": new_c,
         "new_transfer_code": new_t,
         "new_confirmation_code": new_c,
         "details": result,
