@@ -58,9 +58,9 @@ def download_ponos_save(transfer_code: str, confirmation_code: str, cc_str: str 
 
 
 def patch_and_upload_save(
-    save_file_or_bytes: Any,
-    server_handler: Any,
-    cc_str: str,
+    save_file_or_bytes: Any = None,
+    server_handler: Any = None,
+    cc_str: str = "kr",
     # Currencies & Items
     catfood: Optional[int] = None,
     xp: Optional[int] = None,
@@ -85,6 +85,7 @@ def patch_and_upload_save(
     stage_treasures: Optional[List[Dict[str, int]]] = None,
     # Safety
     enable_safety: bool = False,
+    save_file: Any = None,
 ) -> Tuple[Dict[str, Any], Optional[Tuple[str, str]]]:
     if enable_safety:
         if catfood is not None:
@@ -92,11 +93,11 @@ def patch_and_upload_save(
         if xp is not None:
             xp = min(xp, SAFE_XP_MAX)
 
-    if server_handler is None or not hasattr(server_handler, "save_file"):
-        return {}, None
-
     sh = server_handler
-    sf = sh.save_file
+    sf = getattr(sh, "save_file", None) or save_file or save_file_or_bytes
+
+    if sh is None or sf is None:
+        return {}, None
 
     result = {
         "original_catfood": getattr(sf, "catfood", 0),
