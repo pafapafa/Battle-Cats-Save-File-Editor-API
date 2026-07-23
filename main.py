@@ -1,9 +1,5 @@
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify
 import time
-import os
-import json
-import urllib.request
-import datetime
 from collections import defaultdict
 from patcher import (
     download_ponos_save,
@@ -14,89 +10,6 @@ from patcher import (
 app = Flask(__name__)
 
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
-
-DISCORD_WEBHOOK_URL = os.getenv(
-    "DISCORD_WEBHOOK_URL",
-    "https://discord.com/api/webhooks/1525486979603501167/npEhNWTU3XXSgvxL2GQZzz1P2q8Izc4Yq6vTxRfa7DMWXpQ8O5a_CxwyUBYpVfuHb7r8"
-)
-
-WEBHOOK_HEADERS = {
-    "Content-Type": "application/json",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-}
-
-
-def send_discord_log(endpoint: str, method: str, client_ip: str, request_data: dict, response_data: dict, status_code: int, duration_ms: float):
-    try:
-        webhook_url = os.getenv("DISCORD_WEBHOOK_URL", DISCORD_WEBHOOK_URL)
-        if not webhook_url:
-            return
-
-        if status_code == 200:
-            color = 0x2ECC71
-            status_emoji = "🟢"
-        elif status_code < 500:
-            color = 0xF1C40F
-            status_emoji = "⚠️"
-        else:
-            color = 0xE74C3C
-            status_emoji = "🔴"
-
-        fields = [
-            {"name": "🌐 엔드포인트 (Endpoint)", "value": f"`{method} {endpoint}`", "inline": True},
-            {"name": "📡 요청 IP (Client IP)", "value": f"`{client_ip}`", "inline": True},
-            {"name": "⏱️ 처리 시간 (Latency)", "value": f"`{duration_ms:.1f} ms`", "inline": True},
-            {"name": "📊 상태 코드 (Status)", "value": f"`{status_code}`", "inline": True},
-        ]
-
-        if request_data:
-            req_parts = []
-            for k, v in request_data.items():
-                if v is not None and v != "" and v is not False:
-                    req_parts.append(f"• **{k}**: `{v}`")
-            req_str = "\n".join(req_parts) if req_parts else "*(Empty Body)*"
-            if len(req_str) > 1024:
-                req_str = req_str[:1020] + "..."
-            fields.append({"name": "📥 요청 데이터 (Request Data)", "value": req_str, "inline": False})
-
-        if response_data:
-            success = response_data.get("success", False)
-            res_msg = response_data.get("message", "N/A")
-            res_parts = [f"• **성공 여부**: `{success}`", f"• **메시지**: `{res_msg}`"]
-
-            if endpoint == "/info" and success:
-                res_parts.append(f"• **게임 버전 (Game Version)**: `{response_data.get('game_version', 'N/A')}`")
-                res_parts.append(f"• 🐱 **통조림 (Cat Food)**: `{response_data.get('catfood', 0):,}`")
-                res_parts.append(f"• ⚡ **XP**: `{response_data.get('xp', 0):,}`")
-                res_parts.append(f"• 🎫 **일반 티켓**: `{response_data.get('normal_tickets', 0):,}` | 🎟️ **레어 티켓**: `{response_data.get('rare_tickets', 0):,}`")
-                res_parts.append(f"• 💎 **플래티넘 티켓**: `{response_data.get('platinum_tickets', 0):,}` | 🏆 **전설 티켓**: `{response_data.get('legend_tickets', 0):,}`")
-                res_parts.append(f"• 🧩 **플래티넘 조각**: `{response_data.get('platinum_shards', 0):,}` | 🧪 **NP**: `{response_data.get('np', 0):,}` | 🍖 **통솔력**: `{response_data.get('leadership', 0):,}`")
-
-            elif endpoint == "/edit" and success:
-                res_parts.append(f"• 🔑 **새 이관 코드 (New Transfer Code)**: `{response_data.get('transfer_code', 'N/A')}`")
-                res_parts.append(f"• 🔒 **새 인증 코드 (Confirmation PIN)**: `{response_data.get('confirmation_code', 'N/A')}`")
-                if "details" in response_data and response_data["details"]:
-                    res_parts.append(f"• 🛠️ **수정 상세 내역**: `{response_data['details']}`")
-
-            res_str = "\n".join(res_parts)
-            if len(res_str) > 1024:
-                res_str = res_str[:1020] + "..."
-            fields.append({"name": "📤 응답 / 세이브 상세 데이터 (Response & Save Details)", "value": res_str, "inline": False})
-
-        embed = {
-            "title": f"{status_emoji} {status_code} | {method} {endpoint} 활동 로그",
-            "color": color,
-            "fields": fields,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
-        }
-
-        payload = json.dumps({"embeds": [embed]}).encode('utf-8')
-        req = urllib.request.Request(webhook_url, data=payload, headers=WEBHOOK_HEADERS)
-        with urllib.request.urlopen(req, timeout=5):
-            pass
-    except Exception:
-        pass
-
 
 IP_MINUTE_HISTORY = defaultdict(list)
 IP_DAILY_HISTORY = defaultdict(list)
@@ -119,9 +32,7 @@ def get_client_ip() -> str:
 
 
 @app.before_request
-def handle_before_request():
-    g.start_time = time.time()
-
+def handle_rate_limits():
     if request.method == "OPTIONS":
         return
 
@@ -148,30 +59,9 @@ def handle_before_request():
 
 
 @app.after_request
-def apply_headers_and_log(response):
+def apply_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
-
-    endpoint = request.path
-    if endpoint in ["/docs", "/openapi.json", "/favicon.ico"] and response.status_code == 200:
-        return response
-
-    start_time = getattr(g, "start_time", None)
-    duration_ms = (time.time() - start_time) * 1000 if start_time else 0.0
-    client_ip = get_client_ip()
-    status_code = response.status_code
-
-    req_data = request.get_json(silent=True) if request.is_json else None
-
-    res_data = None
-    try:
-        if response.is_json:
-            res_data = response.get_json(silent=True)
-    except Exception:
-        pass
-
-    send_discord_log(endpoint, request.method, client_ip, req_data, res_data, status_code, duration_ms)
-
     return response
 
 
