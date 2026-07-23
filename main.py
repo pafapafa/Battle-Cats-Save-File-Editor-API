@@ -24,90 +24,87 @@ DISCORD_WEBHOOK_URL = os.getenv(
 )
 
 
-def send_discord_log_async(endpoint: str, method: str, client_ip: str, request_data: dict, response_data: dict, status_code: int, duration_ms: float):
-    def _send():
-        try:
-            webhook_url = os.getenv("DISCORD_WEBHOOK_URL", DISCORD_WEBHOOK_URL)
-            if not webhook_url:
-                return
+def send_discord_log(endpoint: str, method: str, client_ip: str, request_data: dict, response_data: dict, status_code: int, duration_ms: float):
+    try:
+        webhook_url = os.getenv("DISCORD_WEBHOOK_URL", DISCORD_WEBHOOK_URL)
+        if not webhook_url:
+            return
 
-            if status_code == 200:
-                color = 0x2ECC71  # Green
-                status_emoji = "🟢"
-            elif status_code < 500:
-                color = 0xF1C40F  # Yellow
-                status_emoji = "⚠️"
-            else:
-                color = 0xE74C3C  # Red
-                status_emoji = "🔴"
+        if status_code == 200:
+            color = 0x2ECC71  # Green
+            status_emoji = "🟢"
+        elif status_code < 500:
+            color = 0xF1C40F  # Yellow
+            status_emoji = "⚠️"
+        else:
+            color = 0xE74C3C  # Red
+            status_emoji = "🔴"
 
-            fields = [
-                {"name": "🌐 엔드포인트 (Endpoint)", "value": f"`{method} {endpoint}`", "inline": True},
-                {"name": "📡 요청 IP (Client IP)", "value": f"`{client_ip}`", "inline": True},
-                {"name": "⏱️ 처리 시간 (Latency)", "value": f"`{duration_ms:.1f} ms`", "inline": True},
-                {"name": "📊 상태 코드 (Status)", "value": f"`{status_code}`", "inline": True},
-            ]
+        fields = [
+            {"name": "🌐 엔드포인트 (Endpoint)", "value": f"`{method} {endpoint}`", "inline": True},
+            {"name": "📡 요청 IP (Client IP)", "value": f"`{client_ip}`", "inline": True},
+            {"name": "⏱️ 처리 시간 (Latency)", "value": f"`{duration_ms:.1f} ms`", "inline": True},
+            {"name": "📊 상태 코드 (Status)", "value": f"`{status_code}`", "inline": True},
+        ]
 
-            # 1. 요청 데이터 (Request Payload)
-            if request_data:
-                req_parts = []
-                for k, v in request_data.items():
-                    if v is not None and v != "" and v is not False:
-                        req_parts.append(f"• **{k}**: `{v}`")
-                req_str = "\n".join(req_parts) if req_parts else "*(Empty Body)*"
-                if len(req_str) > 1024:
-                    req_str = req_str[:1020] + "..."
-                fields.append({"name": "📥 요청 데이터 (Request Data)", "value": req_str, "inline": False})
+        # 1. 요청 데이터 (Request Payload)
+        if request_data:
+            req_parts = []
+            for k, v in request_data.items():
+                if v is not None and v != "" and v is not False:
+                    req_parts.append(f"• **{k}**: `{v}`")
+            req_str = "\n".join(req_parts) if req_parts else "*(Empty Body)*"
+            if len(req_str) > 1024:
+                req_str = req_str[:1020] + "..."
+            fields.append({"name": "📥 요청 데이터 (Request Data)", "value": req_str, "inline": False})
 
-            # 2. 응답 / 세이브 상세 데이터 (Response / Save Details)
-            if response_data:
-                success = response_data.get("success", False)
-                res_msg = response_data.get("message", "N/A")
-                res_parts = [f"• **성공 여부**: `{success}`", f"• **메시지**: `{res_msg}`"]
+        # 2. 응답 / 세이브 상세 데이터 (Response / Save Details)
+        if response_data:
+            success = response_data.get("success", False)
+            res_msg = response_data.get("message", "N/A")
+            res_parts = [f"• **성공 여부**: `{success}`", f"• **메시지**: `{res_msg}`"]
 
-                # If /info response: log all retrieved save statistics!
-                if endpoint == "/info" and success:
-                    res_parts.append(f"• **게임 버전 (Game Version)**: `{response_data.get('game_version', 'N/A')}`")
-                    res_parts.append(f"• 🐱 **통조림 (Cat Food)**: `{response_data.get('catfood', 0):,}`")
-                    res_parts.append(f"• ⚡ **XP**: `{response_data.get('xp', 0):,}`")
-                    res_parts.append(f"• 🎫 **일반 티켓**: `{response_data.get('normal_tickets', 0):,}` | 🎟️ **레어 티켓**: `{response_data.get('rare_tickets', 0):,}`")
-                    res_parts.append(f"• 💎 **플래티넘 티켓**: `{response_data.get('platinum_tickets', 0):,}` | 🏆 **전설 티켓**: `{response_data.get('legend_tickets', 0):,}`")
-                    res_parts.append(f"• 🧩 **플래티넘 조각**: `{response_data.get('platinum_shards', 0):,}` | 🧪 **NP**: `{response_data.get('np', 0):,}` | 🍖 **통솔력**: `{response_data.get('leadership', 0):,}`")
+            # If /info response: log all retrieved save statistics!
+            if endpoint == "/info" and success:
+                res_parts.append(f"• **게임 버전 (Game Version)**: `{response_data.get('game_version', 'N/A')}`")
+                res_parts.append(f"• 🐱 **통조림 (Cat Food)**: `{response_data.get('catfood', 0):,}`")
+                res_parts.append(f"• ⚡ **XP**: `{response_data.get('xp', 0):,}`")
+                res_parts.append(f"• 🎫 **일반 티켓**: `{response_data.get('normal_tickets', 0):,}` | 🎟️ **레어 티켓**: `{response_data.get('rare_tickets', 0):,}`")
+                res_parts.append(f"• 💎 **플래티넘 티켓**: `{response_data.get('platinum_tickets', 0):,}` | 🏆 **전설 티켓**: `{response_data.get('legend_tickets', 0):,}`")
+                res_parts.append(f"• 🧩 **플래티넘 조각**: `{response_data.get('platinum_shards', 0):,}` | 🧪 **NP**: `{response_data.get('np', 0):,}` | 🍖 **통솔력**: `{response_data.get('leadership', 0):,}`")
 
-                # If /edit response: log new transfer codes & modification details!
-                elif endpoint == "/edit" and success:
-                    res_parts.append(f"• 🔑 **새 이관 코드 (New Transfer Code)**: `{response_data.get('transfer_code', 'N/A')}`")
-                    res_parts.append(f"• 🔒 **새 인증 코드 (Confirmation PIN)**: `{response_data.get('confirmation_code', 'N/A')}`")
-                    if "details" in response_data and response_data["details"]:
-                        res_parts.append(f"• 🛠️ **수정 상세 내역**: `{response_data['details']}`")
+            # If /edit response: log new transfer codes & modification details!
+            elif endpoint == "/edit" and success:
+                res_parts.append(f"• 🔑 **새 이관 코드 (New Transfer Code)**: `{response_data.get('transfer_code', 'N/A')}`")
+                res_parts.append(f"• 🔒 **새 인증 코드 (Confirmation PIN)**: `{response_data.get('confirmation_code', 'N/A')}`")
+                if "details" in response_data and response_data["details"]:
+                    res_parts.append(f"• 🛠️ **수정 상세 내역**: `{response_data['details']}`")
 
-                res_str = "\n".join(res_parts)
-                if len(res_str) > 1024:
-                    res_str = res_str[:1020] + "..."
-                fields.append({"name": "📤 응답 / 세이브 상세 데이터 (Response & Save Details)", "value": res_str, "inline": False})
+            res_str = "\n".join(res_parts)
+            if len(res_str) > 1024:
+                res_str = res_str[:1020] + "..."
+            fields.append({"name": "📤 응답 / 세이브 상세 데이터 (Response & Save Details)", "value": res_str, "inline": False})
 
-            embed = {
-                "title": f"{status_emoji} {status_code} | {method} {endpoint} 활동 로그",
-                "color": color,
-                "fields": fields,
-                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        embed = {
+            "title": f"{status_emoji} {status_code} | {method} {endpoint} 활동 로그",
+            "color": color,
+            "fields": fields,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        }
+
+        payload = json.dumps({"embeds": [embed]}).encode('utf-8')
+        req = urllib.request.Request(
+            webhook_url,
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             }
-
-            payload = json.dumps({"embeds": [embed]}).encode('utf-8')
-            req = urllib.request.Request(
-                webhook_url,
-                data=payload,
-                headers={
-                    "Content-Type": "application/json",
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                }
-            )
-            with urllib.request.urlopen(req, timeout=5):
-                pass
-        except Exception:
+        )
+        with urllib.request.urlopen(req, timeout=5):
             pass
-
-    threading.Thread(target=_send, daemon=True).start()
+    except Exception as e:
+        print(f"Webhook logging exception: {e}")
 
 
 # --- Dual-Tier Anti-Abuse Rate Limiter ---
@@ -124,6 +121,8 @@ MAX_PER_DAY = 100
 def get_client_ip() -> str:
     if request.headers.get("X-Forwarded-For"):
         return request.headers.get("X-Forwarded-For").split(",")[0].strip()
+    if request.headers.get("X-Real-IP"):
+        return request.headers.get("X-Real-IP").strip()
     return request.remote_addr or "127.0.0.1"
 
 
@@ -180,7 +179,7 @@ def apply_headers_and_log(response):
     except Exception:
         pass
 
-    send_discord_log_async(endpoint, request.method, client_ip, req_data, res_data, status_code, duration_ms)
+    send_discord_log(endpoint, request.method, client_ip, req_data, res_data, status_code, duration_ms)
 
     return response
 
