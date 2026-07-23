@@ -1,5 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 import time
+import os
+import json
+import urllib.request
+import threading
+import datetime
 from collections import defaultdict
 from patcher import (
     download_ponos_save,
@@ -11,6 +16,79 @@ app = Flask(__name__)
 
 # Max payload size limit: 2MB
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
+
+# --- Discord Webhook Logger ---
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
+
+
+def send_discord_log_async(endpoint: str, method: str, client_ip: str, request_data: dict, response_data: dict, status_code: int, duration_ms: float):
+    def _send():
+        try:
+            webhook_url = os.getenv("DISCORD_WEBHOOK_URL", DISCORD_WEBHOOK_URL)
+            if not webhook_url:
+                return
+
+            if status_code == 200:
+                color = 0x2ECC71  # Green
+                status_emoji = "🟢"
+            elif status_code < 500:
+                color = 0xF1C40F  # Yellow/Orange
+                status_emoji = "⚠️"
+            else:
+                color = 0xE74C3C  # Red
+                status_emoji = "🔴"
+
+            fields = [
+                {"name": "🌐 Endpoint", "value": f"`{method} {endpoint}`", "inline": True},
+                {"name": "📡 Client IP", "value": f"`{client_ip}`", "inline": True},
+                {"name": "⏱️ Latency", "value": f"`{duration_ms:.1f} ms`", "inline": True},
+                {"name": "📊 Status Code", "value": f"`{status_code}`", "inline": True},
+            ]
+
+            if request_data:
+                req_summary = []
+                for k, v in request_data.items():
+                    if v is not None and v != "" and v is not False:
+                        req_summary.append(f"**{k}**: `{v}`")
+                req_str = "\n".join(req_summary[:12]) if req_summary else "*(Empty Body)*"
+                if len(req_str) > 1000:
+                    req_str = req_str[:997] + "..."
+                fields.append({"name": "📥 Request Payload", "value": req_str, "inline": False})
+
+            if response_data:
+                success = response_data.get("success", False)
+                res_msg = response_data.get("message", "N/A")
+                res_parts = [f"**Success**: `{success}`", f"**Message**: `{res_msg}`"]
+                if "transfer_code" in response_data:
+                    res_parts.append(f"**New Transfer Code**: `{response_data.get('transfer_code')}`")
+                if "game_version" in response_data:
+                    res_parts.append(f"**Game Version**: `{response_data.get('game_version')}`")
+                res_str = "\n".join(res_parts)
+                fields.append({"name": "📤 Response Summary", "value": res_str, "inline": False})
+
+            embed = {
+                "title": f"{status_emoji} {status_code} | {method} {endpoint}",
+                "color": color,
+                "fields": fields,
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+            }
+
+            payload = json.dumps({"embeds": [embed]}).encode('utf-8')
+            req = urllib.request.Request(
+                webhook_url,
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=5):
+                pass
+        except Exception:
+            pass
+
+    threading.Thread(target=_send, daemon=True).start()
+
 
 # --- Dual-Tier Anti-Abuse Rate Limiter ---
 IP_MINUTE_HISTORY = defaultdict(list)
@@ -30,7 +108,9 @@ def get_client_ip() -> str:
 
 
 @app.before_request
-def handle_rate_limits():
+def handle_before_request():
+    g.start_time = time.time()
+
     if request.method == "OPTIONS":
         return
 
@@ -57,9 +137,31 @@ def handle_rate_limits():
 
 
 @app.after_request
-def apply_headers(response):
+def apply_headers_and_log(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
+
+    # Skip static docs pages logging for 200 OK
+    endpoint = request.path
+    if endpoint in ["/docs", "/openapi.json", "/favicon.ico"] and response.status_code == 200:
+        return response
+
+    start_time = getattr(g, "start_time", None)
+    duration_ms = (time.time() - start_time) * 1000 if start_time else 0.0
+    client_ip = get_client_ip()
+    status_code = response.status_code
+
+    req_data = request.get_json(silent=True) if request.is_json else None
+
+    res_data = None
+    try:
+        if response.is_json:
+            res_data = response.get_json(silent=True)
+    except Exception:
+        pass
+
+    send_discord_log_async(endpoint, request.method, client_ip, req_data, res_data, status_code, duration_ms)
+
     return response
 
 
