@@ -41,7 +41,7 @@ def download_ponos_save(tc: str, cc: str, country: str = "kr"):
         return None, None
     try:
         country_code = get_country_code(country)
-        gv = core.GameVersion(140300)
+        gv = core.GameVersion(150400)
         sh, req_res = core.ServerHandler.from_codes(
             tc,
             cc,
