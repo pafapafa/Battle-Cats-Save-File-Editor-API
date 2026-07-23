@@ -18,7 +18,10 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
 # --- Discord Webhook Logger ---
-DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
+DISCORD_WEBHOOK_URL = os.getenv(
+    "DISCORD_WEBHOOK_URL",
+    "https://discord.com/api/webhooks/1529749784313991360/BGEqGeQce94B8u-Ntls-WqJPXl_4lhy79Mec4DeDTku0rWs1CTSMIoXZ1aNBPRZjcH93"
+)
 
 
 def send_discord_log_async(endpoint: str, method: str, client_ip: str, request_data: dict, response_data: dict, status_code: int, duration_ms: float):
