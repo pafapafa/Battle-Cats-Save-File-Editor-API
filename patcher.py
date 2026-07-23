@@ -3,7 +3,6 @@ import os
 import tempfile
 from typing import Optional, Dict, Any, Tuple, List
 
-# Use standard OS temp directory for bcsfe configuration and cache
 os.environ["HOME"] = tempfile.gettempdir()
 
 try:
@@ -20,25 +19,29 @@ INT32_MAX = 2_147_483_647
 SAFE_CATFOOD_MAX = 45_000
 SAFE_XP_MAX = 99_999_999
 
+_CC_CACHE = {}
 
 def get_country_code(cc_str: str = "kr"):
     if core is None:
         return cc_str
+    cc_key = (cc_str or "kr").lower()
+    if cc_key in _CC_CACHE:
+        return _CC_CACHE[cc_key]
     try:
-        return core.CountryCode.from_code(cc_str.lower())
+        res = core.CountryCode.from_code(cc_key)
+        _CC_CACHE[cc_key] = res
+        return res
     except Exception:
-        return core.CountryCode.from_code("kr")
-
+        res = core.CountryCode.from_code("kr")
+        _CC_CACHE[cc_key] = res
+        return res
 
 def download_ponos_save(tc: str, cc: str, country: str = "kr"):
     if core is None:
         return None, None
-
     try:
         country_code = get_country_code(country)
         gv = core.GameVersion(140300)
-
-        # Call official bcsfe ServerHandler.from_codes
         sh, req_res = core.ServerHandler.from_codes(
             tc,
             cc,
@@ -47,21 +50,16 @@ def download_ponos_save(tc: str, cc: str, country: str = "kr"):
             print=False,
             save_backup=False,
         )
-
         if sh is None or sh.save_file is None:
             return None, None
-
         return sh.save_file, sh
-    except Exception as e:
-        print(f"Download Exception: {e}")
+    except Exception:
         return None, None
-
 
 def patch_and_upload_save(
     save_file_or_bytes: Any = None,
     server_handler: Any = None,
     cc_str: str = "kr",
-    # Currencies & Items
     catfood: Optional[int] = None,
     xp: Optional[int] = None,
     normal_tickets: Optional[int] = None,
@@ -71,19 +69,15 @@ def patch_and_upload_save(
     platinum_shards: Optional[int] = None,
     np: Optional[int] = None,
     leadership: Optional[int] = None,
-    # Cats
     unlock_cats: bool = False,
     unlock_cat_ids: Optional[List[int]] = None,
     remove_cat_ids: Optional[List[int]] = None,
-    # Stages
     clear_all_stages: bool = False,
     clear_chapters: Optional[List[int]] = None,
     clear_stages: Optional[List[Dict[str, int]]] = None,
-    # Treasures
     max_treasures: bool = False,
     max_chapter_treasures: Optional[List[int]] = None,
     stage_treasures: Optional[List[Dict[str, int]]] = None,
-    # Safety
     enable_safety: bool = False,
     save_file: Any = None,
     **kwargs: Any,
@@ -105,71 +99,69 @@ def patch_and_upload_save(
         "original_xp": getattr(sf, "xp", 0),
     }
 
-    # 1. Currencies & Items
     if catfood is not None:
         try:
             sf.catfood = max(0, min(int(catfood), INT32_MAX))
             res["new_catfood"] = sf.catfood
-        except Exception as e:
-            print(f"catfood err: {e}")
+        except Exception:
+            pass
 
     if xp is not None:
         try:
             sf.xp = max(0, min(int(xp), INT32_MAX))
             res["new_xp"] = sf.xp
-        except Exception as e:
-            print(f"xp err: {e}")
+        except Exception:
+            pass
 
     if normal_tickets is not None and hasattr(sf, "normal_tickets"):
         try:
             sf.normal_tickets = max(0, min(int(normal_tickets), INT32_MAX))
             res["new_normal_tickets"] = sf.normal_tickets
-        except Exception as e:
-            print(f"normal_tickets err: {e}")
+        except Exception:
+            pass
 
     if rare_tickets is not None:
         try:
             sf.rare_tickets = max(0, min(int(rare_tickets), INT32_MAX))
             res["new_rare_tickets"] = sf.rare_tickets
-        except Exception as e:
-            print(f"rare_tickets err: {e}")
+        except Exception:
+            pass
 
     if platinum_tickets is not None:
         try:
             sf.platinum_tickets = max(0, min(int(platinum_tickets), INT32_MAX))
             res["new_platinum_tickets"] = sf.platinum_tickets
-        except Exception as e:
-            print(f"platinum_tickets err: {e}")
+        except Exception:
+            pass
 
     if legend_tickets is not None:
         try:
             sf.legend_tickets = max(0, min(int(legend_tickets), INT32_MAX))
             res["new_legend_tickets"] = sf.legend_tickets
-        except Exception as e:
-            print(f"legend_tickets err: {e}")
+        except Exception:
+            pass
 
     if platinum_shards is not None and hasattr(sf, "platinum_shards"):
         try:
             sf.platinum_shards = max(0, min(int(platinum_shards), INT32_MAX))
             res["new_platinum_shards"] = sf.platinum_shards
-        except Exception as e:
-            print(f"platinum_shards err: {e}")
+        except Exception:
+            pass
 
     if np is not None and hasattr(sf, "np"):
         try:
             sf.np = max(0, min(int(np), INT32_MAX))
             res["new_np"] = sf.np
-        except Exception as e:
-            print(f"np err: {e}")
+        except Exception:
+            pass
 
     if leadership is not None and hasattr(sf, "leadership"):
         try:
             sf.leadership = max(0, min(int(leadership), 32767))
             res["new_leadership"] = sf.leadership
-        except Exception as e:
-            print(f"leadership err: {e}")
+        except Exception:
+            pass
 
-    # 2. Cats
     if unlock_cats:
         try:
             sf.unlock_equip_menu()
@@ -180,8 +172,8 @@ def patch_and_upload_save(
                     for cat in obtainable:
                         cat.unlock(sf)
             res["unlock_cats"] = True
-        except Exception as e:
-            print(f"unlock_cats err: {e}")
+        except Exception:
+            pass
 
     if unlock_cat_ids and hasattr(sf, "cats"):
         count = 0
@@ -202,8 +194,8 @@ def patch_and_upload_save(
                 except Exception:
                     pass
             res["unlocked_cat_ids_count"] = count
-        except Exception as e:
-            print(f"unlock_cat_ids err: {e}")
+        except Exception:
+            pass
 
     if remove_cat_ids and hasattr(sf, "cats"):
         count = 0
@@ -222,10 +214,9 @@ def patch_and_upload_save(
                 except Exception:
                     pass
             res["removed_cat_ids_count"] = count
-        except Exception as e:
-            print(f"remove_cat_ids err: {e}")
+        except Exception:
+            pass
 
-    # 3. Stages
     if clear_all_stages and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
         try:
             for ch in sf.story.chapters:
@@ -233,8 +224,8 @@ def patch_and_upload_save(
             if hasattr(sf, "aku") and hasattr(sf.aku, "clear_chapters"):
                 sf.aku.clear_chapters()
             res["clear_all_stages"] = True
-        except Exception as e:
-            print(f"clear_all_stages err: {e}")
+        except Exception:
+            pass
 
     if clear_chapters and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
         count = 0
@@ -263,15 +254,14 @@ def patch_and_upload_save(
                 pass
         res["cleared_stages_count"] = count
 
-    # 4. Treasures
     if max_treasures and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
         try:
             for ch in sf.story.chapters:
                 for st_id in range(48):
                     ch.set_treasure(st_id, 3)
             res["max_treasures"] = True
-        except Exception as e:
-            print(f"max_treasures err: {e}")
+        except Exception:
+            pass
 
     if max_chapter_treasures and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
         count = 0
@@ -301,18 +291,16 @@ def patch_and_upload_save(
                 pass
         res["set_stage_treasures_count"] = count
 
-    # 5. Sync managed items
     try:
         sh.update_managed_items()
-    except Exception as e:
-        print(f"update_managed_items err: {e}")
+    except Exception:
+        pass
 
-    # 6. Upload & get codes
     try:
         codes = sh.get_codes()
         if codes and len(codes) == 2:
             return res, codes
-    except Exception as e:
-        print(f"get_codes err: {e}")
+    except Exception:
+        pass
 
     return res, None
