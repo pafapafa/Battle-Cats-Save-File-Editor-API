@@ -249,24 +249,42 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Gamatoto Helpers / Members (가마토토 대원 상세 커스텀 설정)
+    # Gamatoto Helpers / Members (가마토토 10개 대원 슬롯 각각 "gold", "silver", "bronze" 직접 입력 지원)
     if (gamatoto_helpers or gamatoto_helper_ids or gamatoto_helper_rarities) and hasattr(sf, "gamatoto") and sf.gamatoto:
         try:
             from bcsfe.core.game.gamoto.gamatoto import Helper, Helpers
             members_name = core.core_data.get_gamatoto_members_name(sf)
+            r2_members = members_name.get_all_rarity(2) or [] # Gold / Legend / Master (금색 상급)
+            r1_members = members_name.get_all_rarity(1) or [] # Silver / Rare (은색 중급)
+            r0_members = members_name.get_all_rarity(0) or [] # White / Bronze / Common (백색/브론즈 하급)
+
             new_helpers = []
 
-            if gamatoto_helper_ids and isinstance(gamatoto_helper_ids, list):
+            if isinstance(gamatoto_helpers, list):
+                # 10개 대원 슬롯 각각 "gold", "silver", "bronze" 직접 입력 e.g. ["gold", "gold", "silver", "bronze", ...]
+                r2_idx, r1_idx, r0_idx = 0, 0, 0
+                for item in gamatoto_helpers[:10]:
+                    val = str(item).lower()
+                    if "gold" in val or "legend" in val or "master" in val:
+                        if r2_members:
+                            new_helpers.append(Helper(r2_members[r2_idx % len(r2_members)].member_id))
+                            r2_idx += 1
+                    elif "silver" in val or "rare" in val:
+                        if r1_members:
+                            new_helpers.append(Helper(r1_members[r1_idx % len(r1_members)].member_id))
+                            r1_idx += 1
+                    else: # white / bronze / common
+                        if r0_members:
+                            new_helpers.append(Helper(r0_members[r0_idx % len(r0_members)].member_id))
+                            r0_idx += 1
+            elif gamatoto_helper_ids and isinstance(gamatoto_helper_ids, list):
                 for hid in gamatoto_helper_ids[:10]:
                     new_helpers.append(Helper(int(hid)))
-            elif gamatoto_helper_rarities and isinstance(gamatoto_helper_rarities, dict):
-                r2_members = members_name.get_all_rarity(2) or []
-                r1_members = members_name.get_all_rarity(1) or []
-                r0_members = members_name.get_all_rarity(0) or []
-
-                count_r2 = int(gamatoto_helper_rarities.get("legend", gamatoto_helper_rarities.get("gold", gamatoto_helper_rarities.get("rarity_2", 0))))
-                count_r1 = int(gamatoto_helper_rarities.get("silver", gamatoto_helper_rarities.get("rare", gamatoto_helper_rarities.get("rarity_1", 0))))
-                count_r0 = int(gamatoto_helper_rarities.get("white", gamatoto_helper_rarities.get("common", gamatoto_helper_rarities.get("rarity_0", 0))))
+            elif gamatoto_helper_rarities and isinstance(gamatoto_helper_rarities, dict) or isinstance(gamatoto_helpers, dict):
+                h_dict = gamatoto_helper_rarities if isinstance(gamatoto_helper_rarities, dict) else gamatoto_helpers
+                count_r2 = int(h_dict.get("gold", h_dict.get("legend", h_dict.get("rarity_2", 0))))
+                count_r1 = int(h_dict.get("silver", h_dict.get("rare", h_dict.get("rarity_1", 0))))
+                count_r0 = int(h_dict.get("bronze", h_dict.get("white", h_dict.get("common", h_dict.get("rarity_0", 0)))))
 
                 for i in range(min(count_r2, len(r2_members))):
                     if len(new_helpers) < 10:
@@ -283,10 +301,10 @@ def patch_and_upload_save(
                     h_str = gamatoto_helpers.lower()
                     if "silver" in h_str or "rare" in h_str:
                         rarity_idx = 1
-                    elif "white" in h_str or "common" in h_str:
+                    elif "white" in h_str or "bronze" in h_str or "common" in h_str:
                         rarity_idx = 0
 
-                members = members_name.get_all_rarity(rarity_idx) or members_name.get_all_rarity(2) or []
+                members = members_name.get_all_rarity(rarity_idx) or r2_members
                 if members:
                     for i in range(min(10, len(members))):
                         new_helpers.append(Helper(members[i].member_id))

@@ -498,13 +498,13 @@ Content-Type: application/json
           </tr>
           <tr>
             <td><code>gamatoto_helpers</code></td>
-            <td>boolean | string</td>
-            <td>Set Gamatoto helper preset: <code>true</code> or <code>"legend"</code> / <code>"gold"</code> (All 10 Gold/Legend), <code>"silver"</code> (All 10 Silver), <code>"white"</code> (All 10 White)</td>
+            <td>array[string] | string | boolean</td>
+            <td>Set Gamatoto 10 helper slots directly by rarity name e.g. <code>["gold", "gold", "gold", "silver", "silver", "bronze", ...]</code> or single preset string (<code>"gold"</code>, <code>"silver"</code>, <code>"bronze"</code>)</td>
           </tr>
           <tr>
             <td><code>gamatoto_helper_rarities</code></td>
             <td>object</td>
-            <td>Specify custom count breakdown per rarity (e.g. <code>{"legend": 8, "silver": 2}</code>)</td>
+            <td>Specify custom count breakdown per rarity (e.g. <code>{"gold": 8, "silver": 2}</code>)</td>
           </tr>
           <tr>
             <td><code>gamatoto_helper_ids</code></td>
@@ -576,7 +576,7 @@ Content-Type: application/json
   "catfruit": 999,
   "catamins": 999,
   "gamatoto_level": 150,
-  "gamatoto_helpers": true,
+  "gamatoto_helpers": ["gold", "gold", "gold", "gold", "gold", "silver", "silver", "bronze", "bronze", "bronze"],
   "ototo_engineers": 10,
   "unlock_cats": true,
   "max_treasures": true,
