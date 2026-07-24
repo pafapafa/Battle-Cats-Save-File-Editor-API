@@ -36,12 +36,23 @@ def get_country_code(cc_str: str = "kr"):
         _CC_CACHE[cc_key] = res
         return res
 
+_DEFAULT_GV = None
+
+def get_default_gv():
+    global _DEFAULT_GV
+    if _DEFAULT_GV is None and core is not None:
+        try:
+            _DEFAULT_GV = core.GameVersion(150400)
+        except Exception:
+            _DEFAULT_GV = None
+    return _DEFAULT_GV
+
 def download_ponos_save(tc: str, cc: str, country: str = "kr"):
     if core is None:
         return None, None
     try:
         country_code = get_country_code(country)
-        gv = core.GameVersion(150400)
+        gv = get_default_gv()
         sh, req_res = core.ServerHandler.from_codes(
             tc,
             cc,
@@ -50,7 +61,7 @@ def download_ponos_save(tc: str, cc: str, country: str = "kr"):
             print=False,
             save_backup=False,
         )
-        if sh is None or sh.save_file is None:
+        if sh is None or getattr(sh, "save_file", None) is None:
             return None, None
         return sh.save_file, sh
     except Exception:

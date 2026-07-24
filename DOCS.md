@@ -38,7 +38,7 @@ Retrieves API operational status.
 {
   "service": "Battle Cats Save File Editor API",
   "status": "online",
-  "version": "1.0.0"
+  "version": "1.0.3"
 }
 ```
 

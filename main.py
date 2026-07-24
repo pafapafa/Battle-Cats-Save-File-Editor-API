@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from patcher import (
     download_ponos_save,
     patch_and_upload_save,
@@ -11,8 +11,8 @@ app = Flask(__name__)
 
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
-IP_MINUTE_HISTORY = defaultdict(list)
-IP_DAILY_HISTORY = defaultdict(list)
+IP_MINUTE_HISTORY = defaultdict(deque)
+IP_DAILY_HISTORY = defaultdict(deque)
 
 MINUTE_WINDOW = 60
 DAILY_WINDOW = 86400
@@ -39,29 +39,39 @@ def handle_rate_limits():
     client_ip = get_client_ip()
     now = time.time()
 
-    IP_MINUTE_HISTORY[client_ip] = [t for t in IP_MINUTE_HISTORY[client_ip] if now - t < MINUTE_WINDOW]
-    IP_DAILY_HISTORY[client_ip] = [t for t in IP_DAILY_HISTORY[client_ip] if now - t < DAILY_WINDOW]
+    min_q = IP_MINUTE_HISTORY[client_ip]
+    cutoff_min = now - MINUTE_WINDOW
+    while min_q and min_q[0] < cutoff_min:
+        min_q.popleft()
 
-    if len(IP_MINUTE_HISTORY[client_ip]) >= MAX_PER_MINUTE:
+    day_q = IP_DAILY_HISTORY[client_ip]
+    cutoff_day = now - DAILY_WINDOW
+    while day_q and day_q[0] < cutoff_day:
+        day_q.popleft()
+
+    if len(min_q) >= MAX_PER_MINUTE:
         return jsonify({
             "success": False,
             "message": "Too many requests. Please wait 1 minute before retrying."
         }), 429
 
-    if len(IP_DAILY_HISTORY[client_ip]) >= MAX_PER_DAY:
+    if len(day_q) >= MAX_PER_DAY:
         return jsonify({
             "success": False,
             "message": "Daily limit reached (Max 100 requests/day per IP). Please try again tomorrow."
         }), 429
 
-    IP_MINUTE_HISTORY[client_ip].append(now)
-    IP_DAILY_HISTORY[client_ip].append(now)
+    min_q.append(now)
+    day_q.append(now)
 
 
 @app.after_request
 def apply_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
 
 
@@ -77,7 +87,7 @@ OPENAPI_SPEC = {
     "openapi": "3.0.0",
     "info": {
         "title": "Battle Cats Save File Editor API",
-        "version": "1.0.0",
+        "version": "1.0.3",
         "description": "High-Performance Battle Cats Save Customization and Transfer API Engine."
     },
     "paths": {
@@ -344,7 +354,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
 </head>
 <body>
 <header>
-  <a href="/" class="logo">🐱 Battle Cats <span>Save Editor API</span></a>
+  <a href="/" class="logo">Battle Cats <span>Save Editor API</span></a>
   <div class="nav-actions">
     <button class="theme-btn" onclick="toggleTheme()" id="theme-text">Dark Mode</button>
   </div>
@@ -354,7 +364,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
     <h1>Battle Cats Save File Editor REST API</h1>
     <p>High-performance REST API for Battle Cats save customization, binary patching, and cloud PONOS transfer synchronization.</p>
     <div class="badge-list">
-      <span class="chip">v1.0.0</span>
+      <span class="chip">v1.0.3</span>
       <span class="chip">OpenAPI 3.0</span>
       <span class="chip">JSON REST API</span>
     </div>
@@ -369,7 +379,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
     </div>
     <div class="card-body">
       <p>Health check endpoint retrieving service status.</p>
-      <pre class="code-block"><code>{"service": "Battle Cats Save File Editor API", "status": "online", "version": "1.0.0"}</code></pre>
+      <pre class="code-block"><code>{"service": "Battle Cats Save File Editor API", "status": "online", "version": "1.0.3"}</code></pre>
     </div>
   </div>
 
@@ -433,7 +443,9 @@ def openapi_spec():
 
 @app.route("/docs", methods=["GET"])
 def docs():
-    return SWAGGER_HTML
+    resp = app.make_response(SWAGGER_HTML)
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
 
 
 @app.route("/", methods=["GET"])
@@ -441,7 +453,7 @@ def health_check():
     return jsonify({
         "status": "online",
         "service": "Battle Cats Save File Editor API",
-        "version": "1.0.0"
+        "version": "1.0.3"
     })
 
 
@@ -561,5 +573,7 @@ def edit_save():
         "message": "Save modified and uploaded successfully.",
         "transfer_code": new_t,
         "confirmation_code": new_c,
+        "new_transfer_code": new_t,
+        "new_confirmation_code": new_c,
         "details": res,
     })
