@@ -409,12 +409,24 @@ def patch_and_upload_save(
 
     if clear_chapters and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
         count = 0
-        for ch_id in clear_chapters:
+        for item in clear_chapters:
             try:
-                ch_id = int(ch_id)
-                if 0 <= ch_id < len(sf.story.chapters):
-                    sf.story.chapters[ch_id].clear_chapter()
-                    count += 1
+                if isinstance(item, dict):
+                    ch_id = int(item.get("chapter", 0))
+                    amt = int(item.get("clear_amount", item.get("clears", 1)))
+                    if 0 <= ch_id < len(sf.story.chapters):
+                        ch = sf.story.chapters[ch_id]
+                        if hasattr(ch, "stages") and ch.stages:
+                            for st_id in range(len(ch.stages)):
+                                ch.clear_stage(st_id, amt, overwrite_clear_progress=True)
+                        else:
+                            ch.clear_chapter()
+                        count += 1
+                else:
+                    ch_id = int(item)
+                    if 0 <= ch_id < len(sf.story.chapters):
+                        sf.story.chapters[ch_id].clear_chapter()
+                        count += 1
             except Exception:
                 pass
         res["cleared_chapters_count"] = count
@@ -424,10 +436,10 @@ def patch_and_upload_save(
         for item in clear_stages:
             try:
                 if isinstance(item, dict):
-                    ch_id = int(item.get("chapter"))
-                    st_id = int(item.get("stage"))
-                    amt = int(item.get("clear_amount", 1))
-                    if 0 <= ch_id < len(sf.story.chapters) and 0 <= st_id < 51:
+                    ch_id = int(item.get("chapter", 0))
+                    st_id = int(item.get("stage", 0))
+                    amt = int(item.get("clear_amount", item.get("clears", 1)))
+                    if 0 <= ch_id < len(sf.story.chapters):
                         sf.story.chapters[ch_id].clear_stage(st_id, amt, overwrite_clear_progress=True)
                         count += 1
             except Exception:
@@ -445,13 +457,22 @@ def patch_and_upload_save(
 
     if max_chapter_treasures and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
         count = 0
-        for ch_id in max_chapter_treasures:
+        for item in max_chapter_treasures:
             try:
-                ch_id = int(ch_id)
-                if 0 <= ch_id < len(sf.story.chapters):
-                    for st_id in range(48):
-                        sf.story.chapters[ch_id].set_treasure(st_id, 3)
-                    count += 1
+                if isinstance(item, dict):
+                    ch_id = int(item.get("chapter", 0))
+                    tr_val = int(item.get("treasure", 3))
+                    if 0 <= ch_id < len(sf.story.chapters):
+                        ch = sf.story.chapters[ch_id]
+                        for st_id in range(48):
+                            ch.set_treasure(st_id, min(3, max(0, tr_val)))
+                        count += 1
+                else:
+                    ch_id = int(item)
+                    if 0 <= ch_id < len(sf.story.chapters):
+                        for st_id in range(48):
+                            sf.story.chapters[ch_id].set_treasure(st_id, 3)
+                        count += 1
             except Exception:
                 pass
         res["max_chapter_treasures_count"] = count
@@ -461,10 +482,10 @@ def patch_and_upload_save(
         for item in stage_treasures:
             try:
                 if isinstance(item, dict):
-                    ch_id = int(item.get("chapter"))
-                    st_id = int(item.get("stage"))
+                    ch_id = int(item.get("chapter", 0))
+                    st_id = int(item.get("stage", 0))
                     tr_val = int(item.get("treasure", 3))
-                    if 0 <= ch_id < len(sf.story.chapters) and 0 <= st_id < 48:
+                    if 0 <= ch_id < len(sf.story.chapters):
                         sf.story.chapters[ch_id].set_treasure(st_id, min(3, max(0, tr_val)))
                         count += 1
             except Exception:

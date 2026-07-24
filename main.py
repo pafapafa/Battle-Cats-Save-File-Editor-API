@@ -543,18 +543,28 @@ Content-Type: application/json
           </tr>
           <tr>
             <td><code>clear_chapters</code></td>
-            <td>array[int]</td>
-            <td>Specific chapter IDs to clear (e.g. <code>[0, 1, 2]</code>)</td>
+            <td>array[int | object]</td>
+            <td>Chapter IDs to clear e.g. <code>[0, 1, 2]</code> or with clear count <code>[{"chapter": 0, "clear_amount": 10}]</code></td>
+          </tr>
+          <tr>
+            <td><code>clear_stages</code></td>
+            <td>array[object]</td>
+            <td>Specific stage clear counts e.g. <code>[{"chapter": 0, "stage": 47, "clear_amount": 10}]</code></td>
           </tr>
           <tr>
             <td><code>max_treasures</code></td>
             <td>boolean</td>
-            <td>Set all story treasures to Gold (Superior) (e.g. <code>true</code>)</td>
+            <td>Set all story chapter treasures to Gold (Superior) (e.g. <code>true</code>)</td>
           </tr>
           <tr>
             <td><code>max_chapter_treasures</code></td>
-            <td>array[int]</td>
-            <td>Specific chapter IDs to set all treasures to Gold (e.g. <code>[0, 1]</code>)</td>
+            <td>array[int | object]</td>
+            <td>Specific chapter IDs for Gold treasures e.g. <code>[0, 1]</code> or with quality <code>[{"chapter": 0, "treasure": 3}]</code></td>
+          </tr>
+          <tr>
+            <td><code>stage_treasures</code></td>
+            <td>array[object]</td>
+            <td>Specific stage treasure quality (1=Inferior, 2=Normal, 3=Gold) e.g. <code>[{"chapter": 0, "stage": 0, "treasure": 3}]</code></td>
           </tr>
           <tr>
             <td><code>enable_safety</code></td>
