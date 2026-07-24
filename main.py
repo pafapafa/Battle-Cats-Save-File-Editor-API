@@ -422,6 +422,32 @@ Content-Type: application/json
 }</code></pre>
     </div>
   </div>
+
+  <h2 class="section-title">Code Integration Examples (17 Languages)</h2>
+  <div class="card">
+    <div class="card-body">
+      <p>Standalone executable code examples are available for 17 popular programming languages:</p>
+      <div class="badge-list" style="margin-top: 1rem;">
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.py" target="_blank" class="chip">Python (example.py)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.js" target="_blank" class="chip">JavaScript (example.js)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.ts" target="_blank" class="chip">TypeScript (example.ts)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.go" target="_blank" class="chip">Go (example.go)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.rs" target="_blank" class="chip">Rust (example.rs)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.cpp" target="_blank" class="chip">C++ (example.cpp)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.cs" target="_blank" class="chip">C# (example.cs)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.c" target="_blank" class="chip">C (example.c)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.java" target="_blank" class="chip">Java (example.java)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.kt" target="_blank" class="chip">Kotlin (example.kt)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.swift" target="_blank" class="chip">Swift (example.swift)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.php" target="_blank" class="chip">PHP (example.php)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.rb" target="_blank" class="chip">Ruby (example.rb)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.dart" target="_blank" class="chip">Dart (example.dart)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.mojo" target="_blank" class="chip">Mojo (example.mojo)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.sh" target="_blank" class="chip">Shell (example.sh)</a>
+        <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/example.ps1" target="_blank" class="chip">PowerShell (example.ps1)</a>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
 function toggleTheme() {
