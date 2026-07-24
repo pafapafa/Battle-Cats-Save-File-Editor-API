@@ -90,6 +90,7 @@ def patch_and_upload_save(
     gamatoto_helper_ids: Optional[List[int]] = None,
     gamatoto_helper_rarities: Optional[Dict[str, int]] = None,
     ototo_engineers: Optional[int] = None,
+    ototo_materials: Any = None,
     unlock_cats: bool = False,
     unlock_cat_ids: Optional[List[int]] = None,
     remove_cat_ids: Optional[List[int]] = None,
@@ -183,10 +184,20 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Catseyes (캣츠아이)
+    # Catseyes
     if catseyes is not None and hasattr(sf, "catseyes"):
         try:
-            if isinstance(catseyes, list):
+            if isinstance(catseyes, dict):
+                ex_val = int(catseyes.get("ex", catseyes.get("special", 0)))
+                rare_val = int(catseyes.get("rare", 0))
+                sr_val = int(catseyes.get("super_rare", catseyes.get("super", 0)))
+                ur_val = int(catseyes.get("uber_rare", catseyes.get("uber", 0)))
+                leg_val = int(catseyes.get("legend", 0))
+                catseyes_list = [ex_val, rare_val, sr_val, ur_val, leg_val]
+                if len(sf.catseyes) > 5:
+                    catseyes_list.extend([ex_val] * (len(sf.catseyes) - 5))
+                sf.catseyes = [max(0, min(x, INT32_MAX)) for x in catseyes_list]
+            elif isinstance(catseyes, list):
                 sf.catseyes = [max(0, min(int(x), INT32_MAX)) for x in catseyes]
             else:
                 val = max(0, min(int(catseyes), INT32_MAX))
@@ -315,11 +326,19 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Ototo Engineers (오토토 개발 대원 수)
-    if ototo_engineers is not None and hasattr(sf, "ototo") and sf.ototo:
+    # Ototo Engineers & Base Materials
+    if (ototo_engineers is not None or ototo_materials is not None) and hasattr(sf, "ototo") and sf.ototo:
         try:
-            sf.ototo.engineers = max(0, min(int(ototo_engineers), 10))
-            res["new_ototo_engineers"] = sf.ototo.engineers
+            if ototo_engineers is not None:
+                sf.ototo.engineers = max(0, min(int(ototo_engineers), 10))
+                res["new_ototo_engineers"] = sf.ototo.engineers
+            if ototo_materials is not None and hasattr(sf.ototo, "base_materials") and sf.ototo.base_materials:
+                if isinstance(ototo_materials, list):
+                    sf.ototo.base_materials.materials = [max(0, min(int(x), INT32_MAX)) for x in ototo_materials]
+                else:
+                    val = max(0, min(int(ototo_materials), INT32_MAX))
+                    sf.ototo.base_materials.materials = [val] * 12
+                res["new_ototo_materials"] = sf.ototo.base_materials.materials
         except Exception:
             pass
 

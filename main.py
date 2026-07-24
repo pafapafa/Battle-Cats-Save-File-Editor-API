@@ -473,23 +473,23 @@ Content-Type: application/json
           </tr>
           <tr>
             <td><code>catseyes</code></td>
-            <td>integer | array</td>
-            <td>Catseye (캣츠아이) count for all types or list <code>[EX, Rare, S.Rare, U.Rare, Legend]</code> (e.g. <code>999</code> or <code>[999, 999, 999, 999, 999]</code>)</td>
+            <td>integer | array | object</td>
+            <td>Catseye count for all types, list <code>[EX, Rare, S.Rare, U.Rare, Legend]</code>, or object <code>{"ex": 999, "rare": 999, ...}</code></td>
           </tr>
           <tr>
             <td><code>catfruit</code></td>
             <td>integer | array</td>
-            <td>Catfruit / Matatabi (개불) count (e.g. <code>999</code>)</td>
+            <td>Catfruit / Matatabi count (e.g. <code>999</code>)</td>
           </tr>
           <tr>
             <td><code>catamins</code></td>
             <td>integer | array</td>
-            <td>Catamins A/B/C (비타민) count (e.g. <code>999</code>)</td>
+            <td>Catamins A/B/C count (e.g. <code>999</code>)</td>
           </tr>
           <tr>
             <td><code>gamatoto_level</code></td>
             <td>integer</td>
-            <td>Gamatoto Level (가마토토 레벨) (e.g. <code>150</code>)</td>
+            <td>Gamatoto Level (e.g. <code>150</code>)</td>
           </tr>
           <tr>
             <td><code>gamatoto_xp</code></td>
@@ -499,22 +499,27 @@ Content-Type: application/json
           <tr>
             <td><code>gamatoto_helpers</code></td>
             <td>array[string] | string | boolean</td>
-            <td>Set Gamatoto 10 helper slots directly by rarity name e.g. <code>["gold", "gold", "gold", "silver", "silver", "bronze", ...]</code> or single preset string (<code>"gold"</code>, <code>"silver"</code>, <code>"bronze"</code>)</td>
+            <td>Set 10 Gamatoto helper slots e.g. <code>["gold", "gold", "silver", "bronze", ...]</code> or preset string (<code>"gold"</code>, <code>"silver"</code>, <code>"bronze"</code>)</td>
           </tr>
           <tr>
             <td><code>gamatoto_helper_rarities</code></td>
             <td>object</td>
-            <td>Specify custom count breakdown per rarity (e.g. <code>{"gold": 8, "silver": 2}</code>)</td>
+            <td>Custom helper count per rarity (e.g. <code>{"gold": 8, "silver": 2}</code>)</td>
           </tr>
           <tr>
             <td><code>gamatoto_helper_ids</code></td>
             <td>array[int]</td>
-            <td>Specify exact 10 helper member IDs (e.g. <code>[84, 85, 86, 87, 88, 89, 90, 91, 92, 93]</code>)</td>
+            <td>Exact 10 helper member IDs (e.g. <code>[84, 85, 86, 87, 88, 89, 90, 91, 92, 93]</code>)</td>
           </tr>
           <tr>
             <td><code>ototo_engineers</code></td>
             <td>integer</td>
-            <td>Ototo engineer count (오토토 개발 대원 수, max 10) (e.g. <code>10</code>)</td>
+            <td>Ototo engineer count (max 10) (e.g. <code>10</code>)</td>
+          </tr>
+          <tr>
+            <td><code>ototo_materials</code></td>
+            <td>integer | array</td>
+            <td>Ototo base building materials count (e.g. <code>9999</code>)</td>
           </tr>
           <tr>
             <td><code>unlock_cats</code></td>
@@ -705,6 +710,7 @@ def edit_save():
     gamatoto_helper_ids = data.get("gamatoto_helper_ids")
     gamatoto_helper_rarities = data.get("gamatoto_helper_rarities")
     ototo_engineers = data.get("ototo_engineers")
+    ototo_materials = data.get("ototo_materials")
 
     unlock_cats = bool(data.get("unlock_cats", False))
     unlock_cat_ids = data.get("unlock_cat_ids")
@@ -728,7 +734,8 @@ def edit_save():
         rare_tickets is not None, platinum_tickets is not None, legend_tickets is not None,
         platinum_shards is not None, np is not None, leadership is not None,
         catseyes is not None, catfruit is not None, catamins is not None, battle_items is not None,
-        gamatoto_level is not None, gamatoto_xp is not None, gamatoto_helpers, gamatoto_helper_ids, gamatoto_helper_rarities, ototo_engineers is not None,
+        gamatoto_level is not None, gamatoto_xp is not None, gamatoto_helpers, gamatoto_helper_ids, gamatoto_helper_rarities,
+        ototo_engineers is not None, ototo_materials is not None,
         unlock_cats, unlock_cat_ids, remove_cat_ids,
         clear_all_stages, clear_chapters, clear_stages,
         max_treasures, max_chapter_treasures, stage_treasures
@@ -764,6 +771,7 @@ def edit_save():
         gamatoto_helper_ids=gamatoto_helper_ids,
         gamatoto_helper_rarities=gamatoto_helper_rarities,
         ototo_engineers=ototo_engineers,
+        ototo_materials=ototo_materials,
         unlock_cats=unlock_cats,
         unlock_cat_ids=unlock_cat_ids,
         remove_cat_ids=remove_cat_ids,
