@@ -499,7 +499,7 @@ Content-Type: application/json
           <tr>
             <td><code>gamatoto_helpers</code></td>
             <td>array[string] | string | boolean</td>
-            <td>Set 10 Gamatoto helper slots e.g. <code>["gold", "gold", "silver", "bronze", ...]</code> or preset string (<code>"gold"</code>, <code>"silver"</code>, <code>"bronze"</code>)</td>
+            <td>Set 10 Gamatoto helper slots with official standard values e.g. <code>["legend", "legend", "rare", "common", ...]</code> or preset string (<code>"legend"</code>, <code>"rare"</code>, <code>"common"</code>)</td>
           </tr>
           <tr>
             <td><code>ototo_engineers</code></td>
@@ -581,7 +581,7 @@ Content-Type: application/json
   "catfruit": 999,
   "catamins": 999,
   "gamatoto_level": 150,
-  "gamatoto_helpers": ["gold", "gold", "gold", "gold", "gold", "silver", "silver", "bronze", "bronze", "bronze"],
+  "gamatoto_helpers": ["legend", "legend", "legend", "legend", "legend", "rare", "rare", "common", "common", "common"],
   "ototo_engineers": 10,
   "unlock_cats": true,
   "max_treasures": true,
