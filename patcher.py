@@ -42,7 +42,7 @@ def get_default_gv():
     global _DEFAULT_GV
     if _DEFAULT_GV is None and core is not None:
         try:
-            _DEFAULT_GV = core.GameVersion(150400)
+            _DEFAULT_GV = core.GameVersion(140300)
         except Exception:
             _DEFAULT_GV = None
     return _DEFAULT_GV
