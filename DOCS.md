@@ -1,4 +1,4 @@
-# Battle Cats Save File Editor API Specification
+# Battle Cats Save File Editor API Specification (v1.0.4)
 
 The Battle Cats Save File Editor API is a high-performance RESTful cloud service that provides raw binary patching, automated PONOS server cloud transfer handling, and save file management.
 

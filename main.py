@@ -87,7 +87,7 @@ OPENAPI_SPEC = {
     "openapi": "3.0.0",
     "info": {
         "title": "Battle Cats Save File Editor API",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "description": "High-Performance Battle Cats Save Customization and Transfer API Engine."
     },
     "paths": {
@@ -371,7 +371,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
     <h1>Battle Cats Save File Editor REST API</h1>
     <p>High-performance REST API for Battle Cats save customization, binary patching, and cloud PONOS transfer synchronization.</p>
     <div class="badge-list">
-      <span class="chip">v1.0.3</span>
+      <span class="chip">v1.0.4</span>
       <span class="chip">OpenAPI 3.0</span>
       <span class="chip">JSON REST API</span>
     </div>
@@ -386,7 +386,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
     </div>
     <div class="card-body">
       <p>Health check endpoint retrieving service status.</p>
-      <pre class="code-block"><code>{"service": "Battle Cats Save File Editor API", "status": "online", "version": "1.0.3"}</code></pre>
+      <pre class="code-block"><code>{"service": "Battle Cats Save File Editor API", "status": "online", "version": "1.0.4"}</code></pre>
     </div>
   </div>
 
@@ -646,7 +646,7 @@ def health_check():
     return jsonify({
         "status": "online",
         "service": "Battle Cats Save File Editor API",
-        "version": "1.0.3"
+        "version": "1.0.4"
     })
 
 
