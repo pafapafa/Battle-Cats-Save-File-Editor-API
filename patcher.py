@@ -87,6 +87,8 @@ def patch_and_upload_save(
     gamatoto_level: Optional[int] = None,
     gamatoto_xp: Optional[int] = None,
     gamatoto_helpers: Any = None,
+    gamatoto_helper_ids: Optional[List[int]] = None,
+    gamatoto_helper_rarities: Optional[Dict[str, int]] = None,
     ototo_engineers: Optional[int] = None,
     unlock_cats: bool = False,
     unlock_cat_ids: Optional[List[int]] = None,
@@ -247,18 +249,51 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Gamatoto Helpers / Members (가마토토 대원 10명 전설/마스터 설정)
-    if gamatoto_helpers and hasattr(sf, "gamatoto") and sf.gamatoto:
+    # Gamatoto Helpers / Members (가마토토 대원 상세 커스텀 설정)
+    if (gamatoto_helpers or gamatoto_helper_ids or gamatoto_helper_rarities) and hasattr(sf, "gamatoto") and sf.gamatoto:
         try:
             from bcsfe.core.game.gamoto.gamatoto import Helper, Helpers
             members_name = core.core_data.get_gamatoto_members_name(sf)
-            legend_members = members_name.get_all_rarity(2) or []
-            if legend_members:
-                new_helpers = []
-                for i in range(min(10, len(legend_members))):
-                    new_helpers.append(Helper(legend_members[i].member_id))
+            new_helpers = []
+
+            if gamatoto_helper_ids and isinstance(gamatoto_helper_ids, list):
+                for hid in gamatoto_helper_ids[:10]:
+                    new_helpers.append(Helper(int(hid)))
+            elif gamatoto_helper_rarities and isinstance(gamatoto_helper_rarities, dict):
+                r2_members = members_name.get_all_rarity(2) or []
+                r1_members = members_name.get_all_rarity(1) or []
+                r0_members = members_name.get_all_rarity(0) or []
+
+                count_r2 = int(gamatoto_helper_rarities.get("legend", gamatoto_helper_rarities.get("gold", gamatoto_helper_rarities.get("rarity_2", 0))))
+                count_r1 = int(gamatoto_helper_rarities.get("silver", gamatoto_helper_rarities.get("rare", gamatoto_helper_rarities.get("rarity_1", 0))))
+                count_r0 = int(gamatoto_helper_rarities.get("white", gamatoto_helper_rarities.get("common", gamatoto_helper_rarities.get("rarity_0", 0))))
+
+                for i in range(min(count_r2, len(r2_members))):
+                    if len(new_helpers) < 10:
+                        new_helpers.append(Helper(r2_members[i].member_id))
+                for i in range(min(count_r1, len(r1_members))):
+                    if len(new_helpers) < 10:
+                        new_helpers.append(Helper(r1_members[i].member_id))
+                for i in range(min(count_r0, len(r0_members))):
+                    if len(new_helpers) < 10:
+                        new_helpers.append(Helper(r0_members[i].member_id))
+            else:
+                rarity_idx = 2
+                if isinstance(gamatoto_helpers, str):
+                    h_str = gamatoto_helpers.lower()
+                    if "silver" in h_str or "rare" in h_str:
+                        rarity_idx = 1
+                    elif "white" in h_str or "common" in h_str:
+                        rarity_idx = 0
+
+                members = members_name.get_all_rarity(rarity_idx) or members_name.get_all_rarity(2) or []
+                if members:
+                    for i in range(min(10, len(members))):
+                        new_helpers.append(Helper(members[i].member_id))
+
+            if new_helpers:
                 sf.gamatoto.helpers = Helpers(new_helpers)
-                res["gamatoto_helpers_updated"] = True
+                res["gamatoto_helpers_updated"] = len(new_helpers)
         except Exception:
             pass
 

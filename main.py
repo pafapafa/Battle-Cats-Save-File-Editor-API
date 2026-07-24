@@ -498,8 +498,18 @@ Content-Type: application/json
           </tr>
           <tr>
             <td><code>gamatoto_helpers</code></td>
-            <td>boolean</td>
-            <td>Set all 10 Gamatoto helpers to Legend/Grandmaster rarity (e.g. <code>true</code>)</td>
+            <td>boolean | string</td>
+            <td>Set Gamatoto helper preset: <code>true</code> or <code>"legend"</code> / <code>"gold"</code> (All 10 Gold/Legend), <code>"silver"</code> (All 10 Silver), <code>"white"</code> (All 10 White)</td>
+          </tr>
+          <tr>
+            <td><code>gamatoto_helper_rarities</code></td>
+            <td>object</td>
+            <td>Specify custom count breakdown per rarity (e.g. <code>{"legend": 8, "silver": 2}</code>)</td>
+          </tr>
+          <tr>
+            <td><code>gamatoto_helper_ids</code></td>
+            <td>array[int]</td>
+            <td>Specify exact 10 helper member IDs (e.g. <code>[84, 85, 86, 87, 88, 89, 90, 91, 92, 93]</code>)</td>
           </tr>
           <tr>
             <td><code>ototo_engineers</code></td>
@@ -692,6 +702,8 @@ def edit_save():
     gamatoto_level = data.get("gamatoto_level")
     gamatoto_xp = data.get("gamatoto_xp")
     gamatoto_helpers = data.get("gamatoto_helpers")
+    gamatoto_helper_ids = data.get("gamatoto_helper_ids")
+    gamatoto_helper_rarities = data.get("gamatoto_helper_rarities")
     ototo_engineers = data.get("ototo_engineers")
 
     unlock_cats = bool(data.get("unlock_cats", False))
@@ -716,7 +728,7 @@ def edit_save():
         rare_tickets is not None, platinum_tickets is not None, legend_tickets is not None,
         platinum_shards is not None, np is not None, leadership is not None,
         catseyes is not None, catfruit is not None, catamins is not None, battle_items is not None,
-        gamatoto_level is not None, gamatoto_xp is not None, gamatoto_helpers, ototo_engineers is not None,
+        gamatoto_level is not None, gamatoto_xp is not None, gamatoto_helpers, gamatoto_helper_ids, gamatoto_helper_rarities, ototo_engineers is not None,
         unlock_cats, unlock_cat_ids, remove_cat_ids,
         clear_all_stages, clear_chapters, clear_stages,
         max_treasures, max_chapter_treasures, stage_treasures
@@ -749,6 +761,8 @@ def edit_save():
         gamatoto_level=gamatoto_level,
         gamatoto_xp=gamatoto_xp,
         gamatoto_helpers=gamatoto_helpers,
+        gamatoto_helper_ids=gamatoto_helper_ids,
+        gamatoto_helper_rarities=gamatoto_helper_rarities,
         ototo_engineers=ototo_engineers,
         unlock_cats=unlock_cats,
         unlock_cat_ids=unlock_cat_ids,
