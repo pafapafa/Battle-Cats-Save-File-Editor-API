@@ -129,6 +129,13 @@ Applies target modifications, syncs server managed items, and issues new transfe
 | `platinum_shards` | `integer` | No | Target Platinum Shards count |
 | `np` | `integer` | No | Target NP balance |
 | `leadership` | `integer` | No | Target Leadership count |
+| `catseyes` | `integer / array` | No | Target Catseye count (all types or `[EX, Rare, S.Rare, U.Rare, Legend]`) |
+| `catfruit` | `integer / array` | No | Target Catfruit / Matatabi count |
+| `catamins` | `integer / array` | No | Target Catamins A/B/C count |
+| `gamatoto_level` | `integer` | No | Target Gamatoto Level (e.g. `150`) |
+| `gamatoto_xp` | `integer` | No | Target Gamatoto XP value |
+| `gamatoto_helpers` | `boolean` | No | Set all 10 Gamatoto helpers to Legend/Master rarity |
+| `ototo_engineers` | `integer` | No | Target Ototo engineer count (max 10) |
 | `unlock_cats` | `boolean` | No | Unlock all obtainable characters |
 | `unlock_cat_ids` | `array[int]` | No | Specific Cat IDs to unlock (e.g. `[0, 1, 555]`) |
 | `remove_cat_ids` | `array[int]` | No | Specific Cat IDs to lock/remove |

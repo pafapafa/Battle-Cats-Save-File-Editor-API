@@ -80,6 +80,14 @@ def patch_and_upload_save(
     platinum_shards: Optional[int] = None,
     np: Optional[int] = None,
     leadership: Optional[int] = None,
+    catseyes: Any = None,
+    catfruit: Any = None,
+    catamins: Any = None,
+    battle_items: Any = None,
+    gamatoto_level: Optional[int] = None,
+    gamatoto_xp: Optional[int] = None,
+    gamatoto_helpers: Any = None,
+    ototo_engineers: Optional[int] = None,
     unlock_cats: bool = False,
     unlock_cat_ids: Optional[List[int]] = None,
     remove_cat_ids: Optional[List[int]] = None,
@@ -170,6 +178,95 @@ def patch_and_upload_save(
         try:
             sf.leadership = max(0, min(int(leadership), 32767))
             res["new_leadership"] = sf.leadership
+        except Exception:
+            pass
+
+    # Catseyes (캣츠아이)
+    if catseyes is not None and hasattr(sf, "catseyes"):
+        try:
+            if isinstance(catseyes, list):
+                sf.catseyes = [max(0, min(int(x), INT32_MAX)) for x in catseyes]
+            else:
+                val = max(0, min(int(catseyes), INT32_MAX))
+                if len(sf.catseyes) > 0:
+                    sf.catseyes = [val] * len(sf.catseyes)
+                else:
+                    sf.catseyes = [val] * 6
+            res["new_catseyes"] = sf.catseyes
+        except Exception:
+            pass
+
+    # Catfruit (개불/개개불)
+    if catfruit is not None and hasattr(sf, "catfruit"):
+        try:
+            if isinstance(catfruit, list):
+                sf.catfruit = [max(0, min(int(x), INT32_MAX)) for x in catfruit]
+            else:
+                val = max(0, min(int(catfruit), INT32_MAX))
+                if len(sf.catfruit) > 0:
+                    sf.catfruit = [val] * len(sf.catfruit)
+                else:
+                    sf.catfruit = [val] * 30
+            res["new_catfruit"] = sf.catfruit
+        except Exception:
+            pass
+
+    # Catamins (비타민)
+    if catamins is not None and hasattr(sf, "catamins"):
+        try:
+            if isinstance(catamins, list):
+                sf.catamins = [max(0, min(int(x), INT32_MAX)) for x in catamins]
+            else:
+                val = max(0, min(int(catamins), INT32_MAX))
+                if len(sf.catamins) > 0:
+                    sf.catamins = [val] * len(sf.catamins)
+                else:
+                    sf.catamins = [val] * 3
+            res["new_catamins"] = sf.catamins
+        except Exception:
+            pass
+
+    # Gamatoto Level & XP (가마토토 레벨 및 경험치)
+    if (gamatoto_level is not None or gamatoto_xp is not None) and hasattr(sf, "gamatoto") and sf.gamatoto:
+        try:
+            if gamatoto_xp is not None:
+                sf.gamatoto.xp = max(0, min(int(gamatoto_xp), INT32_MAX))
+                res["new_gamatoto_xp"] = sf.gamatoto.xp
+            elif gamatoto_level is not None:
+                lvl = max(1, min(int(gamatoto_level), 150))
+                try:
+                    gl = core.core_data.get_gamatoto_levels(sf)
+                    xp = gl.get_xp_from_level(lvl)
+                    if xp is not None:
+                        sf.gamatoto.xp = xp
+                    else:
+                        sf.gamatoto.xp = lvl * 10000
+                except Exception:
+                    sf.gamatoto.xp = lvl * 10000
+                res["new_gamatoto_level"] = lvl
+        except Exception:
+            pass
+
+    # Gamatoto Helpers / Members (가마토토 대원 10명 전설/마스터 설정)
+    if gamatoto_helpers and hasattr(sf, "gamatoto") and sf.gamatoto:
+        try:
+            from bcsfe.core.game.gamoto.gamatoto import Helper, Helpers
+            members_name = core.core_data.get_gamatoto_members_name(sf)
+            legend_members = members_name.get_all_rarity(2) or []
+            if legend_members:
+                new_helpers = []
+                for i in range(min(10, len(legend_members))):
+                    new_helpers.append(Helper(legend_members[i].member_id))
+                sf.gamatoto.helpers = Helpers(new_helpers)
+                res["gamatoto_helpers_updated"] = True
+        except Exception:
+            pass
+
+    # Ototo Engineers (오토토 개발 대원 수)
+    if ototo_engineers is not None and hasattr(sf, "ototo") and sf.ototo:
+        try:
+            sf.ototo.engineers = max(0, min(int(ototo_engineers), 10))
+            res["new_ototo_engineers"] = sf.ototo.engineers
         except Exception:
             pass
 

@@ -227,6 +227,13 @@ OPENAPI_SPEC = {
                     "platinum_shards": {"type": "integer", "description": "Target Platinum Shards count"},
                     "np": {"type": "integer", "description": "Target NP (Cat Point) balance"},
                     "leadership": {"type": "integer", "description": "Target Leadership count"},
+                    "catseyes": {"description": "Target Catseye count for all types or list per type [EX, Rare, S.Rare, U.Rare, Legend]"},
+                    "catfruit": {"description": "Target Catfruit / Matatabi count"},
+                    "catamins": {"description": "Target Catamins A/B/C count"},
+                    "gamatoto_level": {"type": "integer", "description": "Target Gamatoto level (e.g. 150)"},
+                    "gamatoto_xp": {"type": "integer", "description": "Target Gamatoto XP value"},
+                    "gamatoto_helpers": {"type": "boolean", "description": "Set all 10 Gamatoto helpers to Legend/Grandmaster rarity"},
+                    "ototo_engineers": {"type": "integer", "description": "Target Ototo engineer count (max 10)"},
                     "unlock_cats": {"type": "boolean", "default": False, "description": "Unlock all obtainable characters"},
                     "unlock_cat_ids": {"type": "array", "items": {"type": "integer"}, "description": "List of specific Cat IDs to unlock (e.g. [0, 1, 555])"},
                     "remove_cat_ids": {"type": "array", "items": {"type": "integer"}, "description": "List of specific Cat IDs to remove/lock"},
@@ -408,6 +415,141 @@ Content-Type: application/json
     </div>
     <div class="card-body">
       <p>Applies requested modifications to save data and re-uploads to PONOS server to obtain new transfer credentials.</p>
+      
+      <h4 style="margin: 1rem 0 0.5rem; font-family: 'Plus Jakarta Sans', sans-serif;">Supported Editable Parameters</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Parameter Key</th>
+            <th>Type</th>
+            <th>Description & Example Values</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>catfood</code></td>
+            <td>integer</td>
+            <td>Target Cat Food balance (e.g. <code>45000</code>)</td>
+          </tr>
+          <tr>
+            <td><code>xp</code></td>
+            <td>integer</td>
+            <td>Target XP balance (e.g. <code>99999999</code>)</td>
+          </tr>
+          <tr>
+            <td><code>normal_tickets</code></td>
+            <td>integer</td>
+            <td>Normal (Cat) Ticket count (e.g. <code>999</code>)</td>
+          </tr>
+          <tr>
+            <td><code>rare_tickets</code></td>
+            <td>integer</td>
+            <td>Rare Ticket count (e.g. <code>299</code>)</td>
+          </tr>
+          <tr>
+            <td><code>platinum_tickets</code></td>
+            <td>integer</td>
+            <td>Platinum Ticket count (e.g. <code>99</code>)</td>
+          </tr>
+          <tr>
+            <td><code>legend_tickets</code></td>
+            <td>integer</td>
+            <td>Legend Ticket count (e.g. <code>9</code>)</td>
+          </tr>
+          <tr>
+            <td><code>platinum_shards</code></td>
+            <td>integer</td>
+            <td>Platinum Shard count (e.g. <code>99</code>)</td>
+          </tr>
+          <tr>
+            <td><code>np</code></td>
+            <td>integer</td>
+            <td>Cat Point / NP balance (e.g. <code>9999</code>)</td>
+          </tr>
+          <tr>
+            <td><code>leadership</code></td>
+            <td>integer</td>
+            <td>Leadership count (e.g. <code>999</code>)</td>
+          </tr>
+          <tr>
+            <td><code>catseyes</code></td>
+            <td>integer | array</td>
+            <td>Catseye (캣츠아이) count for all types or list <code>[EX, Rare, S.Rare, U.Rare, Legend]</code> (e.g. <code>999</code> or <code>[999, 999, 999, 999, 999]</code>)</td>
+          </tr>
+          <tr>
+            <td><code>catfruit</code></td>
+            <td>integer | array</td>
+            <td>Catfruit / Matatabi (개불) count (e.g. <code>999</code>)</td>
+          </tr>
+          <tr>
+            <td><code>catamins</code></td>
+            <td>integer | array</td>
+            <td>Catamins A/B/C (비타민) count (e.g. <code>999</code>)</td>
+          </tr>
+          <tr>
+            <td><code>gamatoto_level</code></td>
+            <td>integer</td>
+            <td>Gamatoto Level (가마토토 레벨) (e.g. <code>150</code>)</td>
+          </tr>
+          <tr>
+            <td><code>gamatoto_xp</code></td>
+            <td>integer</td>
+            <td>Gamatoto XP value (e.g. <code>9999999</code>)</td>
+          </tr>
+          <tr>
+            <td><code>gamatoto_helpers</code></td>
+            <td>boolean</td>
+            <td>Set all 10 Gamatoto helpers to Legend/Grandmaster rarity (e.g. <code>true</code>)</td>
+          </tr>
+          <tr>
+            <td><code>ototo_engineers</code></td>
+            <td>integer</td>
+            <td>Ototo engineer count (오토토 개발 대원 수, max 10) (e.g. <code>10</code>)</td>
+          </tr>
+          <tr>
+            <td><code>unlock_cats</code></td>
+            <td>boolean</td>
+            <td>Unlock all obtainable characters (e.g. <code>true</code>)</td>
+          </tr>
+          <tr>
+            <td><code>unlock_cat_ids</code></td>
+            <td>array[int]</td>
+            <td>Specific Cat IDs to unlock (e.g. <code>[0, 1, 555]</code>)</td>
+          </tr>
+          <tr>
+            <td><code>remove_cat_ids</code></td>
+            <td>array[int]</td>
+            <td>Specific Cat IDs to remove/lock (e.g. <code>[555]</code>)</td>
+          </tr>
+          <tr>
+            <td><code>clear_all_stages</code></td>
+            <td>boolean</td>
+            <td>Clear all Story & Aku Realm stages (e.g. <code>true</code>)</td>
+          </tr>
+          <tr>
+            <td><code>clear_chapters</code></td>
+            <td>array[int]</td>
+            <td>Specific chapter IDs to clear (e.g. <code>[0, 1, 2]</code>)</td>
+          </tr>
+          <tr>
+            <td><code>max_treasures</code></td>
+            <td>boolean</td>
+            <td>Set all story treasures to Gold (Superior) (e.g. <code>true</code>)</td>
+          </tr>
+          <tr>
+            <td><code>max_chapter_treasures</code></td>
+            <td>array[int]</td>
+            <td>Specific chapter IDs to set all treasures to Gold (e.g. <code>[0, 1]</code>)</td>
+          </tr>
+          <tr>
+            <td><code>enable_safety</code></td>
+            <td>boolean</td>
+            <td>Enable ban safety clamping (catfood &le; 45,000, XP &le; 99,999,999) (e.g. <code>true</code>)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4 style="margin: 1.5rem 0 0.5rem; font-family: 'Plus Jakarta Sans', sans-serif;">Full Example JSON Request Payload</h4>
       <pre class="code-block"><code>POST /edit
 Content-Type: application/json
 
@@ -417,8 +559,18 @@ Content-Type: application/json
   "country_code": "kr",
   "catfood": 45000,
   "xp": 99999999,
+  "rare_tickets": 299,
+  "platinum_tickets": 99,
+  "legend_tickets": 9,
+  "catseyes": 999,
+  "catfruit": 999,
+  "catamins": 999,
+  "gamatoto_level": 150,
+  "gamatoto_helpers": true,
+  "ototo_engineers": 10,
   "unlock_cats": true,
-  "max_treasures": true
+  "max_treasures": true,
+  "enable_safety": true
 }</code></pre>
     </div>
   </div>
@@ -532,6 +684,16 @@ def edit_save():
     np = data.get("np")
     leadership = data.get("leadership")
 
+    catseyes = data.get("catseyes")
+    catfruit = data.get("catfruit")
+    catamins = data.get("catamins")
+    battle_items = data.get("battle_items")
+
+    gamatoto_level = data.get("gamatoto_level")
+    gamatoto_xp = data.get("gamatoto_xp")
+    gamatoto_helpers = data.get("gamatoto_helpers")
+    ototo_engineers = data.get("ototo_engineers")
+
     unlock_cats = bool(data.get("unlock_cats", False))
     unlock_cat_ids = data.get("unlock_cat_ids")
     remove_cat_ids = data.get("remove_cat_ids")
@@ -553,6 +715,8 @@ def edit_save():
         catfood is not None, xp is not None, normal_tickets is not None,
         rare_tickets is not None, platinum_tickets is not None, legend_tickets is not None,
         platinum_shards is not None, np is not None, leadership is not None,
+        catseyes is not None, catfruit is not None, catamins is not None, battle_items is not None,
+        gamatoto_level is not None, gamatoto_xp is not None, gamatoto_helpers, ototo_engineers is not None,
         unlock_cats, unlock_cat_ids, remove_cat_ids,
         clear_all_stages, clear_chapters, clear_stages,
         max_treasures, max_chapter_treasures, stage_treasures
@@ -578,6 +742,14 @@ def edit_save():
         platinum_shards=platinum_shards,
         np=np,
         leadership=leadership,
+        catseyes=catseyes,
+        catfruit=catfruit,
+        catamins=catamins,
+        battle_items=battle_items,
+        gamatoto_level=gamatoto_level,
+        gamatoto_xp=gamatoto_xp,
+        gamatoto_helpers=gamatoto_helpers,
+        ototo_engineers=ototo_engineers,
         unlock_cats=unlock_cats,
         unlock_cat_ids=unlock_cat_ids,
         remove_cat_ids=remove_cat_ids,
