@@ -272,19 +272,18 @@ def patch_and_upload_save(
             new_helpers = []
 
             if isinstance(gamatoto_helpers, list):
-                # 10개 대원 슬롯 각각 "gold", "silver", "bronze" 직접 입력 e.g. ["gold", "gold", "silver", "bronze", ...]
                 r2_idx, r1_idx, r0_idx = 0, 0, 0
                 for item in gamatoto_helpers[:10]:
                     val = str(item).lower()
-                    if "gold" in val or "legend" in val or "master" in val:
+                    if any(k in val for k in ["gold", "legend", "master", "grandmaster", "senior", "superior", "top", "2"]):
                         if r2_members:
                             new_helpers.append(Helper(r2_members[r2_idx % len(r2_members)].member_id))
                             r2_idx += 1
-                    elif "silver" in val or "rare" in val:
+                    elif any(k in val for k in ["silver", "rare", "apprentice", "middle", "medium", "1"]):
                         if r1_members:
                             new_helpers.append(Helper(r1_members[r1_idx % len(r1_members)].member_id))
                             r1_idx += 1
-                    else: # white / bronze / common
+                    else: # white / bronze / common / intern / junior / basic / 0
                         if r0_members:
                             new_helpers.append(Helper(r0_members[r0_idx % len(r0_members)].member_id))
                             r0_idx += 1
