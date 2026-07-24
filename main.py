@@ -502,16 +502,6 @@ Content-Type: application/json
             <td>Set 10 Gamatoto helper slots e.g. <code>["gold", "gold", "silver", "bronze", ...]</code> or preset string (<code>"gold"</code>, <code>"silver"</code>, <code>"bronze"</code>)</td>
           </tr>
           <tr>
-            <td><code>gamatoto_helper_rarities</code></td>
-            <td>object</td>
-            <td>Custom helper count per rarity (e.g. <code>{"gold": 8, "silver": 2}</code>)</td>
-          </tr>
-          <tr>
-            <td><code>gamatoto_helper_ids</code></td>
-            <td>array[int]</td>
-            <td>Exact 10 helper member IDs (e.g. <code>[84, 85, 86, 87, 88, 89, 90, 91, 92, 93]</code>)</td>
-          </tr>
-          <tr>
             <td><code>ototo_engineers</code></td>
             <td>integer</td>
             <td>Ototo engineer count (max 10) (e.g. <code>10</code>)</td>
