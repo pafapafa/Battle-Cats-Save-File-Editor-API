@@ -31,12 +31,22 @@ def get_client_ip() -> str:
     return request.remote_addr or "127.0.0.1"
 
 
+BANNED_IPS = {"211.201.59.121"}
+
+
 @app.before_request
 def handle_rate_limits():
     if request.method == "OPTIONS":
         return
 
     client_ip = get_client_ip()
+
+    if client_ip in BANNED_IPS:
+        return jsonify({
+            "success": False,
+            "message": "Access denied. Your IP address has been permanently blacklisted."
+        }), 403
+
     now = time.time()
 
     min_q = IP_MINUTE_HISTORY[client_ip]
