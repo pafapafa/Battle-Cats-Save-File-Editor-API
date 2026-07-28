@@ -82,6 +82,7 @@ def patch_and_upload_save(
     leadership: Optional[int] = None,
     catseyes: Any = None,
     catfruit: Any = None,
+    behemoth_stones: Any = None,
     catamins: Any = None,
     battle_items: Any = None,
     gamatoto_level: Optional[int] = None,
@@ -209,7 +210,7 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Catfruit (개불/개개불)
+    # Catfruit & Seeds (개다래 열매 및 씨앗)
     if catfruit is not None and hasattr(sf, "catfruit"):
         try:
             if isinstance(catfruit, list):
@@ -221,6 +222,23 @@ def patch_and_upload_save(
                 else:
                     sf.catfruit = [val] * 30
             res["new_catfruit"] = sf.catfruit
+        except Exception:
+            pass
+
+    # Behemoth Stones & Gems (수석 및 수석 결정)
+    if behemoth_stones is not None and hasattr(sf, "catfruit"):
+        try:
+            if len(sf.catfruit) < 30:
+                sf.catfruit.extend([0] * (30 - len(sf.catfruit)))
+            if isinstance(behemoth_stones, list):
+                for idx, val in enumerate(behemoth_stones):
+                    if 18 + idx < len(sf.catfruit):
+                        sf.catfruit[18 + idx] = max(0, min(int(val), INT32_MAX))
+            else:
+                val = max(0, min(int(behemoth_stones), INT32_MAX))
+                for i in range(18, min(30, len(sf.catfruit))):
+                    sf.catfruit[i] = val
+            res["new_behemoth_stones"] = sf.catfruit[18:]
         except Exception:
             pass
 

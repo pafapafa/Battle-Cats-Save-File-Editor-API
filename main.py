@@ -489,7 +489,12 @@ Content-Type: application/json
           <tr>
             <td><code>catfruit</code></td>
             <td>integer | array</td>
-            <td>Catfruit / Matatabi count (e.g. <code>999</code>)</td>
+            <td>Catfruit & Catfruit Seeds count (e.g. <code>999</code>)</td>
+          </tr>
+          <tr>
+            <td><code>behemoth_stones</code></td>
+            <td>integer | array</td>
+            <td>Behemoth Stones & Gems count (e.g. <code>999</code>)</td>
           </tr>
           <tr>
             <td><code>catamins</code></td>
@@ -711,6 +716,7 @@ def edit_save():
 
     catseyes = data.get("catseyes")
     catfruit = data.get("catfruit")
+    behemoth_stones = data.get("behemoth_stones") or data.get("stones")
     catamins = data.get("catamins")
     if not catamins:
         ca = data.get("catamins_a")
@@ -750,7 +756,7 @@ def edit_save():
         catfood is not None, xp is not None, normal_tickets is not None,
         rare_tickets is not None, platinum_tickets is not None, legend_tickets is not None,
         platinum_shards is not None, np is not None, leadership is not None,
-        catseyes is not None, catfruit is not None, catamins is not None, battle_items is not None,
+        catseyes is not None, catfruit is not None, behemoth_stones is not None, catamins is not None, battle_items is not None,
         gamatoto_level is not None, gamatoto_xp is not None, gamatoto_helpers, gamatoto_helper_ids, gamatoto_helper_rarities,
         ototo_engineers is not None, ototo_materials is not None,
         unlock_cats, unlock_cat_ids, remove_cat_ids,
@@ -780,6 +786,7 @@ def edit_save():
         leadership=leadership,
         catseyes=catseyes,
         catfruit=catfruit,
+        behemoth_stones=behemoth_stones,
         catamins=catamins,
         battle_items=battle_items,
         gamatoto_level=gamatoto_level,
