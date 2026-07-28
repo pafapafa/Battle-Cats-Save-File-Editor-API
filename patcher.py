@@ -224,10 +224,15 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Catamins (비타민)
+    # Catamins (비타민 A, B, C / leadership_a,b,c 호환 지원)
     if catamins is not None and hasattr(sf, "catamins"):
         try:
-            if isinstance(catamins, list):
+            if isinstance(catamins, dict):
+                a_val = int(catamins.get("a", catamins.get("catamins_a", catamins.get("leadership_a", 0))))
+                b_val = int(catamins.get("b", catamins.get("catamins_b", catamins.get("leadership_b", 0))))
+                c_val = int(catamins.get("c", catamins.get("catamins_c", catamins.get("leadership_c", 0))))
+                sf.catamins = [max(0, min(x, INT32_MAX)) for x in [a_val, b_val, c_val]]
+            elif isinstance(catamins, list):
                 sf.catamins = [max(0, min(int(x), INT32_MAX)) for x in catamins]
             else:
                 val = max(0, min(int(catamins), INT32_MAX))

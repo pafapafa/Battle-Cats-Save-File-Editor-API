@@ -712,6 +712,13 @@ def edit_save():
     catseyes = data.get("catseyes")
     catfruit = data.get("catfruit")
     catamins = data.get("catamins")
+    if not catamins:
+        ca = data.get("catamins_a") or data.get("leadership_a")
+        cb = data.get("catamins_b") or data.get("leadership_b")
+        cc_item = data.get("catamins_c") or data.get("leadership_c")
+        if ca is not None or cb is not None or cc_item is not None:
+            catamins = {"a": ca or 0, "b": cb or 0, "c": cc_item or 0}
+
     battle_items = data.get("battle_items")
 
     gamatoto_level = data.get("gamatoto_level")
