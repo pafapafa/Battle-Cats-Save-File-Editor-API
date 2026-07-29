@@ -381,24 +381,32 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    if unlock_cats:
+    # Unlock All Cats
+    if unlock_cats and hasattr(sf, "cats"):
         try:
-            sf.unlock_equip_menu()
-            sf.unlock_popups()
-            if hasattr(sf, "cats") and hasattr(sf.cats, "get_cats_obtainable"):
-                obtainable = sf.cats.get_cats_obtainable(sf) if hasattr(sf.cats.get_cats_obtainable, "__code__") and sf.cats.get_cats_obtainable.__code__.co_argcount > 1 else sf.cats.get_cats_obtainable()
-                if obtainable:
-                    for cat in obtainable:
-                        cat.unlock(sf)
+            try:
+                sf.unlock_equip_menu()
+            except Exception:
+                pass
+            try:
+                sf.unlock_popups()
+            except Exception:
+                pass
+            for cat in getattr(sf.cats, "cats", []):
+                cat.unlocked = 1
+                cat.gatya_seen = 1
+                try:
+                    cat.unlock(sf)
+                except Exception:
+                    pass
             res["unlock_cats"] = True
         except Exception:
             pass
 
+    # Unlock Specific Cat IDs
     if unlock_cat_ids and hasattr(sf, "cats"):
         count = 0
         try:
-            sf.unlock_equip_menu()
-            sf.unlock_popups()
             for cid in unlock_cat_ids:
                 try:
                     cid = int(cid)
@@ -408,7 +416,12 @@ def patch_and_upload_save(
                     elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
                         cat = sf.cats.cats[cid]
                     if cat:
-                        cat.unlock(sf)
+                        cat.unlocked = 1
+                        cat.gatya_seen = 1
+                        try:
+                            cat.unlock(sf)
+                        except Exception:
+                            pass
                         count += 1
                 except Exception:
                     pass
@@ -416,6 +429,7 @@ def patch_and_upload_save(
         except Exception:
             pass
 
+    # Remove Specific Cat IDs
     if remove_cat_ids and hasattr(sf, "cats"):
         count = 0
         try:
@@ -428,7 +442,12 @@ def patch_and_upload_save(
                     elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
                         cat = sf.cats.cats[cid]
                     if cat:
-                        cat.remove(reset=True, save_file=sf)
+                        cat.unlocked = 0
+                        cat.gatya_seen = 0
+                        try:
+                            cat.remove(reset=True, save_file=sf)
+                        except Exception:
+                            pass
                         count += 1
                 except Exception:
                     pass
@@ -443,8 +462,9 @@ def patch_and_upload_save(
             if max_cat_levels:
                 for cat in getattr(sf.cats, "cats", []):
                     if getattr(cat, "unlocked", False):
-                        cat.upgrade_base = 49 # Level 50
-                        cat.upgrade_plus = 90 # +90
+                        if hasattr(cat, "upgrade") and cat.upgrade:
+                            cat.upgrade.base = 49 # Level 50
+                            cat.upgrade.plus = 90 # +90
                         count += 1
                 res["max_cat_levels_count"] = count
 
@@ -463,9 +483,11 @@ def patch_and_upload_save(
                         elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
                             cat = sf.cats.cats[cid]
                         if cat:
-                            cat.unlock(sf)
-                            cat.upgrade_base = max(0, min(lvl - 1, 99))
-                            cat.upgrade_plus = max(0, min(plus, 100))
+                            cat.unlocked = 1
+                            cat.gatya_seen = 1
+                            if hasattr(cat, "upgrade") and cat.upgrade:
+                                cat.upgrade.base = max(0, min(lvl - 1, 99))
+                                cat.upgrade.plus = max(0, min(plus, 100))
                             count += 1
                 res["updated_cat_levels_count"] = count
         except Exception:
@@ -498,7 +520,8 @@ def patch_and_upload_save(
                         elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
                             cat = sf.cats.cats[cid]
                         if cat:
-                            cat.unlock(sf)
+                            cat.unlocked = 1
+                            cat.gatya_seen = 1
                             # form_val: 1 = 1st Form (0), 2 = 2nd Form (1), 3 = 3rd Form/True Form (2), 4 = 4th Form/Ultra Form (3)
                             target_form = max(0, min(form_val - 1, 3))
                             cat.unlocked_forms = max(getattr(cat, "unlocked_forms", 1), target_form + 1)
