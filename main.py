@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import time
+import traceback
 from collections import defaultdict, deque
 from patcher import (
     download_ponos_save,
@@ -13,12 +14,15 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
 IP_MINUTE_HISTORY = defaultdict(deque)
 IP_DAILY_HISTORY = defaultdict(deque)
+_LAST_CLEANUP = 0
 
 MINUTE_WINDOW = 60
 DAILY_WINDOW = 86400
+CLEANUP_INTERVAL = 3600
 
 MAX_PER_MINUTE = 10
 MAX_PER_DAY = 100
+REQUEST_TIMEOUT = 55
 
 
 def get_client_ip() -> str:
@@ -34,6 +38,31 @@ def get_client_ip() -> str:
 BANNED_IPS = {"211.201.59.121"}
 
 
+def _cleanup_stale_ips():
+    global _LAST_CLEANUP
+    now = time.time()
+    if now - _LAST_CLEANUP < CLEANUP_INTERVAL:
+        return
+    _LAST_CLEANUP = now
+    stale_ips = []
+    for ip, dq in list(IP_DAILY_HISTORY.items()):
+        if not dq or dq[-1] < now - DAILY_WINDOW:
+            stale_ips.append(ip)
+    for ip in stale_ips:
+        IP_MINUTE_HISTORY.pop(ip, None)
+        IP_DAILY_HISTORY.pop(ip, None)
+
+
+def safe_int(val, default=None, lo=0, hi=INT32_MAX):
+    if val is None:
+        return default
+    try:
+        v = int(val)
+        return max(lo, min(v, hi))
+    except (ValueError, TypeError):
+        return default
+
+
 @app.before_request
 def handle_rate_limits():
     if request.method == "OPTIONS":
@@ -44,10 +73,13 @@ def handle_rate_limits():
     if client_ip in BANNED_IPS:
         return jsonify({
             "success": False,
-            "message": "Access denied. Your IP address has been permanently blacklisted."
+            "message": "Access denied."
         }), 403
 
     now = time.time()
+    request._start_time = now
+
+    _cleanup_stale_ips()
 
     min_q = IP_MINUTE_HISTORY[client_ip]
     cutoff_min = now - MINUTE_WINDOW
@@ -90,14 +122,25 @@ def validate_inputs(transfer_code: str, confirmation_code: str) -> bool:
         return False
     if len(transfer_code) > 64 or len(confirmation_code) > 16:
         return False
+    if not all(c.isalnum() for c in transfer_code):
+        return False
+    if not all(c.isalnum() for c in confirmation_code):
+        return False
     return True
+
+
+def _check_timeout():
+    start = getattr(request, '_start_time', None)
+    if start and (time.time() - start) > REQUEST_TIMEOUT:
+        return True
+    return False
 
 
 OPENAPI_SPEC = {
     "openapi": "3.0.0",
     "info": {
         "title": "Battle Cats Save File Editor API",
-        "version": "1.0.4",
+        "version": "1.0.5",
         "description": "High-Performance Battle Cats Save Customization and Transfer API Engine."
     },
     "paths": {
@@ -381,7 +424,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
     <h1>Battle Cats Save File Editor REST API</h1>
     <p>High-performance REST API for Battle Cats save customization, binary patching, and cloud PONOS transfer synchronization.</p>
     <div class="badge-list">
-      <span class="chip">v1.0.4</span>
+      <span class="chip">v1.0.5</span>
       <span class="chip">OpenAPI 3.0</span>
       <span class="chip">JSON REST API</span>
     </div>
@@ -396,7 +439,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
     </div>
     <div class="card-body">
       <p>Health check endpoint retrieving service status.</p>
-      <pre class="code-block"><code>{"service": "Battle Cats Save File Editor API", "status": "online", "version": "1.0.4"}</code></pre>
+      <pre class="code-block"><code>{"service": "Battle Cats Save File Editor API", "status": "online", "version": "1.0.5"}</code></pre>
     </div>
   </div>
 
@@ -681,58 +724,65 @@ def health_check():
     return jsonify({
         "status": "online",
         "service": "Battle Cats Save File Editor API",
-        "version": "1.0.4"
+        "version": "1.0.5"
     })
 
 
 @app.route("/info", methods=["POST"])
 def inspect_save():
-    data = request.get_json(silent=True) or {}
-    tc = str(data.get("transfer_code") or data.get("tc") or "").strip()
-    cc = str(data.get("confirmation_code") or data.get("cc") or data.get("confirmation_pin") or "").strip()
-    country = str(data.get("country_code") or data.get("country") or data.get("cc_str") or "").strip()
+    try:
+        data = request.get_json(silent=True) or {}
+        tc = str(data.get("transfer_code") or data.get("tc") or "").strip()
+        cc = str(data.get("confirmation_code") or data.get("cc") or data.get("confirmation_pin") or "").strip()
+        country = str(data.get("country_code") or data.get("country") or data.get("cc_str") or "").strip()
 
-    if not validate_inputs(tc, cc) or not country:
-        return jsonify({"success": False, "message": "transfer_code, confirmation_code, and country_code are required."}), 400
+        if not validate_inputs(tc, cc) or not country:
+            return jsonify({"success": False, "message": "transfer_code, confirmation_code, and country_code are required."}), 400
 
-    sf, sh = download_ponos_save(tc, cc, country)
-    if sf is None:
-        return jsonify({"success": False, "message": "Invalid or expired transfer code / PIN."}), 400
+        sf, sh = download_ponos_save(tc, cc, country)
+        if sf is None:
+            return jsonify({"success": False, "message": "Invalid or expired transfer code / PIN."}), 400
 
-    gv = getattr(getattr(sf, "game_version", None), "game_version", 140300)
+        if _check_timeout():
+            return jsonify({"success": False, "message": "Request timed out."}), 504
 
-    return jsonify({
-        "success": True,
-        "message": "Save info retrieved successfully.",
-        "game_version": gv,
-        "catfood": getattr(sf, "catfood", 0),
-        "xp": getattr(sf, "xp", 0),
-        "normal_tickets": getattr(sf, "normal_tickets", 0),
-        "rare_tickets": getattr(sf, "rare_tickets", 0),
-        "platinum_tickets": getattr(sf, "platinum_tickets", 0),
-        "legend_tickets": getattr(sf, "legend_tickets", 0),
-        "platinum_shards": getattr(sf, "platinum_shards", 0),
-        "np": getattr(sf, "np", 0),
-        "leadership": getattr(sf, "leadership", 0),
-    })
+        gv = getattr(getattr(sf, "game_version", None), "game_version", 140300)
+
+        return jsonify({
+            "success": True,
+            "message": "Save info retrieved successfully.",
+            "game_version": gv,
+            "catfood": getattr(sf, "catfood", 0),
+            "xp": getattr(sf, "xp", 0),
+            "normal_tickets": getattr(sf, "normal_tickets", 0),
+            "rare_tickets": getattr(sf, "rare_tickets", 0),
+            "platinum_tickets": getattr(sf, "platinum_tickets", 0),
+            "legend_tickets": getattr(sf, "legend_tickets", 0),
+            "platinum_shards": getattr(sf, "platinum_shards", 0),
+            "np": getattr(sf, "np", 0),
+            "leadership": getattr(sf, "leadership", 0),
+        })
+    except Exception as exc:
+        return jsonify({"success": False, "message": f"Internal server error: {type(exc).__name__}"}), 500
 
 
 @app.route("/edit", methods=["POST"])
 def edit_save():
+  try:
     data = request.get_json(silent=True) or {}
     tc = str(data.get("transfer_code") or data.get("tc") or "").strip()
     cc = str(data.get("confirmation_code") or data.get("cc") or data.get("confirmation_pin") or "").strip()
     country = str(data.get("country_code") or data.get("country") or data.get("cc_str") or "").strip()
 
-    catfood = data.get("catfood")
-    xp = data.get("xp")
-    normal_tickets = data.get("normal_tickets")
-    rare_tickets = data.get("rare_tickets")
-    platinum_tickets = data.get("platinum_tickets")
-    legend_tickets = data.get("legend_tickets")
-    platinum_shards = data.get("platinum_shards")
-    np = data.get("np")
-    leadership = data.get("leadership")
+    catfood = safe_int(data.get("catfood"))
+    xp = safe_int(data.get("xp"))
+    normal_tickets = safe_int(data.get("normal_tickets"))
+    rare_tickets = safe_int(data.get("rare_tickets"))
+    platinum_tickets = safe_int(data.get("platinum_tickets"))
+    legend_tickets = safe_int(data.get("legend_tickets"))
+    platinum_shards = safe_int(data.get("platinum_shards"))
+    np = safe_int(data.get("np"))
+    leadership = safe_int(data.get("leadership"), hi=32767)
 
     catseyes = data.get("catseyes")
     catfruit = data.get("catfruit")
@@ -747,12 +797,12 @@ def edit_save():
 
     battle_items = data.get("battle_items")
 
-    gamatoto_level = data.get("gamatoto_level")
-    gamatoto_xp = data.get("gamatoto_xp")
+    gamatoto_level = safe_int(data.get("gamatoto_level"))
+    gamatoto_xp = safe_int(data.get("gamatoto_xp"))
     gamatoto_helpers = data.get("gamatoto_helpers")
     gamatoto_helper_ids = data.get("gamatoto_helper_ids")
     gamatoto_helper_rarities = data.get("gamatoto_helper_rarities")
-    ototo_engineers = data.get("ototo_engineers")
+    ototo_engineers = safe_int(data.get("ototo_engineers"), hi=10)
     ototo_materials = data.get("ototo_materials")
     base_materials = data.get("base_materials")
 
@@ -798,6 +848,9 @@ def edit_save():
     sf, sh = download_ponos_save(tc, cc, country)
     if sf is None:
         return jsonify({"success": False, "message": "Invalid or expired transfer code / PIN."}), 400
+
+    if _check_timeout():
+        return jsonify({"success": False, "message": "Request timed out during save download."}), 504
 
     res, codes = patch_and_upload_save(
         save_file=sf,
@@ -855,3 +908,25 @@ def edit_save():
         "new_confirmation_code": new_c,
         "details": res,
     })
+  except Exception as exc:
+    return jsonify({"success": False, "message": f"Internal server error: {type(exc).__name__}"}), 500
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"success": False, "message": "Endpoint not found."}), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({"success": False, "message": "Method not allowed."}), 405
+
+
+@app.errorhandler(413)
+def payload_too_large(e):
+    return jsonify({"success": False, "message": "Request payload too large (max 2MB)."}), 413
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"success": False, "message": "Internal server error."}), 500
