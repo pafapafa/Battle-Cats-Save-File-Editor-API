@@ -366,17 +366,17 @@ def patch_and_upload_save(
                 if isinstance(m_val, list):
                     sf.ototo.base_materials.materials = [max(0, min(int(x), INT32_MAX)) for x in m_val]
                 elif isinstance(m_val, dict):
-                    # dict of materials e.g. {"bricks": 9999, "feathers": 9999, ...}
-                    mat_list = getattr(sf.ototo.base_materials, "materials", [0]*12)
-                    if len(mat_list) < 12:
-                        mat_list.extend([0]*(12 - len(mat_list)))
+                    mat_list = getattr(sf.ototo.base_materials, "materials", [0]*24)
+                    if len(mat_list) < 24:
+                        mat_list.extend([0]*(24 - len(mat_list)))
                     for i, (k, v) in enumerate(m_val.items()):
                         if i < len(mat_list):
                             mat_list[i] = max(0, min(int(v), INT32_MAX))
                     sf.ototo.base_materials.materials = mat_list
                 else:
                     val = max(0, min(int(m_val), INT32_MAX))
-                    sf.ototo.base_materials.materials = [val] * 12
+                    curr_len = max(len(getattr(sf.ototo.base_materials, "materials", [])), 24)
+                    sf.ototo.base_materials.materials = [val] * curr_len
                 res["new_base_materials"] = sf.ototo.base_materials.materials
         except Exception:
             pass
