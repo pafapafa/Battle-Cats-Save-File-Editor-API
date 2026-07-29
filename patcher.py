@@ -92,9 +92,16 @@ def patch_and_upload_save(
     gamatoto_helper_rarities: Optional[Dict[str, int]] = None,
     ototo_engineers: Optional[int] = None,
     ototo_materials: Any = None,
+    base_materials: Any = None,
     unlock_cats: bool = False,
     unlock_cat_ids: Optional[List[int]] = None,
     remove_cat_ids: Optional[List[int]] = None,
+    cat_levels: Any = None,
+    cat_evolutions: Any = None,
+    cat_forms: Any = None,
+    max_cat_levels: bool = False,
+    true_form_all: bool = False,
+    max_cat_evolutions: bool = False,
     clear_all_stages: bool = False,
     clear_chapters: Optional[List[int]] = None,
     clear_stages: Optional[List[Dict[str, int]]] = None,
@@ -348,19 +355,29 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Ototo Engineers & Base Materials
-    if (ototo_engineers is not None or ototo_materials is not None) and hasattr(sf, "ototo") and sf.ototo:
+    # Ototo Engineers & Base Building Materials
+    m_val = ototo_materials if ototo_materials is not None else base_materials
+    if (ototo_engineers is not None or m_val is not None) and hasattr(sf, "ototo") and sf.ototo:
         try:
             if ototo_engineers is not None:
                 sf.ototo.engineers = max(0, min(int(ototo_engineers), 10))
                 res["new_ototo_engineers"] = sf.ototo.engineers
-            if ototo_materials is not None and hasattr(sf.ototo, "base_materials") and sf.ototo.base_materials:
-                if isinstance(ototo_materials, list):
-                    sf.ototo.base_materials.materials = [max(0, min(int(x), INT32_MAX)) for x in ototo_materials]
+            if m_val is not None and hasattr(sf.ototo, "base_materials") and sf.ototo.base_materials:
+                if isinstance(m_val, list):
+                    sf.ototo.base_materials.materials = [max(0, min(int(x), INT32_MAX)) for x in m_val]
+                elif isinstance(m_val, dict):
+                    # dict of materials e.g. {"bricks": 9999, "feathers": 9999, ...}
+                    mat_list = getattr(sf.ototo.base_materials, "materials", [0]*12)
+                    if len(mat_list) < 12:
+                        mat_list.extend([0]*(12 - len(mat_list)))
+                    for i, (k, v) in enumerate(m_val.items()):
+                        if i < len(mat_list):
+                            mat_list[i] = max(0, min(int(v), INT32_MAX))
+                    sf.ototo.base_materials.materials = mat_list
                 else:
-                    val = max(0, min(int(ototo_materials), INT32_MAX))
+                    val = max(0, min(int(m_val), INT32_MAX))
                     sf.ototo.base_materials.materials = [val] * 12
-                res["new_ototo_materials"] = sf.ototo.base_materials.materials
+                res["new_base_materials"] = sf.ototo.base_materials.materials
         except Exception:
             pass
 
@@ -416,6 +433,78 @@ def patch_and_upload_save(
                 except Exception:
                     pass
             res["removed_cat_ids_count"] = count
+        except Exception:
+            pass
+
+    # Cat Levels & Upgrades (특정 캐릭터 레벨 및 만렙 세팅)
+    if (cat_levels or max_cat_levels) and hasattr(sf, "cats"):
+        count = 0
+        try:
+            if max_cat_levels:
+                for cat in getattr(sf.cats, "cats", []):
+                    if getattr(cat, "unlocked", False):
+                        cat.upgrade_base = 49 # Level 50
+                        cat.upgrade_plus = 90 # +90
+                        count += 1
+                res["max_cat_levels_count"] = count
+
+            if cat_levels:
+                items = cat_levels if isinstance(cat_levels, list) else [cat_levels]
+                if isinstance(cat_levels, dict):
+                    items = [{"id": k, **(v if isinstance(v, dict) else {"level": v})} for k, v in cat_levels.items()]
+                for item in items:
+                    if isinstance(item, dict):
+                        cid = int(item.get("id", item.get("cat_id", 0)))
+                        lvl = int(item.get("level", item.get("upgrade", 50)))
+                        plus = int(item.get("plus_level", item.get("plus", 0)))
+                        cat = None
+                        if hasattr(sf.cats, "get_cat_by_id"):
+                            cat = sf.cats.get_cat_by_id(cid)
+                        elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
+                            cat = sf.cats.cats[cid]
+                        if cat:
+                            cat.unlock(sf)
+                            cat.upgrade_base = max(0, min(lvl - 1, 99))
+                            cat.upgrade_plus = max(0, min(plus, 100))
+                            count += 1
+                res["updated_cat_levels_count"] = count
+        except Exception:
+            pass
+
+    # Cat Evolutions & Forms (1진, 2진, 3진/True Form, 4진/Ultra Form 설정)
+    evo_data = cat_evolutions if cat_evolutions is not None else cat_forms
+    if (evo_data or true_form_all or max_cat_evolutions) and hasattr(sf, "cats"):
+        count = 0
+        try:
+            if true_form_all or max_cat_evolutions:
+                for cat in getattr(sf.cats, "cats", []):
+                    if getattr(cat, "unlocked", False):
+                        cat.unlocked_forms = 4
+                        cat.current_form = 2 # 3rd Form (True Form) / 3진
+                        count += 1
+                res["max_cat_evolutions_count"] = count
+
+            if evo_data:
+                items = evo_data if isinstance(evo_data, list) else [evo_data]
+                if isinstance(evo_data, dict):
+                    items = [{"id": k, "form": v} for k, v in evo_data.items()]
+                for item in items:
+                    if isinstance(item, dict):
+                        cid = int(item.get("id", item.get("cat_id", 0)))
+                        form_val = int(item.get("form", item.get("evolution", 3)))
+                        cat = None
+                        if hasattr(sf.cats, "get_cat_by_id"):
+                            cat = sf.cats.get_cat_by_id(cid)
+                        elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
+                            cat = sf.cats.cats[cid]
+                        if cat:
+                            cat.unlock(sf)
+                            # form_val: 1 = 1st Form (0), 2 = 2nd Form (1), 3 = 3rd Form/True Form (2), 4 = 4th Form/Ultra Form (3)
+                            target_form = max(0, min(form_val - 1, 3))
+                            cat.unlocked_forms = max(getattr(cat, "unlocked_forms", 1), target_form + 1)
+                            cat.current_form = target_form
+                            count += 1
+                res["updated_cat_evolutions_count"] = count
         except Exception:
             pass
 

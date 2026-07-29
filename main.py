@@ -522,9 +522,9 @@ Content-Type: application/json
             <td>Ototo engineer count (max 10) (e.g. <code>10</code>)</td>
           </tr>
           <tr>
-            <td><code>ototo_materials</code></td>
-            <td>integer | array</td>
-            <td>Ototo base building materials count (e.g. <code>9999</code>)</td>
+            <td><code>base_materials</code></td>
+            <td>integer | array | object</td>
+            <td>Ototo base building materials count e.g. <code>9999</code> or object <code>{"bricks": 9999, "feathers": 9999, ...}</code></td>
           </tr>
           <tr>
             <td><code>unlock_cats</code></td>
@@ -540,6 +540,26 @@ Content-Type: application/json
             <td><code>remove_cat_ids</code></td>
             <td>array[int]</td>
             <td>Specific Cat IDs to remove/lock (e.g. <code>[555]</code>)</td>
+          </tr>
+          <tr>
+            <td><code>cat_levels</code></td>
+            <td>array[object] | object</td>
+            <td>Specific Cat Level & Plus Level e.g. <code>[{"id": 0, "level": 50, "plus_level": 90}]</code></td>
+          </tr>
+          <tr>
+            <td><code>cat_evolutions</code></td>
+            <td>array[object] | object</td>
+            <td>Specific Cat Form/Evolution (1=Normal, 2=Evolved, 3=True Form, 4=Ultra Form) e.g. <code>[{"id": 555, "form": 4}]</code></td>
+          </tr>
+          <tr>
+            <td><code>max_cat_levels</code></td>
+            <td>boolean</td>
+            <td>Set all unlocked cats to max base and plus level (e.g. <code>true</code>)</td>
+          </tr>
+          <tr>
+            <td><code>true_form_all</code></td>
+            <td>boolean</td>
+            <td>Set all unlocked cats to 3rd Form (True Form) / 4th Form evolution (e.g. <code>true</code>)</td>
           </tr>
           <tr>
             <td><code>clear_all_stages</code></td>
@@ -734,10 +754,17 @@ def edit_save():
     gamatoto_helper_rarities = data.get("gamatoto_helper_rarities")
     ototo_engineers = data.get("ototo_engineers")
     ototo_materials = data.get("ototo_materials")
+    base_materials = data.get("base_materials")
 
     unlock_cats = bool(data.get("unlock_cats", False))
     unlock_cat_ids = data.get("unlock_cat_ids")
     remove_cat_ids = data.get("remove_cat_ids")
+
+    cat_levels = data.get("cat_levels")
+    cat_evolutions = data.get("cat_evolutions") or data.get("cat_forms")
+    cat_forms = data.get("cat_forms")
+    max_cat_levels = bool(data.get("max_cat_levels", False))
+    true_form_all = bool(data.get("true_form_all", False) or data.get("max_cat_evolutions", False))
 
     clear_all_stages = bool(data.get("clear_all_stages", False))
     clear_chapters = data.get("clear_chapters")
@@ -758,8 +785,9 @@ def edit_save():
         platinum_shards is not None, np is not None, leadership is not None,
         catseyes is not None, catfruit is not None, behemoth_stones is not None, catamins is not None, battle_items is not None,
         gamatoto_level is not None, gamatoto_xp is not None, gamatoto_helpers, gamatoto_helper_ids, gamatoto_helper_rarities,
-        ototo_engineers is not None, ototo_materials is not None,
+        ototo_engineers is not None, ototo_materials is not None, base_materials is not None,
         unlock_cats, unlock_cat_ids, remove_cat_ids,
+        cat_levels, cat_evolutions, cat_forms, max_cat_levels, true_form_all,
         clear_all_stages, clear_chapters, clear_stages,
         max_treasures, max_chapter_treasures, stage_treasures
     ])
@@ -796,9 +824,15 @@ def edit_save():
         gamatoto_helper_rarities=gamatoto_helper_rarities,
         ototo_engineers=ototo_engineers,
         ototo_materials=ototo_materials,
+        base_materials=base_materials,
         unlock_cats=unlock_cats,
         unlock_cat_ids=unlock_cat_ids,
         remove_cat_ids=remove_cat_ids,
+        cat_levels=cat_levels,
+        cat_evolutions=cat_evolutions,
+        cat_forms=cat_forms,
+        max_cat_levels=max_cat_levels,
+        true_form_all=true_form_all,
         clear_all_stages=clear_all_stages,
         clear_chapters=clear_chapters,
         clear_stages=clear_stages,
