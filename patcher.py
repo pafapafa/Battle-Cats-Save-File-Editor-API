@@ -20,6 +20,33 @@ SAFE_CATFOOD_MAX = 45_000
 SAFE_XP_MAX = 99_999_999
 
 _CC_CACHE = {}
+_CAT_DB_CACHE = None
+
+def get_cat_max_forms(cat_id: int, sf=None) -> int:
+    global _CAT_DB_CACHE
+    try:
+        if sf is not None and core is not None and hasattr(core, "Cat") and hasattr(core.Cat, "get_names"):
+            names = core.Cat.get_names(cat_id, sf)
+            if names:
+                return len(names)
+    except Exception:
+        pass
+    try:
+        if _CAT_DB_CACHE is None:
+            cat_db_path = r'C:\Users\USER\Desktop\database.json'
+            if os.path.exists(cat_db_path):
+                import json
+                with open(cat_db_path, 'r', encoding='utf-8') as f:
+                    _CAT_DB_CACHE = json.load(f)
+            else:
+                _CAT_DB_CACHE = {}
+        forms = _CAT_DB_CACHE.get(str(cat_id), [])
+        valid = [x for x in forms if isinstance(x, str) and x.strip()]
+        if valid:
+            return len(valid)
+    except Exception:
+        pass
+    return 3
 
 def get_country_code(cc_str: str = "kr"):
     if core is None:
@@ -499,10 +526,16 @@ def patch_and_upload_save(
         count = 0
         try:
             if true_form_all or max_cat_evolutions:
-                for cat in getattr(sf.cats, "cats", []):
+                cats_list = getattr(sf.cats, "cats", [])
+                for idx, cat in enumerate(cats_list):
                     if getattr(cat, "unlocked", False):
-                        cat.unlocked_forms = 4
-                        cat.current_form = 2 # 3rd Form (True Form) / 3진
+                        cid = getattr(cat, "id", idx)
+                        max_forms = get_cat_max_forms(cid, sf)
+                        target_form_idx = max(0, max_forms - 1)
+                        cat.unlocked = 1
+                        cat.gatya_seen = 1
+                        cat.unlocked_forms = max_forms
+                        cat.current_form = target_form_idx
                         count += 1
                 res["max_cat_evolutions_count"] = count
 
@@ -522,8 +555,8 @@ def patch_and_upload_save(
                         if cat:
                             cat.unlocked = 1
                             cat.gatya_seen = 1
-                            # form_val: 1 = 1st Form (0), 2 = 2nd Form (1), 3 = 3rd Form/True Form (2), 4 = 4th Form/Ultra Form (3)
-                            target_form = max(0, min(form_val - 1, 3))
+                            max_forms = get_cat_max_forms(cid, sf)
+                            target_form = max(0, min(form_val - 1, max_forms - 1))
                             cat.unlocked_forms = max(getattr(cat, "unlocked_forms", 1), target_form + 1)
                             cat.current_form = target_form
                             count += 1
