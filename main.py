@@ -141,7 +141,7 @@ OPENAPI_SPEC = {
     "info": {
         "title": "Battle Cats Save File Editor API",
         "version": "1.0.5",
-        "description": "Battle Cats save editor API."
+        "description": "Battle Cats Save File Editor API."
     },
     "paths": {
         "/info": {
@@ -450,10 +450,10 @@ SWAGGER_HTML = """<!DOCTYPE html>
 </header>
 <div class="container">
   <div class="hero">
-    <h1>Battle Cats Save File Editor REST API</h1>
-    <p>Battle Cats save file editing API. Edit and re-upload saves via REST.</p>
+    <h1>Battle Cats Save File Editor API</h1>
+    <p>Edit and re-upload Battle Cats saves via REST.</p>
     <div class="sub-desc">
-      Save editor API. Edit save data via REST requests and get new transfer codes.
+      Edit save data and get new transfer codes.
     </div>
     <div class="badge-list">
       <span class="chip">v1.0.5</span>
