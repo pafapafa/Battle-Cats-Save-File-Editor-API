@@ -141,14 +141,14 @@ OPENAPI_SPEC = {
     "info": {
         "title": "Battle Cats Save File Editor API",
         "version": "1.0.5",
-        "description": "High-Performance Battle Cats Save Customization and Transfer API Engine."
+        "description": "Battle Cats save editor API."
     },
     "paths": {
         "/info": {
             "post": {
                 "tags": ["Save Management"],
                 "summary": "Inspect Save File Information",
-                "description": "Download save file metadata from PONOS servers using a valid Transfer Code, Confirmation PIN, and Country Code.",
+                "description": "Fetch current save data from PONOS servers.",
                 "requestBody": {
                     "required": True,
                     "content": {
@@ -196,7 +196,7 @@ OPENAPI_SPEC = {
             "post": {
                 "tags": ["Save Management"],
                 "summary": "Modify Save File & Re-Upload",
-                "description": "Apply target modifications, sync server managed items, and issue new transfer credentials.",
+                "description": "Edit save data and get new transfer codes.",
                 "requestBody": {
                     "required": True,
                     "content": {
@@ -342,7 +342,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Battle Cats Save File Editor API Documentation</title>
-<meta name="description" content="Official REST API Documentation for Battle Cats Save Customization, Binary Patching, and PONOS Cloud Sync Engine.">
+<meta name="description" content="Battle Cats Save File Editor API Documentation.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -451,9 +451,9 @@ SWAGGER_HTML = """<!DOCTYPE html>
 <div class="container">
   <div class="hero">
     <h1>Battle Cats Save File Editor REST API</h1>
-    <p>High-performance REST API for Battle Cats save customization and transfer credential management.</p>
+    <p>Battle Cats save file editing API. Edit and re-upload saves via REST.</p>
     <div class="sub-desc">
-      Automated API interface for inspecting save data and applying requested account modifications, returning updated transfer credentials in a single request.
+      Save editor API. Edit save data via REST requests and get new transfer codes.
     </div>
     <div class="badge-list">
       <span class="chip">v1.0.5</span>
@@ -467,32 +467,32 @@ SWAGGER_HTML = """<!DOCTYPE html>
   <h2 class="section-title">Usage Overview</h2>
   <div class="card">
     <div class="card-body">
-      <p>Each API operation processes the request and returns fresh transfer credentials for in-game use.</p>
+      <p>Send transfer code + PIN + region, get back edited save with new codes.</p>
       <div class="flow-steps">
         <div class="flow-step">
           <div class="step-num">1</div>
           <div class="step-content">
-            <strong>Authenticate Request</strong>
-            <span>Provide the current Transfer Code, Confirmation PIN, and game region code.</span>
+            <strong>Send Codes</strong>
+            <span>Transfer Code, PIN, region code.</span>
           </div>
         </div>
         <div class="flow-step">
           <div class="step-num">2</div>
           <div class="step-content">
-            <strong>Process Modifications</strong>
-            <span>Requested resource, cat, and stage modifications are applied according to parameters.</span>
+            <strong>Edit</strong>
+            <span>Requested edits are applied to the save.</span>
           </div>
         </div>
         <div class="flow-step">
           <div class="step-num">3</div>
           <div class="step-content">
-            <strong>Receive Credentials</strong>
-            <span>A new Transfer Code and Confirmation PIN are generated and returned for in-game data import.</span>
+            <strong>Get New Codes</strong>
+            <span>New Transfer Code and PIN are returned. Use these in-game.</span>
           </div>
         </div>
       </div>
       <div class="warn-note">
-        <strong>Notice:</strong> Each Transfer Code + PIN pair is single-use. Always use the new credentials returned in the response for in-game transfer.
+        <strong>Note:</strong> Each code pair is single-use. Always use the new codes from the response.
       </div>
     </div>
   </div>
@@ -843,7 +843,7 @@ Content-Type: application/json
   }
 }</code></pre>
       <div class="detail-note">
-        <strong>Response Notes:</strong> <code>transfer_code</code> and <code>new_transfer_code</code> contain the same value for compatibility. The <code>details</code> object summarizes which modifications were successfully applied, including counts of affected cats, stages, and items.
+        <strong>Note:</strong> <code>transfer_code</code> and <code>new_transfer_code</code> are the same value. <code>details</code> shows what was changed.
       </div>
     </div>
   </div>
