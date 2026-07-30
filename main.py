@@ -261,7 +261,7 @@ OPENAPI_SPEC = {
                 "properties": {
                     "transfer_code": {"type": "string", "description": "PONOS 9-digit Transfer Code"},
                     "confirmation_code": {"type": "string", "description": "PONOS 4-digit PIN Code"},
-                    "country_code": {"type": "string", "description": "Region Code (kr, jp, en, tw)"}
+                    "country_code": {"type": "string", "description": "Region code: kr, jp, en, tw"}
                 }
             },
             "EditRequest": {
@@ -270,7 +270,7 @@ OPENAPI_SPEC = {
                 "properties": {
                     "transfer_code": {"type": "string", "description": "PONOS 9-digit Transfer Code"},
                     "confirmation_code": {"type": "string", "description": "PONOS 4-digit PIN Code"},
-                    "country_code": {"type": "string", "description": "Region Code (kr, jp, en, tw)"},
+                    "country_code": {"type": "string", "description": "Region code: kr, jp, en, tw"},
                     "catfood": {"type": "integer", "description": "Target Cat Food balance"},
                     "xp": {"type": "integer", "description": "Target XP balance"},
                     "normal_tickets": {"type": "integer", "description": "Target Normal Tickets count"},
@@ -533,7 +533,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
         <tbody>
           <tr><td><code>transfer_code</code></td><td>string</td><td>Yes</td><td>PONOS Transfer Code obtained from in-game Data Transfer menu</td></tr>
           <tr><td><code>confirmation_code</code></td><td>string</td><td>Yes</td><td>4-digit Confirmation PIN paired with the Transfer Code</td></tr>
-          <tr><td><code>country_code</code></td><td>string</td><td>Yes</td><td>Game region code: <code>"kr"</code>, <code>"jp"</code>, <code>"en"</code>, or <code>"tw"</code></td></tr>
+          <tr><td><code>country_code</code></td><td>string</td><td>Yes</td><td>Region: <code>kr</code> <code>jp</code> <code>en</code> <code>tw</code></td></tr>
         </tbody>
       </table>
       <div class="detail-note">
@@ -609,7 +609,7 @@ Content-Type: application/json
         <tbody>
           <tr><td><code>transfer_code</code></td><td>string</td><td>Yes</td><td>PONOS Transfer Code</td></tr>
           <tr><td><code>confirmation_code</code></td><td>string</td><td>Yes</td><td>4-digit Confirmation PIN</td></tr>
-          <tr><td><code>country_code</code></td><td>string</td><td>Yes</td><td>Region: <code>"kr"</code>, <code>"jp"</code>, <code>"en"</code>, or <code>"tw"</code></td></tr>
+          <tr><td><code>country_code</code></td><td>string</td><td>Yes</td><td>Region: <code>kr</code> <code>jp</code> <code>en</code> <code>tw</code></td></tr>
         </tbody>
       </table>
 
@@ -908,19 +908,18 @@ Content-Type: application/json
     </div>
   </div>
 
-  <h2 class="section-title">Supported Game Regions</h2>
+  <h2 class="section-title">Supported Regions</h2>
   <div class="card">
     <div class="card-body">
-      <p>The API supports all four Battle Cats game regions. Use the appropriate <code>country_code</code> value for your game version.</p>
       <table>
         <thead>
-          <tr><th>Country Code</th><th>Region</th><th>App Name</th></tr>
+          <tr><th>Code</th><th>Region</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>kr</code></td><td>Korea</td><td>The Battle Cats KR</td></tr>
-          <tr><td><code>jp</code></td><td>Japan</td><td>Nyanko Daisensou</td></tr>
-          <tr><td><code>en</code></td><td>Global / English</td><td>The Battle Cats</td></tr>
-          <tr><td><code>tw</code></td><td>Taiwan / Traditional Chinese</td><td>The Battle Cats TW</td></tr>
+          <tr><td><code>kr</code></td><td>Korea</td></tr>
+          <tr><td><code>jp</code></td><td>Japan</td></tr>
+          <tr><td><code>en</code></td><td>English</td></tr>
+          <tr><td><code>tw</code></td><td>Taiwan</td></tr>
         </tbody>
       </table>
     </div>
