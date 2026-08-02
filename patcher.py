@@ -228,18 +228,14 @@ def patch_and_upload_save(
                 sr_val = int(catseyes.get("super_rare", catseyes.get("super", 0)))
                 ur_val = int(catseyes.get("uber_rare", catseyes.get("uber", 0)))
                 leg_val = int(catseyes.get("legend", 0))
-                catseyes_list = [ex_val, rare_val, sr_val, ur_val, leg_val]
-                if len(sf.catseyes) > 5:
-                    catseyes_list.extend([ex_val] * (len(sf.catseyes) - 5))
+                dark_val = int(catseyes.get("dark", 0))
+                catseyes_list = [ex_val, rare_val, sr_val, ur_val, leg_val, dark_val]
                 sf.catseyes = [max(0, min(x, INT32_MAX)) for x in catseyes_list]
             elif isinstance(catseyes, list):
                 sf.catseyes = [max(0, min(int(x), INT32_MAX)) for x in catseyes]
             else:
                 val = max(0, min(int(catseyes), INT32_MAX))
-                if len(sf.catseyes) > 0:
-                    sf.catseyes = [val] * len(sf.catseyes)
-                else:
-                    sf.catseyes = [val] * 6
+                sf.catseyes = [val] * 6
             res["new_catseyes"] = sf.catseyes
         except Exception:
             pass
@@ -251,10 +247,7 @@ def patch_and_upload_save(
                 sf.catfruit = [max(0, min(int(x), INT32_MAX)) for x in catfruit]
             else:
                 val = max(0, min(int(catfruit), INT32_MAX))
-                if len(sf.catfruit) > 0:
-                    sf.catfruit = [val] * len(sf.catfruit)
-                else:
-                    sf.catfruit = [val] * 30
+                sf.catfruit = [val] * 30
             res["new_catfruit"] = sf.catfruit
         except Exception:
             pass
@@ -262,8 +255,8 @@ def patch_and_upload_save(
     # Behemoth Stones & Gems (수석 및 수석 결정)
     if behemoth_stones is not None and hasattr(sf, "catfruit"):
         try:
-            if len(sf.catfruit) < 30:
-                sf.catfruit.extend([0] * (30 - len(sf.catfruit)))
+            while len(sf.catfruit) < 30:
+                sf.catfruit.append(0)
             if isinstance(behemoth_stones, list):
                 for idx, val in enumerate(behemoth_stones):
                     if 18 + idx < len(sf.catfruit):
@@ -288,10 +281,7 @@ def patch_and_upload_save(
                 sf.catamins = [max(0, min(int(x), INT32_MAX)) for x in catamins]
             else:
                 val = max(0, min(int(catamins), INT32_MAX))
-                if len(sf.catamins) > 0:
-                    sf.catamins = [val] * len(sf.catamins)
-                else:
-                    sf.catamins = [val] * 3
+                sf.catamins = [val] * 3
             res["new_catamins"] = sf.catamins
         except Exception:
             pass
@@ -564,97 +554,131 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    if clear_all_stages and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
+    def _get_story_chapters(save_f):
+        if not hasattr(save_f, "story") or not save_f.story:
+            return []
+        if hasattr(save_f.story, "get_real_chapters"):
+            return save_f.story.get_real_chapters()
+        if hasattr(save_f.story, "chapters"):
+            return save_f.story.chapters
+        return []
+
+    if clear_all_stages:
         try:
-            for ch in sf.story.chapters:
-                ch.clear_chapter()
-            if hasattr(sf, "aku") and hasattr(sf.aku, "clear_chapters"):
-                sf.aku.clear_chapters()
+            chapters = _get_story_chapters(sf)
+            for ch in chapters:
+                if hasattr(ch, "stages") and ch.stages:
+                    ch.progress = len(ch.stages)
+                    for st in ch.stages:
+                        if hasattr(st, "clear_stage"):
+                            st.clear_stage(1)
+            if hasattr(sf, "aku") and sf.aku and hasattr(sf.aku, "chapters") and sf.aku.chapters:
+                for sub in sf.aku.chapters:
+                    if hasattr(sub, "chapters") and sub.chapters:
+                        for ak_ch in sub.chapters:
+                            if hasattr(ak_ch, "stages") and ak_ch.stages:
+                                for st in ak_ch.stages:
+                                    if hasattr(st, "clear_stage"):
+                                        st.clear_stage(1)
             res["clear_all_stages"] = True
         except Exception:
             pass
 
-    if clear_chapters and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
+    if clear_chapters:
         count = 0
+        chapters = _get_story_chapters(sf)
         for item in clear_chapters:
             try:
                 if isinstance(item, dict):
                     ch_id = int(item.get("chapter", 0))
                     amt = int(item.get("clear_amount", item.get("clears", 1)))
-                    if 0 <= ch_id < len(sf.story.chapters):
-                        ch = sf.story.chapters[ch_id]
-                        if hasattr(ch, "stages") and ch.stages:
-                            for st_id in range(len(ch.stages)):
-                                ch.clear_stage(st_id, amt, overwrite_clear_progress=True)
-                        else:
-                            ch.clear_chapter()
-                        count += 1
                 else:
                     ch_id = int(item)
-                    if 0 <= ch_id < len(sf.story.chapters):
-                        sf.story.chapters[ch_id].clear_chapter()
-                        count += 1
+                    amt = 1
+
+                if 0 <= ch_id < len(chapters):
+                    ch = chapters[ch_id]
+                    if hasattr(ch, "stages") and ch.stages:
+                        ch.progress = len(ch.stages)
+                        for st in ch.stages:
+                            if hasattr(st, "clear_stage"):
+                                st.clear_stage(amt)
+                    count += 1
             except Exception:
                 pass
         res["cleared_chapters_count"] = count
 
-    if clear_stages and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
+    if clear_stages:
         count = 0
+        chapters = _get_story_chapters(sf)
         for item in clear_stages:
             try:
                 if isinstance(item, dict):
                     ch_id = int(item.get("chapter", 0))
                     st_id = int(item.get("stage", 0))
                     amt = int(item.get("clear_amount", item.get("clears", 1)))
-                    if 0 <= ch_id < len(sf.story.chapters):
-                        sf.story.chapters[ch_id].clear_stage(st_id, amt, overwrite_clear_progress=True)
-                        count += 1
+                    if 0 <= ch_id < len(chapters):
+                        ch = chapters[ch_id]
+                        if hasattr(ch, "stages") and 0 <= st_id < len(ch.stages):
+                            st = ch.stages[st_id]
+                            if hasattr(st, "clear_stage"):
+                                st.clear_stage(amt)
+                            count += 1
             except Exception:
                 pass
         res["cleared_stages_count"] = count
 
-    if max_treasures and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
+    if max_treasures:
         try:
-            for ch in sf.story.chapters:
-                for st_id in range(48):
-                    ch.set_treasure(st_id, 3)
+            chapters = _get_story_chapters(sf)
+            for ch in chapters:
+                t_stages = ch.get_valid_treasure_stages() if hasattr(ch, "get_valid_treasure_stages") else getattr(ch, "stages", [])
+                for st in t_stages:
+                    if hasattr(st, "set_treasure"):
+                        st.set_treasure(3)
             res["max_treasures"] = True
         except Exception:
             pass
 
-    if max_chapter_treasures and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
+    if max_chapter_treasures:
         count = 0
+        chapters = _get_story_chapters(sf)
         for item in max_chapter_treasures:
             try:
                 if isinstance(item, dict):
                     ch_id = int(item.get("chapter", 0))
                     tr_val = int(item.get("treasure", 3))
-                    if 0 <= ch_id < len(sf.story.chapters):
-                        ch = sf.story.chapters[ch_id]
-                        for st_id in range(48):
-                            ch.set_treasure(st_id, min(3, max(0, tr_val)))
-                        count += 1
                 else:
                     ch_id = int(item)
-                    if 0 <= ch_id < len(sf.story.chapters):
-                        for st_id in range(48):
-                            sf.story.chapters[ch_id].set_treasure(st_id, 3)
-                        count += 1
+                    tr_val = 3
+
+                if 0 <= ch_id < len(chapters):
+                    ch = chapters[ch_id]
+                    t_stages = ch.get_valid_treasure_stages() if hasattr(ch, "get_valid_treasure_stages") else getattr(ch, "stages", [])
+                    for st in t_stages:
+                        if hasattr(st, "set_treasure"):
+                            st.set_treasure(min(3, max(0, tr_val)))
+                    count += 1
             except Exception:
                 pass
         res["max_chapter_treasures_count"] = count
 
-    if stage_treasures and hasattr(sf, "story") and hasattr(sf.story, "chapters"):
+    if stage_treasures:
         count = 0
+        chapters = _get_story_chapters(sf)
         for item in stage_treasures:
             try:
                 if isinstance(item, dict):
                     ch_id = int(item.get("chapter", 0))
                     st_id = int(item.get("stage", 0))
                     tr_val = int(item.get("treasure", 3))
-                    if 0 <= ch_id < len(sf.story.chapters):
-                        sf.story.chapters[ch_id].set_treasure(st_id, min(3, max(0, tr_val)))
-                        count += 1
+                    if 0 <= ch_id < len(chapters):
+                        ch = chapters[ch_id]
+                        if hasattr(ch, "stages") and 0 <= st_id < len(ch.stages):
+                            st = ch.stages[st_id]
+                            if hasattr(st, "set_treasure"):
+                                st.set_treasure(min(3, max(0, tr_val)))
+                                count += 1
             except Exception:
                 pass
         res["set_stage_treasures_count"] = count
