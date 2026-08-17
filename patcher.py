@@ -657,9 +657,12 @@ def patch_and_upload_save(
 
     if (claim_all_rewards or kwargs.get("user_rank_rewards")) and hasattr(sf, "user_rank_rewards") and sf.user_rank_rewards:
         try:
-            # Only claim existing reward slots in the save file
-            for reward in getattr(sf.user_rank_rewards, "rewards", []):
-                reward.claimed = True
+            user_rank = sf.calculate_user_rank()
+            rank_gifts = core.core_data.get_rank_gifts(sf) if hasattr(core.core_data, "get_rank_gifts") else None
+            if rank_gifts and rank_gifts.rank_gift:
+                for rank_gift in rank_gifts.rank_gift:
+                    if rank_gift.index < len(sf.user_rank_rewards.rewards):
+                        sf.user_rank_rewards.rewards[rank_gift.index].claimed = (rank_gift.threshold <= user_rank)
             res["user_rank_rewards_claimed"] = True
         except Exception:
             pass
@@ -742,8 +745,10 @@ def patch_and_upload_save(
     if (max_talent_orbs or talent_orbs) and hasattr(sf, "talent_orbs") and sf.talent_orbs:
         try:
             if max_talent_orbs:
-                for orb_id in range(250):
-                    sf.talent_orbs.set_orb(orb_id, 99)
+                orb_info_list = core.game.catbase.talent_orbs.OrbInfoList.create(sf) if hasattr(core.game.catbase.talent_orbs, "OrbInfoList") else None
+                if orb_info_list and orb_info_list.orb_info_list:
+                    for orb in orb_info_list.orb_info_list:
+                        sf.talent_orbs.set_orb(orb.raw_orb_info.orb_id, 99)
                 res["max_talent_orbs"] = True
 
             if talent_orbs:
@@ -1034,24 +1039,13 @@ def patch_and_upload_save(
         try:
             if core is not None and hasattr(core, "StoryChapters"):
                 core.StoryChapters.clear_tutorial(sf)
-            chapters = _get_story_chapters(sf)
-            for ch in chapters:
-                _clear_story_chapter(ch, 1)
+            if hasattr(sf, "story") and sf.story:
+                chapters = sf.story.get_real_chapters() if hasattr(sf.story, "get_real_chapters") else getattr(sf.story, "chapters", [])
+                for ch_id, ch in enumerate(chapters):
+                    for stage_id in range(48):
+                        sf.story.clear_stage(ch_id, stage_id, overwrite_clear_progress=True, clear_amount=1, chapters=chapters)
             for aku_chapter in _get_aku_chapters(sf):
                 _clear_aku_chapter(aku_chapter, 1)
-            # Unlock Aku Realm in event stages
-            if hasattr(sf, "event_stages"):
-                for st_id in [255, 256, 257, 258, 265, 266, 268]:
-                    try:
-                        sf.event_stages.clear_map(1, st_id, 0, False)
-                    except Exception:
-                        pass
-            # Clear Zombie Outbreaks
-            if hasattr(sf, "outbreaks") and sf.outbreaks:
-                from bcsfe.core.game.map.outbreaks import Outbreak
-                for ob_ch in getattr(sf.outbreaks, "chapters", []):
-                    for ob_id in range(48):
-                        ob_ch.outbreaks[ob_id] = Outbreak(True)
             res["clear_all_stages"] = True
         except Exception:
             pass
