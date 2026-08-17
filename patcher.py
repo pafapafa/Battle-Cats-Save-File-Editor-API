@@ -163,7 +163,7 @@ def get_default_gv():
     global _DEFAULT_GV
     if _DEFAULT_GV is None and core is not None:
         try:
-            _DEFAULT_GV = core.GameVersion(150400)
+            _DEFAULT_GV = core.GameVersion(150500)
         except Exception:
             _DEFAULT_GV = None
     return _DEFAULT_GV
@@ -913,9 +913,14 @@ def patch_and_upload_save(
             if max_cat_levels:
                 for cat in getattr(sf.cats, "cats", []):
                     if getattr(cat, "unlocked", False):
-                        if hasattr(cat, "upgrade") and cat.upgrade:
-                            cat.upgrade = core.Upgrade(90, 49) # Level 50+90
-                        cat.catseyes_used = 10
+                        try:
+                            power_up = core.PowerUpHelper(cat, sf)
+                            max_base = power_up.get_max_max_base_upgrade_level() - 1
+                            max_plus = power_up.get_max_max_plus_upgrade_level()
+                            cat.set_upgrade(sf, core.Upgrade(max_plus, max_base), True)
+                        except Exception:
+                            if hasattr(cat, "upgrade") and cat.upgrade:
+                                cat.upgrade = core.Upgrade(0, 49)
                         count += 1
                 res["max_cat_levels_count"] = count
 
