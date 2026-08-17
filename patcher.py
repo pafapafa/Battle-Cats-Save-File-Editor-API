@@ -5,9 +5,17 @@ import datetime
 from typing import Optional, Dict, Any, Tuple, List
 
 os.environ["HOME"] = tempfile.gettempdir()
+os.environ["USERPROFILE"] = tempfile.gettempdir()
 
 try:
     from bcsfe import core
+    if hasattr(core, "Path"):
+        def _safe_get_documents_folder(app_name: str = "bcsfe"):
+            p = core.Path(os.path.join(tempfile.gettempdir(), app_name))
+            p.generate_dirs()
+            return p
+        core.Path.get_documents_folder = _safe_get_documents_folder
+
     if hasattr(core, "core_data") and hasattr(core.core_data, "init_data"):
         try:
             core.core_data.init_data()
