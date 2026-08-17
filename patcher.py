@@ -1,6 +1,7 @@
 import sys
 import os
 import tempfile
+import datetime
 from typing import Optional, Dict, Any, Tuple, List
 
 os.environ["HOME"] = tempfile.gettempdir()
@@ -22,8 +23,19 @@ SAFE_XP_MAX = 99_999_999
 _CC_CACHE = {}
 _CAT_DB_CACHE = None
 
+
 def get_cat_max_forms(cat_id: int, sf=None) -> int:
     global _CAT_DB_CACHE
+    try:
+        cats = getattr(sf, "cats", None) if sf is not None else None
+        if cats is not None and hasattr(cats, "read_nyanko_picture_book"):
+            picture_book = cats.read_nyanko_picture_book(sf)
+            picture_book_cat = picture_book.get_cat(cat_id) if picture_book is not None else None
+            total_forms = int(getattr(picture_book_cat, "total_forms", 0))
+            if total_forms > 0:
+                return total_forms
+    except Exception:
+        pass
     try:
         if sf is not None and core is not None and hasattr(core, "Cat") and hasattr(core.Cat, "get_names"):
             names = core.Cat.get_names(cat_id, sf)
@@ -33,13 +45,17 @@ def get_cat_max_forms(cat_id: int, sf=None) -> int:
         pass
     try:
         if _CAT_DB_CACHE is None:
-            cat_db_path = r'C:\Users\USER\Desktop\database.json'
-            if os.path.exists(cat_db_path):
-                import json
-                with open(cat_db_path, 'r', encoding='utf-8') as f:
-                    _CAT_DB_CACHE = json.load(f)
-            else:
-                _CAT_DB_CACHE = {}
+            import json
+            database_paths = [
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.json"),
+                r'C:\Users\USER\Desktop\database.json',
+            ]
+            _CAT_DB_CACHE = {}
+            for cat_db_path in database_paths:
+                if os.path.exists(cat_db_path):
+                    with open(cat_db_path, 'r', encoding='utf-8') as f:
+                        _CAT_DB_CACHE = json.load(f)
+                    break
         forms = _CAT_DB_CACHE.get(str(cat_id), [])
         valid = [x for x in forms if isinstance(x, str) and x.strip()]
         if valid:
@@ -47,6 +63,74 @@ def get_cat_max_forms(cat_id: int, sf=None) -> int:
     except Exception:
         pass
     return 3
+
+
+def _get_cat_by_id(sf: Any, cat_id: int):
+    cats = getattr(sf, "cats", None)
+    if cats is None:
+        return None
+    if hasattr(cats, "get_cat_by_id"):
+        return cats.get_cat_by_id(cat_id)
+    cats_list = getattr(cats, "cats", [])
+    if 0 <= cat_id < len(cats_list):
+        return cats_list[cat_id]
+    return None
+
+
+def _unlock_cat(cat: Any, sf: Any) -> None:
+    cat.unlocked = 1
+    cat.gatya_seen = 1
+    cat.catguide_collected = True
+    try:
+        cat.unlock(sf)
+    except Exception:
+        pass
+    try:
+        if core is not None and hasattr(core.core_data, "get_chara_drop"):
+            core.core_data.get_chara_drop(sf).unlock_drops_from_cat_id(cat.id)
+    except Exception:
+        pass
+
+
+def _set_cat_form(cat: Any, sf: Any, target_form: int) -> None:
+    _unlock_cat(cat, sf)
+    max_forms = get_cat_max_forms(cat.id, sf)
+
+    if hasattr(cat, "set_form_true"):
+        try:
+            if target_form >= 3:
+                cat.set_form_true(sf, max_forms, set_current_form=True, fourth_form=True)
+            elif target_form == 2:
+                cat.set_form_true(sf, max_forms, set_current_form=True, fourth_form=False)
+            else:
+                cat.set_form(max(0, target_form), sf, set_current_form=True)
+            return
+        except Exception:
+            pass
+
+    if target_form >= 3:
+        try:
+            cat.unlock_fourth_form(sf, set_current_form=True)
+        except Exception:
+            pass
+        cat.current_form = 3
+        cat.unlocked_forms = 3
+        if hasattr(cat, "fourth_form"):
+            cat.fourth_form = 2
+        return
+
+    if target_form == 2:
+        try:
+            cat.true_form(sf, set_current_form=True)
+        except Exception:
+            pass
+        cat.current_form = 2
+        cat.unlocked_forms = 3
+        return
+
+    cat.current_form = max(0, target_form)
+    cat.unlocked_forms = max(0, target_form) + 1
+
 
 def get_country_code(cc_str: str = "kr"):
     if core is None:
@@ -63,6 +147,7 @@ def get_country_code(cc_str: str = "kr"):
         _CC_CACHE[cc_key] = res
         return res
 
+
 _DEFAULT_GV = None
 
 def get_default_gv():
@@ -73,6 +158,7 @@ def get_default_gv():
         except Exception:
             _DEFAULT_GV = None
     return _DEFAULT_GV
+
 
 def download_ponos_save(tc: str, cc: str, country: str = "kr"):
     if core is None:
@@ -93,6 +179,7 @@ def download_ponos_save(tc: str, cc: str, country: str = "kr"):
         return sh.save_file, sh
     except Exception:
         return None, None
+
 
 def patch_and_upload_save(
     save_file_or_bytes: Any = None,
@@ -117,6 +204,7 @@ def patch_and_upload_save(
     gamatoto_helpers: Any = None,
     gamatoto_helper_ids: Optional[List[int]] = None,
     gamatoto_helper_rarities: Optional[Dict[str, int]] = None,
+    cat_shrine_max: bool = False,
     ototo_engineers: Optional[int] = None,
     ototo_materials: Any = None,
     base_materials: Any = None,
@@ -129,6 +217,18 @@ def patch_and_upload_save(
     max_cat_levels: bool = False,
     true_form_all: bool = False,
     max_cat_evolutions: bool = False,
+    max_special_skills: bool = False,
+    special_skills: Any = None,
+    claim_all_rewards: bool = False,
+    complete_missions: bool = False,
+    max_all_talents: bool = False,
+    max_talents: bool = False,
+    cat_talents: Any = None,
+    max_talent_orbs: bool = False,
+    talent_orbs: Any = None,
+    max_castle_development: bool = False,
+    castle_development: Any = None,
+    castle_levels: Any = None,
     clear_all_stages: bool = False,
     clear_chapters: Optional[List[int]] = None,
     clear_stages: Optional[List[Dict[str, int]]] = None,
@@ -156,13 +256,31 @@ def patch_and_upload_save(
         "original_xp": getattr(sf, "xp", 0),
     }
 
+    # BackupMetaData helper for managed items in BCSFE
+    backup_meta = None
+    if core is not None and hasattr(core, "BackupMetaData"):
+        try:
+            backup_meta = core.BackupMetaData(sf)
+        except Exception:
+            backup_meta = None
+
+    # Catfood
     if catfood is not None:
         try:
+            orig_cf = sf.catfood
             sf.catfood = max(0, min(int(catfood), INT32_MAX))
             res["new_catfood"] = sf.catfood
+            if backup_meta and hasattr(core, "ManagedItem") and hasattr(core, "ManagedItemType"):
+                try:
+                    backup_meta.add_managed_item(
+                        core.ManagedItem.from_change(sf.catfood - orig_cf, core.ManagedItemType.CATFOOD)
+                    )
+                except Exception:
+                    pass
         except Exception:
             pass
 
+    # XP
     if xp is not None:
         try:
             sf.xp = max(0, min(int(xp), INT32_MAX))
@@ -170,6 +288,7 @@ def patch_and_upload_save(
         except Exception:
             pass
 
+    # Normal Tickets
     if normal_tickets is not None and hasattr(sf, "normal_tickets"):
         try:
             sf.normal_tickets = max(0, min(int(normal_tickets), INT32_MAX))
@@ -177,27 +296,55 @@ def patch_and_upload_save(
         except Exception:
             pass
 
+    # Rare Tickets
     if rare_tickets is not None:
         try:
+            orig_rt = sf.rare_tickets
             sf.rare_tickets = max(0, min(int(rare_tickets), INT32_MAX))
             res["new_rare_tickets"] = sf.rare_tickets
+            if backup_meta and hasattr(core, "ManagedItem") and hasattr(core, "ManagedItemType"):
+                try:
+                    backup_meta.add_managed_item(
+                        core.ManagedItem.from_change(sf.rare_tickets - orig_rt, core.ManagedItemType.RARE_TICKET)
+                    )
+                except Exception:
+                    pass
         except Exception:
             pass
 
+    # Platinum Tickets
     if platinum_tickets is not None:
         try:
+            orig_pt = sf.platinum_tickets
             sf.platinum_tickets = max(0, min(int(platinum_tickets), INT32_MAX))
             res["new_platinum_tickets"] = sf.platinum_tickets
+            if backup_meta and hasattr(core, "ManagedItem") and hasattr(core, "ManagedItemType"):
+                try:
+                    backup_meta.add_managed_item(
+                        core.ManagedItem.from_change(sf.platinum_tickets - orig_pt, core.ManagedItemType.PLATINUM_TICKET)
+                    )
+                except Exception:
+                    pass
         except Exception:
             pass
 
+    # Legend Tickets
     if legend_tickets is not None:
         try:
+            orig_lt = sf.legend_tickets
             sf.legend_tickets = max(0, min(int(legend_tickets), INT32_MAX))
             res["new_legend_tickets"] = sf.legend_tickets
+            if backup_meta and hasattr(core, "ManagedItem") and hasattr(core, "ManagedItemType"):
+                try:
+                    backup_meta.add_managed_item(
+                        core.ManagedItem.from_change(sf.legend_tickets - orig_lt, core.ManagedItemType.LEGEND_TICKET)
+                    )
+                except Exception:
+                    pass
         except Exception:
             pass
 
+    # Platinum Shards
     if platinum_shards is not None and hasattr(sf, "platinum_shards"):
         try:
             sf.platinum_shards = max(0, min(int(platinum_shards), INT32_MAX))
@@ -205,6 +352,7 @@ def patch_and_upload_save(
         except Exception:
             pass
 
+    # NP
     if np is not None and hasattr(sf, "np"):
         try:
             sf.np = max(0, min(int(np), INT32_MAX))
@@ -212,6 +360,7 @@ def patch_and_upload_save(
         except Exception:
             pass
 
+    # Leadership
     if leadership is not None and hasattr(sf, "leadership"):
         try:
             sf.leadership = max(0, min(int(leadership), 32767))
@@ -240,19 +389,24 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Catfruit & Seeds (개다래 열매 및 씨앗)
+    # Catfruit & Seeds (개다래 열매 및 씨앗: 인덱스 0~17)
     if catfruit is not None and hasattr(sf, "catfruit"):
         try:
+            while len(sf.catfruit) < 30:
+                sf.catfruit.append(0)
             if isinstance(catfruit, list):
-                sf.catfruit = [max(0, min(int(x), INT32_MAX)) for x in catfruit]
+                for idx, val in enumerate(catfruit):
+                    if idx < 18:
+                        sf.catfruit[idx] = max(0, min(int(val), INT32_MAX))
             else:
                 val = max(0, min(int(catfruit), INT32_MAX))
-                sf.catfruit = [val] * 30
-            res["new_catfruit"] = sf.catfruit
+                for i in range(18):
+                    sf.catfruit[i] = val
+            res["new_catfruit"] = sf.catfruit[:18]
         except Exception:
             pass
 
-    # Behemoth Stones & Gems (수석 및 수석 결정)
+    # Behemoth Stones & Gems (수석 및 수석 결정: 인덱스 18~29)
     if behemoth_stones is not None and hasattr(sf, "catfruit"):
         try:
             while len(sf.catfruit) < 30:
@@ -286,35 +440,50 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Gamatoto Level & XP (가마토토 레벨 및 경험치)
+    # Battle Items (6종 배틀 아이템)
+    if battle_items is not None and hasattr(sf, "battle_items") and hasattr(sf.battle_items, "items"):
+        try:
+            val = max(0, min(int(battle_items), INT32_MAX))
+            for item in sf.battle_items.items:
+                if hasattr(item, "amount"):
+                    item.amount = val
+                elif hasattr(item, "set_amount"):
+                    item.set_amount(val)
+            res["new_battle_items"] = val
+        except Exception:
+            pass
+
+    # Gamatoto Level & XP (Level 130 만렙 = 100,104,200 XP)
     if (gamatoto_level is not None or gamatoto_xp is not None) and hasattr(sf, "gamatoto") and sf.gamatoto:
         try:
+            if hasattr(sf.gamatoto, "skin"):
+                sf.gamatoto.skin = 2
             if gamatoto_xp is not None:
                 sf.gamatoto.xp = max(0, min(int(gamatoto_xp), INT32_MAX))
                 res["new_gamatoto_xp"] = sf.gamatoto.xp
             elif gamatoto_level is not None:
-                lvl = max(1, min(int(gamatoto_level), 150))
+                lvl = max(1, min(int(gamatoto_level), 130))
                 try:
                     gl = core.core_data.get_gamatoto_levels(sf)
                     xp = gl.get_xp_from_level(lvl)
                     if xp is not None:
                         sf.gamatoto.xp = xp
                     else:
-                        sf.gamatoto.xp = lvl * 10000
+                        sf.gamatoto.xp = 100104200 if lvl >= 130 else lvl * 100000
                 except Exception:
-                    sf.gamatoto.xp = lvl * 10000
+                    sf.gamatoto.xp = 100104200 if lvl >= 130 else lvl * 100000
                 res["new_gamatoto_level"] = lvl
         except Exception:
             pass
 
-    # Gamatoto Helpers / Members (가마토토 10개 대원 슬롯 각각 "gold", "silver", "bronze" 직접 입력 지원)
+    # Gamatoto Helpers / Members
     if (gamatoto_helpers or gamatoto_helper_ids or gamatoto_helper_rarities) and hasattr(sf, "gamatoto") and sf.gamatoto:
         try:
             from bcsfe.core.game.gamoto.gamatoto import Helper, Helpers
             members_name = core.core_data.get_gamatoto_members_name(sf)
-            r2_members = members_name.get_all_rarity(2) or [] # Gold / Legend / Master (금색 상급)
-            r1_members = members_name.get_all_rarity(1) or [] # Silver / Rare (은색 중급)
-            r0_members = members_name.get_all_rarity(0) or [] # White / Bronze / Common (백색/브론즈 하급)
+            r2_members = members_name.get_all_rarity(2) or []
+            r1_members = members_name.get_all_rarity(1) or []
+            r0_members = members_name.get_all_rarity(0) or []
 
             new_helpers = []
 
@@ -330,7 +499,7 @@ def patch_and_upload_save(
                         if r1_members:
                             new_helpers.append(Helper(r1_members[r1_idx % len(r1_members)].member_id))
                             r1_idx += 1
-                    else: # white / bronze / common / intern / junior / basic / 0
+                    else:
                         if r0_members:
                             new_helpers.append(Helper(r0_members[r0_idx % len(r0_members)].member_id))
                             r0_idx += 1
@@ -372,7 +541,16 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Ototo Engineers & Base Building Materials
+    # Cat Shrine (냥코 신사)
+    if (cat_shrine_max or claim_all_rewards or kwargs.get("cat_shrine")) and hasattr(sf, "cat_shrine") and sf.cat_shrine:
+        try:
+            sf.cat_shrine.xp_offering = 300000000
+            sf.cat_shrine.dialogs = 9
+            res["cat_shrine_maxed"] = True
+        except Exception:
+            pass
+
+    # Ototo Engineers & Base Materials
     m_val = ototo_materials if ototo_materials is not None else base_materials
     if (ototo_engineers is not None or m_val is not None) and hasattr(sf, "ototo") and sf.ototo:
         try:
@@ -398,6 +576,244 @@ def patch_and_upload_save(
         except Exception:
             pass
 
+    # Special Skills / Base Upgrades (파란 구슬 / 대포 공격력, 지갑 등 10종)
+    if (max_special_skills or special_skills is not None) and hasattr(sf, "special_skills") and sf.special_skills:
+        try:
+            if max_special_skills:
+                for skill_id in range(10):
+                    upg = core.Upgrade(10, 19)
+                    sf.special_skills.set_upgrade(skill_id, upg)
+                res["max_special_skills"] = True
+            if special_skills is not None:
+                if isinstance(special_skills, dict):
+                    for k, v in special_skills.items():
+                        try:
+                            sid = int(k)
+                            if isinstance(v, dict):
+                                base_lvl = int(v.get("base", v.get("level", 20))) - 1
+                                plus_lvl = int(v.get("plus", 10))
+                            elif isinstance(v, (list, tuple)) and len(v) >= 2:
+                                base_lvl = int(v[0]) - 1
+                                plus_lvl = int(v[1])
+                            else:
+                                base_lvl = int(v) - 1
+                                plus_lvl = 10
+                            sf.special_skills.set_upgrade(sid, core.Upgrade(max(0, plus_lvl), max(0, base_lvl)))
+                        except Exception:
+                            pass
+                elif isinstance(special_skills, (int, float)):
+                    lvl = int(special_skills)
+                    for skill_id in range(10):
+                        sf.special_skills.set_upgrade(skill_id, core.Upgrade(10, max(0, lvl - 1)))
+                res["special_skills_updated"] = True
+        except Exception:
+            pass
+
+    # Claim All Rewards / Complete Missions / User Rank / Officer Pass / Nyanko Club / Medals / Stamps
+    if (claim_all_rewards or complete_missions) and hasattr(sf, "missions") and sf.missions:
+        try:
+            conditions = core.core_data.get_mission_conditions(sf) if hasattr(core.core_data, "get_mission_conditions") else None
+            for mid in list(getattr(sf.missions, "clear_states", {}).keys()):
+                sf.missions.clear_states[mid] = 2
+                if conditions and hasattr(conditions, "get_condition"):
+                    cond = conditions.get_condition(mid)
+                    if cond:
+                        sf.missions.requirements[mid] = cond.progress_count
+            res["missions_completed"] = True
+        except Exception:
+            pass
+
+    if (claim_all_rewards or kwargs.get("user_rank_rewards")) and hasattr(sf, "user_rank_rewards") and sf.user_rank_rewards:
+        try:
+            rank_gifts = sf.user_rank_rewards.read_rank_gifts(sf)
+            if rank_gifts and rank_gifts.rank_gift:
+                while len(sf.user_rank_rewards.rewards) < len(rank_gifts.rank_gift):
+                    sf.user_rank_rewards.rewards.append(core.Reward(True))
+            for reward in getattr(sf.user_rank_rewards, "rewards", []):
+                reward.claimed = True
+            res["user_rank_rewards_claimed"] = True
+        except Exception:
+            pass
+
+    if (claim_all_rewards or kwargs.get("officer_pass") or kwargs.get("gold_pass")) and hasattr(sf, "officer_pass") and sf.officer_pass:
+        try:
+            sf.officer_pass.pass_type = 1
+            sf.officer_pass.valid = True
+            res["officer_pass_unlocked"] = True
+        except Exception:
+            pass
+
+    if (claim_all_rewards or kwargs.get("nyanko_club")) and hasattr(sf, "nyanko_club") and sf.nyanko_club:
+        try:
+            sf.nyanko_club.gold_membership = True
+            res["nyanko_club_unlocked"] = True
+        except Exception:
+            pass
+
+    if (claim_all_rewards or kwargs.get("stamps")) and hasattr(sf, "stamps") and sf.stamps:
+        try:
+            sf.stamps.current_stamp = 30
+            sf.stamps.collected_stamp = [1] * 30
+            res["stamps_maxed"] = True
+        except Exception:
+            pass
+
+    if (claim_all_rewards or kwargs.get("medals")) and hasattr(sf, "medals") and sf.medals:
+        try:
+            medal_names = core.core_data.get_medal_names(sf)
+            if medal_names and medal_names.medal_names:
+                for i in range(len(medal_names.medal_names)):
+                    if len(medal_names.medal_names[i]) > 0:
+                        sf.medals.add_medal(i)
+            res["medals_unlocked"] = True
+        except Exception:
+            pass
+
+    # Talents & Ultra Talents (본능 / 초본능)
+    if (max_all_talents or max_talents or cat_talents) and hasattr(sf, "cats") and sf.cats:
+        try:
+            talent_data = sf.cats.read_talent_data(sf) if hasattr(sf.cats, "read_talent_data") else None
+            from bcsfe.core.game.catbase.cat import Talent
+            if max_all_talents or max_talents:
+                t_count = 0
+                for cat in getattr(sf.cats, "cats", []):
+                    if getattr(cat, "unlocked", False):
+                        cat_skill = talent_data.get_cat_skill(cat.id) if talent_data else None
+                        if cat_skill and hasattr(cat_skill, "skills"):
+                            if getattr(cat, "talents", None) is None:
+                                cat.talents = []
+                            for skill in cat_skill.skills:
+                                talent = cat.get_talent_from_id(skill.ability_id) if hasattr(cat, "get_talent_from_id") else None
+                                max_lv = skill.max_lv if skill.max_lv > 0 else 1
+                                if talent is None:
+                                    cat.talents.append(Talent(skill.ability_id, max_lv))
+                                else:
+                                    talent.level = max_lv
+                            t_count += 1
+                res["max_talents_cats_count"] = t_count
+
+            if cat_talents:
+                items = cat_talents if isinstance(cat_talents, list) else [cat_talents]
+                if isinstance(cat_talents, dict) and "cat_id" not in cat_talents and "id" not in cat_talents:
+                    items = [{"id": k, "talents": v} for k, v in cat_talents.items()]
+                for item in items:
+                    if isinstance(item, dict):
+                        cid = int(item.get("id", item.get("cat_id", 0)))
+                        cat = _get_cat_by_id(sf, cid)
+                        if cat:
+                            _unlock_cat(cat, sf)
+                            if getattr(cat, "talents", None) is None:
+                                cat.talents = []
+                            t_levels = item.get("talents", item.get("levels", []))
+                            cat_skill = talent_data.get_cat_skill(cat.id) if talent_data else None
+                            if isinstance(t_levels, list):
+                                for tidx, tlvl in enumerate(t_levels):
+                                    if cat_skill and tidx < len(cat_skill.skills):
+                                        ab_id = cat_skill.skills[tidx].ability_id
+                                        talent = cat.get_talent_from_id(ab_id)
+                                        if talent is None:
+                                            cat.talents.append(Talent(ab_id, int(tlvl)))
+                                        else:
+                                            talent.level = int(tlvl)
+                                    elif tidx < len(cat.talents):
+                                        cat.talents[tidx].level = int(tlvl)
+                            elif isinstance(t_levels, dict):
+                                for tid, tlvl in t_levels.items():
+                                    talent = cat.get_talent_from_id(int(tid))
+                                    if talent is None:
+                                        cat.talents.append(Talent(int(tid), int(tlvl)))
+                                    else:
+                                        talent.level = int(tlvl)
+                            elif isinstance(t_levels, (int, float)):
+                                if cat_skill:
+                                    for skill in cat_skill.skills:
+                                        talent = cat.get_talent_from_id(skill.ability_id)
+                                        if talent is None:
+                                            cat.talents.append(Talent(skill.ability_id, int(t_levels)))
+                                        else:
+                                            talent.level = int(t_levels)
+                res["cat_talents_updated"] = True
+        except Exception:
+            pass
+
+    # Talent Orbs (본능 구슬)
+    if (max_talent_orbs or talent_orbs) and hasattr(sf, "talent_orbs") and sf.talent_orbs:
+        try:
+            if max_talent_orbs:
+                for orb_id in range(250):
+                    sf.talent_orbs.set_orb(orb_id, 99)
+                res["max_talent_orbs"] = True
+
+            if talent_orbs:
+                if isinstance(talent_orbs, dict):
+                    for oid, val in talent_orbs.items():
+                        sf.talent_orbs.set_orb(int(oid), max(0, min(int(val), 999)))
+                elif isinstance(talent_orbs, list):
+                    for item in talent_orbs:
+                        if isinstance(item, dict):
+                            oid = int(item.get("id", item.get("orb_id", 0)))
+                            val = int(item.get("amount", item.get("value", 99)))
+                            sf.talent_orbs.set_orb(oid, max(0, min(val, 999)))
+                        elif isinstance(item, (list, tuple)) and len(item) >= 2:
+                            sf.talent_orbs.set_orb(int(item[0]), max(0, min(int(item[1]), 999)))
+                elif isinstance(talent_orbs, (int, float)):
+                    val = max(0, min(int(talent_orbs), 999))
+                    for orb_id in range(250):
+                        sf.talent_orbs.set_orb(orb_id, val)
+                res["talent_orbs_updated"] = True
+        except Exception:
+            pass
+
+    # Castle Development & Castle Skins & Cannons (오토토 개발대 성 개발 및 성 스킨)
+    if (max_castle_development or castle_development or castle_levels) and hasattr(sf, "ototo") and sf.ototo:
+        try:
+            if getattr(sf.ototo, "cannons", None) is None:
+                gv = getattr(sf, "game_version", None) or core.GameVersion(150400)
+                from bcsfe.core.game.gamoto.ototo import Cannons
+                sf.ototo.cannons = Cannons.init(gv)
+
+            from bcsfe.core.game.gamoto.ototo import Cannon
+
+            if max_castle_development:
+                sf.ototo.engineers = 10
+                if hasattr(sf.ototo, "base_materials") and sf.ototo.base_materials:
+                    sf.ototo.base_materials.materials = [9999] * 24
+                for cid in range(10):
+                    cannon = sf.ototo.cannons.cannons.get(cid)
+                    if cannon is None:
+                        sf.ototo.cannons.cannons[cid] = Cannon(3, [29, 29, 29])
+                    else:
+                        cannon.development = 3
+                        if cannon.levels:
+                            cannon.levels = [max(l, 29) for l in cannon.levels]
+                        else:
+                            cannon.levels = [29, 29, 29]
+                res["max_castle_development"] = True
+
+            if castle_development is not None and getattr(sf.ototo, "cannons", None) and sf.ototo.cannons.cannons:
+                if isinstance(castle_development, dict):
+                    for cid, dev in castle_development.items():
+                        c = sf.ototo.cannons.cannons.get(int(cid))
+                        if c:
+                            c.development = max(0, min(int(dev), 3))
+                elif isinstance(castle_development, (int, float)):
+                    dev_val = max(0, min(int(castle_development), 3))
+                    for cid in range(10):
+                        c = sf.ototo.cannons.cannons.get(cid)
+                        if c:
+                            c.development = dev_val
+                res["castle_development_updated"] = True
+
+            if castle_levels is not None and getattr(sf.ototo, "cannons", None) and sf.ototo.cannons.cannons:
+                if isinstance(castle_levels, dict):
+                    for cid, lvls in castle_levels.items():
+                        c = sf.ototo.cannons.cannons.get(int(cid))
+                        if c and isinstance(lvls, list):
+                            c.levels = [max(0, int(x)) for x in lvls]
+                res["castle_levels_updated"] = True
+        except Exception:
+            pass
+
     # Unlock All Cats
     if unlock_cats and hasattr(sf, "cats"):
         try:
@@ -406,16 +822,12 @@ def patch_and_upload_save(
             except Exception:
                 pass
             try:
-                sf.unlock_popups()
+                if core is not None and hasattr(core, "StoryChapters"):
+                    core.StoryChapters.clear_tutorial(sf)
             except Exception:
                 pass
             for cat in getattr(sf.cats, "cats", []):
-                cat.unlocked = 1
-                cat.gatya_seen = 1
-                try:
-                    cat.unlock(sf)
-                except Exception:
-                    pass
+                _unlock_cat(cat, sf)
             res["unlock_cats"] = True
         except Exception:
             pass
@@ -427,18 +839,9 @@ def patch_and_upload_save(
             for cid in unlock_cat_ids:
                 try:
                     cid = int(cid)
-                    cat = None
-                    if hasattr(sf.cats, "get_cat_by_id"):
-                        cat = sf.cats.get_cat_by_id(cid)
-                    elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
-                        cat = sf.cats.cats[cid]
+                    cat = _get_cat_by_id(sf, cid)
                     if cat:
-                        cat.unlocked = 1
-                        cat.gatya_seen = 1
-                        try:
-                            cat.unlock(sf)
-                        except Exception:
-                            pass
+                        _unlock_cat(cat, sf)
                         count += 1
                 except Exception:
                     pass
@@ -453,11 +856,7 @@ def patch_and_upload_save(
             for cid in remove_cat_ids:
                 try:
                     cid = int(cid)
-                    cat = None
-                    if hasattr(sf.cats, "get_cat_by_id"):
-                        cat = sf.cats.get_cat_by_id(cid)
-                    elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
-                        cat = sf.cats.cats[cid]
+                    cat = _get_cat_by_id(sf, cid)
                     if cat:
                         cat.unlocked = 0
                         cat.gatya_seen = 0
@@ -472,7 +871,7 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Cat Levels & Upgrades (특정 캐릭터 레벨 및 만렙 세팅)
+    # Cat Levels & Upgrades
     if (cat_levels or max_cat_levels) and hasattr(sf, "cats"):
         count = 0
         try:
@@ -480,8 +879,8 @@ def patch_and_upload_save(
                 for cat in getattr(sf.cats, "cats", []):
                     if getattr(cat, "unlocked", False):
                         if hasattr(cat, "upgrade") and cat.upgrade:
-                            cat.upgrade.base = 49 # Level 50
-                            cat.upgrade.plus = 90 # +90
+                            cat.upgrade = core.Upgrade(90, 49) # Level 50+90
+                        cat.catseyes_used = 10
                         count += 1
                 res["max_cat_levels_count"] = count
 
@@ -494,23 +893,17 @@ def patch_and_upload_save(
                         cid = int(item.get("id", item.get("cat_id", 0)))
                         lvl = int(item.get("level", item.get("upgrade", 50)))
                         plus = int(item.get("plus_level", item.get("plus", 0)))
-                        cat = None
-                        if hasattr(sf.cats, "get_cat_by_id"):
-                            cat = sf.cats.get_cat_by_id(cid)
-                        elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
-                            cat = sf.cats.cats[cid]
+                        cat = _get_cat_by_id(sf, cid)
                         if cat:
-                            cat.unlocked = 1
-                            cat.gatya_seen = 1
+                            _unlock_cat(cat, sf)
                             if hasattr(cat, "upgrade") and cat.upgrade:
-                                cat.upgrade.base = max(0, min(lvl - 1, 99))
-                                cat.upgrade.plus = max(0, min(plus, 100))
+                                cat.upgrade = core.Upgrade(max(0, min(plus, 100)), max(0, min(lvl - 1, 99)))
                             count += 1
                 res["updated_cat_levels_count"] = count
         except Exception:
             pass
 
-    # Cat Evolutions & Forms (1진, 2진, 3진/True Form, 4진/Ultra Form 설정)
+    # Cat Evolutions & Forms
     evo_data = cat_evolutions if cat_evolutions is not None else cat_forms
     if (evo_data or true_form_all or max_cat_evolutions) and hasattr(sf, "cats"):
         count = 0
@@ -522,10 +915,7 @@ def patch_and_upload_save(
                         cid = getattr(cat, "id", idx)
                         max_forms = get_cat_max_forms(cid, sf)
                         target_form_idx = max(0, max_forms - 1)
-                        cat.unlocked = 1
-                        cat.gatya_seen = 1
-                        cat.unlocked_forms = max_forms
-                        cat.current_form = target_form_idx
+                        _set_cat_form(cat, sf, target_form_idx)
                         count += 1
                 res["max_cat_evolutions_count"] = count
 
@@ -537,18 +927,11 @@ def patch_and_upload_save(
                     if isinstance(item, dict):
                         cid = int(item.get("id", item.get("cat_id", 0)))
                         form_val = int(item.get("form", item.get("evolution", 3)))
-                        cat = None
-                        if hasattr(sf.cats, "get_cat_by_id"):
-                            cat = sf.cats.get_cat_by_id(cid)
-                        elif hasattr(sf.cats, "cats") and 0 <= cid < len(sf.cats.cats):
-                            cat = sf.cats.cats[cid]
+                        cat = _get_cat_by_id(sf, cid)
                         if cat:
-                            cat.unlocked = 1
-                            cat.gatya_seen = 1
                             max_forms = get_cat_max_forms(cid, sf)
                             target_form = max(0, min(form_val - 1, max_forms - 1))
-                            cat.unlocked_forms = max(getattr(cat, "unlocked_forms", 1), target_form + 1)
-                            cat.current_form = target_form
+                            _set_cat_form(cat, sf, target_form)
                             count += 1
                 res["updated_cat_evolutions_count"] = count
         except Exception:
@@ -563,23 +946,80 @@ def patch_and_upload_save(
             return save_f.story.chapters
         return []
 
+    def _get_story_stage_count(chapter):
+        try:
+            if hasattr(chapter, "get_valid_treasure_stages"):
+                return len(chapter.get_valid_treasure_stages())
+        except Exception:
+            pass
+        return min(len(getattr(chapter, "stages", [])), 48)
+
+    def _clear_story_stage(chapter, stage_id, clear_amount=1):
+        stage_count = _get_story_stage_count(chapter)
+        if not 0 <= stage_id < stage_count:
+            return False
+        try:
+            chapter.clear_stage(stage_id, clear_amount)
+            return True
+        except Exception:
+            pass
+        try:
+            chapter.stages[stage_id].clear_stage(clear_amount)
+            if hasattr(chapter, "progress"):
+                chapter.progress = max(int(chapter.progress), stage_id + 1)
+            return True
+        except Exception:
+            return False
+
+    def _clear_story_chapter(chapter, clear_amount=1):
+        stage_count = _get_story_stage_count(chapter)
+        cleared = 0
+        for stage_id in range(stage_count):
+            if _clear_story_stage(chapter, stage_id, clear_amount):
+                cleared += 1
+        return cleared == stage_count and stage_count > 0
+
+    def _get_aku_chapters(save_f):
+        result = []
+        aku = getattr(save_f, "aku", None)
+        for chapter_stars in getattr(aku, "chapters", []) if aku is not None else []:
+            result.extend(getattr(chapter_stars, "chapters", []))
+        return result
+
+    def _clear_aku_chapter(chapter, clear_amount=1):
+        stages = getattr(chapter, "stages", [])
+        cleared = 0
+        for stage in stages:
+            try:
+                stage.clear_stage(clear_amount)
+                cleared += 1
+            except Exception:
+                pass
+        return cleared == len(stages) and len(stages) > 0
+
+    # Clear Stages
     if clear_all_stages:
         try:
+            if core is not None and hasattr(core, "StoryChapters"):
+                core.StoryChapters.clear_tutorial(sf)
             chapters = _get_story_chapters(sf)
             for ch in chapters:
-                if hasattr(ch, "stages") and ch.stages:
-                    ch.progress = len(ch.stages)
-                    for st in ch.stages:
-                        if hasattr(st, "clear_stage"):
-                            st.clear_stage(1)
-            if hasattr(sf, "aku") and sf.aku and hasattr(sf.aku, "chapters") and sf.aku.chapters:
-                for sub in sf.aku.chapters:
-                    if hasattr(sub, "chapters") and sub.chapters:
-                        for ak_ch in sub.chapters:
-                            if hasattr(ak_ch, "stages") and ak_ch.stages:
-                                for st in ak_ch.stages:
-                                    if hasattr(st, "clear_stage"):
-                                        st.clear_stage(1)
+                _clear_story_chapter(ch, 1)
+            for aku_chapter in _get_aku_chapters(sf):
+                _clear_aku_chapter(aku_chapter, 1)
+            # Unlock Aku Realm in event stages
+            if hasattr(sf, "event_stages"):
+                for st_id in [255, 256, 257, 258, 265, 266, 268]:
+                    try:
+                        sf.event_stages.clear_map(1, st_id, 0, False)
+                    except Exception:
+                        pass
+            # Clear Zombie Outbreaks
+            if hasattr(sf, "outbreaks") and sf.outbreaks:
+                from bcsfe.core.game.map.outbreaks import Outbreak
+                for ob_ch in getattr(sf.outbreaks, "chapters", []):
+                    for ob_id in range(48):
+                        ob_ch.outbreaks[ob_id] = Outbreak(True)
             res["clear_all_stages"] = True
         except Exception:
             pass
@@ -597,13 +1037,14 @@ def patch_and_upload_save(
                     amt = 1
 
                 if 0 <= ch_id < len(chapters):
-                    ch = chapters[ch_id]
-                    if hasattr(ch, "stages") and ch.stages:
-                        ch.progress = len(ch.stages)
-                        for st in ch.stages:
-                            if hasattr(st, "clear_stage"):
-                                st.clear_stage(amt)
-                    count += 1
+                    if _clear_story_chapter(chapters[ch_id], amt):
+                        count += 1
+                elif ch_id == 9:
+                    aku_chapters = _get_aku_chapters(sf)
+                    if aku_chapters:
+                        for aku_chapter in aku_chapters:
+                            _clear_aku_chapter(aku_chapter, amt)
+                        count += 1
             except Exception:
                 pass
         res["cleared_chapters_count"] = count
@@ -618,24 +1059,34 @@ def patch_and_upload_save(
                     st_id = int(item.get("stage", 0))
                     amt = int(item.get("clear_amount", item.get("clears", 1)))
                     if 0 <= ch_id < len(chapters):
-                        ch = chapters[ch_id]
-                        if hasattr(ch, "stages") and 0 <= st_id < len(ch.stages):
-                            st = ch.stages[st_id]
-                            if hasattr(st, "clear_stage"):
-                                st.clear_stage(amt)
+                        if _clear_story_stage(chapters[ch_id], st_id, amt):
                             count += 1
+                    elif ch_id == 9:
+                        aku_maps = getattr(getattr(sf, "aku", None), "chapters", [])
+                        map_id = int(item.get("map", item.get("aku_map", 0)))
+                        star_id = int(item.get("star", 0))
+                        if 0 <= map_id < len(aku_maps):
+                            stars = getattr(aku_maps[map_id], "chapters", [])
+                            if 0 <= star_id < len(stars):
+                                aku_stages = getattr(stars[star_id], "stages", [])
+                                if 0 <= st_id < len(aku_stages):
+                                    aku_stages[st_id].clear_stage(amt)
+                                    count += 1
             except Exception:
                 pass
         res["cleared_stages_count"] = count
 
+    # Treasures & Timed Scores
     if max_treasures:
         try:
             chapters = _get_story_chapters(sf)
             for ch in chapters:
-                t_stages = ch.get_valid_treasure_stages() if hasattr(ch, "get_valid_treasure_stages") else getattr(ch, "stages", [])
+                t_stages = ch.get_treasure_stages() if hasattr(ch, "get_treasure_stages") else getattr(ch, "stages", [])
                 for st in t_stages:
                     if hasattr(st, "set_treasure"):
                         st.set_treasure(3)
+                    if hasattr(st, "itf_timed_score"):
+                        st.itf_timed_score = 9999
             res["max_treasures"] = True
         except Exception:
             pass
@@ -654,10 +1105,12 @@ def patch_and_upload_save(
 
                 if 0 <= ch_id < len(chapters):
                     ch = chapters[ch_id]
-                    t_stages = ch.get_valid_treasure_stages() if hasattr(ch, "get_valid_treasure_stages") else getattr(ch, "stages", [])
+                    t_stages = ch.get_treasure_stages() if hasattr(ch, "get_treasure_stages") else getattr(ch, "stages", [])
                     for st in t_stages:
                         if hasattr(st, "set_treasure"):
                             st.set_treasure(min(3, max(0, tr_val)))
+                        if hasattr(st, "itf_timed_score"):
+                            st.itf_timed_score = 9999
                     count += 1
             except Exception:
                 pass
@@ -682,6 +1135,19 @@ def patch_and_upload_save(
             except Exception:
                 pass
         res["set_stage_treasures_count"] = count
+
+    # Fix Timestamps & Energy penalty (BCSFE Fixes.fix_time_errors)
+    try:
+        now_dt = datetime.datetime.now()
+        now_ts = now_dt.timestamp()
+        if hasattr(sf, "date_3"):
+            sf.date_3 = now_dt
+        if hasattr(sf, "timestamp"):
+            sf.timestamp = now_ts
+        if hasattr(sf, "energy_penalty_timestamp"):
+            sf.energy_penalty_timestamp = now_ts
+    except Exception:
+        pass
 
     try:
         sh.update_managed_items()
