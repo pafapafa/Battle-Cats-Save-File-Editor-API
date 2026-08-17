@@ -625,18 +625,13 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Claim All Rewards / Complete Missions / User Rank / Officer Pass / Medals
+    # Claim All Rewards / Complete Missions / User Rank / Medals (Crash-safe)
     if (claim_all_rewards or complete_missions) and hasattr(sf, "missions") and sf.missions:
         try:
             conditions = core.core_data.get_mission_conditions(sf) if hasattr(core.core_data, "get_mission_conditions") else None
-            names = core.core_data.get_mission_names(sf) if hasattr(core.core_data, "get_mission_names") else None
-            if names and hasattr(names, "names") and names.names:
-                for mid in names.names.keys():
-                    if mid not in sf.missions.clear_states:
-                        sf.missions.clear_states[mid] = 4
             for mid in list(getattr(sf.missions, "clear_states", {}).keys()):
-                # 4 = 수령 완료 (Claimed), 2 = 달성 후 수령 가능 (Ready)
-                sf.missions.clear_states[mid] = 4
+                # Only modify existing missions in the save file to prevent client crash
+                sf.missions.clear_states[mid] = 2  # 2 = 달성 완료 상태 (안전하게 인게임에서 수령 가능)
                 if conditions and hasattr(conditions, "get_condition"):
                     cond = conditions.get_condition(mid)
                     if cond:
@@ -647,35 +642,17 @@ def patch_and_upload_save(
 
     if (claim_all_rewards or kwargs.get("user_rank_rewards")) and hasattr(sf, "user_rank_rewards") and sf.user_rank_rewards:
         try:
-            from bcsfe.core.game.catbase.user_rank_rewards import Reward
-            rank_gifts = core.RankGifts(sf).read_rank_gift()
-            if rank_gifts:
-                while len(sf.user_rank_rewards.rewards) < len(rank_gifts):
-                    sf.user_rank_rewards.rewards.append(Reward(True))
+            # Only claim existing reward slots in the save file
             for reward in getattr(sf.user_rank_rewards, "rewards", []):
                 reward.claimed = True
             res["user_rank_rewards_claimed"] = True
         except Exception:
             pass
 
-    if (claim_all_rewards or kwargs.get("officer_pass") or kwargs.get("gold_pass")) and hasattr(sf, "officer_pass") and sf.officer_pass:
+    if hasattr(sf, "officer_pass") and sf.officer_pass:
         try:
-            gp = getattr(sf.officer_pass, "gold_pass", None)
-            if gp:
-                officer_id = core.NyankoClub.get_random_officer_id()
-                gp.get_gold_pass(officer_id, 30, sf)
-                res["officer_pass_unlocked"] = True
-        except Exception:
-            pass
-
-    if (claim_all_rewards or kwargs.get("medals")) and hasattr(sf, "medals") and sf.medals:
-        try:
-            medal_names = core.MedalNames.read_medal_names(sf) if hasattr(core.MedalNames, "read_medal_names") else None
-            if medal_names and hasattr(medal_names, "medal_names"):
-                for i in range(len(medal_names.medal_names)):
-                    if len(medal_names.medal_names[i]) > 0:
-                        sf.medals.add_medal(i)
-                res["medals_unlocked"] = True
+            # Reset officer pass / gold pass to clean state to fix crash
+            sf.officer_pass.reset(sf)
         except Exception:
             pass
 

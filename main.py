@@ -1229,3 +1229,7 @@ def payload_too_large(e):
 @app.errorhandler(500)
 def internal_error(e):
     return jsonify({"success": False, "message": "Internal server error."}), 500
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
