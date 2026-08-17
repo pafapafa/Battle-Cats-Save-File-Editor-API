@@ -558,21 +558,37 @@ def patch_and_upload_save(
                 sf.ototo.engineers = max(0, min(int(ototo_engineers), 10))
                 res["new_ototo_engineers"] = sf.ototo.engineers
             if m_val is not None and hasattr(sf.ototo, "base_materials") and sf.ototo.base_materials:
+                existing_mats = getattr(sf.ototo.base_materials, "materials", [])
                 if isinstance(m_val, list):
-                    sf.ototo.base_materials.materials = [max(0, min(int(x), INT32_MAX)) for x in m_val]
+                    int_vals = [max(0, min(int(x), INT32_MAX)) for x in m_val]
                 elif isinstance(m_val, dict):
-                    mat_list = getattr(sf.ototo.base_materials, "materials", [0]*24)
-                    if len(mat_list) < 24:
-                        mat_list.extend([0]*(24 - len(mat_list)))
+                    int_vals = [getattr(m, "amount", m) if not isinstance(m, int) else m for m in existing_mats]
+                    if len(int_vals) < 24:
+                        int_vals.extend([0] * (24 - len(int_vals)))
                     for i, (k, v) in enumerate(m_val.items()):
-                        if i < len(mat_list):
-                            mat_list[i] = max(0, min(int(v), INT32_MAX))
-                    sf.ototo.base_materials.materials = mat_list
+                        if i < len(int_vals):
+                            int_vals[i] = max(0, min(int(v), INT32_MAX))
                 else:
                     val = max(0, min(int(m_val), INT32_MAX))
-                    curr_len = max(len(getattr(sf.ototo.base_materials, "materials", [])), 24)
-                    sf.ototo.base_materials.materials = [val] * curr_len
-                res["new_base_materials"] = sf.ototo.base_materials.materials
+                    curr_len = max(len(existing_mats), 24)
+                    int_vals = [val] * curr_len
+
+                try:
+                    from bcsfe.core.game.gamoto.base_materials import Material as BMaterial
+                except Exception:
+                    BMaterial = None
+
+                new_mat_objs = []
+                for idx, v in enumerate(int_vals):
+                    if idx < len(existing_mats) and hasattr(existing_mats[idx], "amount"):
+                        existing_mats[idx].amount = v
+                        new_mat_objs.append(existing_mats[idx])
+                    elif BMaterial is not None:
+                        new_mat_objs.append(BMaterial(v))
+                    else:
+                        new_mat_objs.append(v)
+                sf.ototo.base_materials.materials = new_mat_objs
+                res["new_base_materials"] = int_vals
         except Exception:
             pass
 
@@ -777,7 +793,21 @@ def patch_and_upload_save(
             if max_castle_development:
                 sf.ototo.engineers = 10
                 if hasattr(sf.ototo, "base_materials") and sf.ototo.base_materials:
-                    sf.ototo.base_materials.materials = [9999] * 24
+                    existing_mats = getattr(sf.ototo.base_materials, "materials", [])
+                    try:
+                        from bcsfe.core.game.gamoto.base_materials import Material as BMaterial
+                    except Exception:
+                        BMaterial = None
+                    new_mat_objs = []
+                    for idx in range(max(len(existing_mats), 24)):
+                        if idx < len(existing_mats) and hasattr(existing_mats[idx], "amount"):
+                            existing_mats[idx].amount = 9999
+                            new_mat_objs.append(existing_mats[idx])
+                        elif BMaterial is not None:
+                            new_mat_objs.append(BMaterial(9999))
+                        else:
+                            new_mat_objs.append(9999)
+                    sf.ototo.base_materials.materials = new_mat_objs
                 for cid in range(10):
                     cannon = sf.ototo.cannons.cannons.get(cid)
                     if cannon is None:
@@ -1150,12 +1180,8 @@ def patch_and_upload_save(
         pass
 
     try:
-        sh.update_managed_items()
-    except Exception:
-        pass
-
-    try:
-        codes = sh.get_codes()
+        sh.save_file = sf
+        codes = sh.get_codes(upload_managed_items=True)
         if codes and len(codes) == 2:
             return res, codes
     except Exception:
