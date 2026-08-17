@@ -140,7 +140,7 @@ OPENAPI_SPEC = {
     "openapi": "3.0.0",
     "info": {
         "title": "Battle Cats Save File Editor API",
-        "version": "1.0.5",
+        "version": "1.0.7",
         "description": "Battle Cats Save File Editor API."
     },
     "paths": {
@@ -1081,6 +1081,23 @@ def edit_save():
     max_cat_levels = bool(data.get("max_cat_levels", False))
     true_form_all = bool(data.get("true_form_all", False) or data.get("max_cat_evolutions", False))
 
+    max_special_skills = bool(data.get("max_special_skills", False))
+    special_skills = data.get("special_skills")
+
+    claim_all_rewards = bool(data.get("claim_all_rewards", False) or data.get("claim_rewards", False))
+    complete_missions = bool(data.get("complete_missions", False))
+
+    max_all_talents = bool(data.get("max_all_talents", False) or data.get("max_talents", False))
+    max_talents = max_all_talents
+    cat_talents = data.get("cat_talents") or data.get("talents")
+
+    max_talent_orbs = bool(data.get("max_talent_orbs", False))
+    talent_orbs = data.get("talent_orbs") or data.get("orbs")
+
+    max_castle_development = bool(data.get("max_castle_development", False))
+    castle_development = data.get("castle_development")
+    castle_levels = data.get("castle_levels")
+
     clear_all_stages = bool(data.get("clear_all_stages", False))
     clear_chapters = data.get("clear_chapters")
     clear_stages = data.get("clear_stages")
@@ -1103,6 +1120,11 @@ def edit_save():
         ototo_engineers is not None, ototo_materials is not None, base_materials is not None,
         unlock_cats, unlock_cat_ids, remove_cat_ids,
         cat_levels, cat_evolutions, cat_forms, max_cat_levels, true_form_all,
+        max_special_skills, special_skills is not None,
+        claim_all_rewards, complete_missions,
+        max_all_talents, max_talents, cat_talents is not None,
+        max_talent_orbs, talent_orbs is not None,
+        max_castle_development, castle_development is not None, castle_levels is not None,
         clear_all_stages, clear_chapters, clear_stages,
         max_treasures, max_chapter_treasures, stage_treasures
     ])
@@ -1151,6 +1173,18 @@ def edit_save():
         cat_forms=cat_forms,
         max_cat_levels=max_cat_levels,
         true_form_all=true_form_all,
+        max_special_skills=max_special_skills,
+        special_skills=special_skills,
+        claim_all_rewards=claim_all_rewards,
+        complete_missions=complete_missions,
+        max_all_talents=max_all_talents,
+        max_talents=max_talents,
+        cat_talents=cat_talents,
+        max_talent_orbs=max_talent_orbs,
+        talent_orbs=talent_orbs,
+        max_castle_development=max_castle_development,
+        castle_development=castle_development,
+        castle_levels=castle_levels,
         clear_all_stages=clear_all_stages,
         clear_chapters=clear_chapters,
         clear_stages=clear_stages,
