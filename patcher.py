@@ -106,38 +106,37 @@ def _set_cat_form(cat: Any, sf: Any, target_form: int) -> None:
 
     if hasattr(cat, "set_form_true"):
         try:
-            if target_form >= 3:
-                cat.set_form_true(sf, max_forms, set_current_form=True, fourth_form=True)
-            elif target_form == 2:
-                cat.set_form_true(sf, max_forms, set_current_form=True, fourth_form=False)
-            else:
-                cat.set_form(max(0, target_form), sf, set_current_form=True)
+            fourth = (target_form >= 3)
+            cat.set_form_true(sf, max_forms, set_current_form=True, fourth_form=fourth)
             return
         except Exception:
             pass
 
-    if target_form >= 3:
+    if max_forms == 4 and target_form >= 3:
         try:
             cat.unlock_fourth_form(sf, set_current_form=True)
         except Exception:
-            pass
-        cat.current_form = 3
-        cat.unlocked_forms = 3
-        if hasattr(cat, "fourth_form"):
-            cat.fourth_form = 2
+            cat.current_form = 3
+            cat.unlocked_forms = 3
+            if hasattr(cat, "fourth_form"):
+                cat.fourth_form = 2
         return
 
-    if target_form == 2:
+    if max_forms >= 3 and target_form >= 2:
         try:
             cat.true_form(sf, set_current_form=True)
         except Exception:
-            pass
-        cat.current_form = 2
-        cat.unlocked_forms = 3
+            cat.current_form = 2
+            cat.unlocked_forms = 3
         return
 
-    cat.current_form = max(0, target_form)
-    cat.unlocked_forms = max(0, target_form) + 1
+    if max_forms == 2 and target_form >= 1:
+        cat.unlocked_forms = 0
+        cat.current_form = 1
+        return
+
+    cat.unlocked_forms = 0
+    cat.current_form = 0
 
 
 def get_country_code(cc_str: str = "kr"):
@@ -924,14 +923,16 @@ def patch_and_upload_save(
         count = 0
         try:
             if true_form_all or max_cat_evolutions:
-                cats_list = getattr(sf.cats, "cats", [])
-                for idx, cat in enumerate(cats_list):
-                    if getattr(cat, "unlocked", False):
-                        cid = getattr(cat, "id", idx)
-                        max_forms = get_cat_max_forms(cid, sf)
-                        target_form_idx = max(0, max_forms - 1)
-                        _set_cat_form(cat, sf, target_form_idx)
-                        count += 1
+                unlocked_cats = sf.cats.get_unlocked_cats() if hasattr(sf.cats, "get_unlocked_cats") else getattr(sf.cats, "cats", [])
+                if hasattr(sf.cats, "fourth_form_cats"):
+                    sf.cats.fourth_form_cats(sf, unlocked_cats, force=False, set_current_forms=True)
+                elif hasattr(sf.cats, "true_form_cats"):
+                    sf.cats.true_form_cats(sf, unlocked_cats, force=False, set_current_forms=True)
+                else:
+                    for cat in unlocked_cats:
+                        max_forms = get_cat_max_forms(cat.id, sf)
+                        _set_cat_form(cat, sf, max(0, max_forms - 1))
+                count = len(unlocked_cats)
                 res["max_cat_evolutions_count"] = count
 
             if evo_data:
@@ -1096,7 +1097,7 @@ def patch_and_upload_save(
         try:
             chapters = _get_story_chapters(sf)
             for ch in chapters:
-                t_stages = ch.get_treasure_stages() if hasattr(ch, "get_treasure_stages") else getattr(ch, "stages", [])
+                t_stages = ch.get_valid_treasure_stages() if hasattr(ch, "get_valid_treasure_stages") else getattr(ch, "stages", [])[:48]
                 for st in t_stages:
                     if hasattr(st, "set_treasure"):
                         st.set_treasure(3)
