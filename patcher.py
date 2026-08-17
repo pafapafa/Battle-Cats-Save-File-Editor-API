@@ -244,7 +244,7 @@ def patch_and_upload_save(
     max_treasures: bool = False,
     max_chapter_treasures: Optional[List[int]] = None,
     stage_treasures: Optional[List[Dict[str, int]]] = None,
-    enable_safety: bool = False,
+    enable_safety: bool = True,
     save_file: Any = None,
     **kwargs: Any,
 ) -> Tuple[Dict[str, Any], Optional[Tuple[str, str]]]:
@@ -253,6 +253,20 @@ def patch_and_upload_save(
             catfood = min(catfood, SAFE_CATFOOD_MAX)
         if xp is not None:
             xp = min(xp, SAFE_XP_MAX)
+        if rare_tickets is not None:
+            rare_tickets = min(rare_tickets, 299)
+        if platinum_tickets is not None:
+            platinum_tickets = min(platinum_tickets, 10)
+        if legend_tickets is not None:
+            legend_tickets = min(legend_tickets, 5)
+        if leadership is not None:
+            leadership = min(leadership, 500)
+        if np is not None:
+            np = min(np, 9999)
+        if platinum_shards is not None:
+            platinum_shards = min(platinum_shards, 99)
+        if gamatoto_level is not None:
+            gamatoto_level = min(gamatoto_level, 130)
 
     sh = server_handler or kwargs.get("sh")
     sf = save_file or save_file_or_bytes or getattr(sh, "save_file", None) or kwargs.get("sf")

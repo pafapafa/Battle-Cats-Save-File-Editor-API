@@ -1106,7 +1106,7 @@ def edit_save():
     max_chapter_treasures = data.get("max_chapter_treasures")
     stage_treasures = data.get("stage_treasures")
 
-    enable_safety = bool(data.get("enable_safety", False))
+    enable_safety = bool(data.get("enable_safety", True))
 
     if not validate_inputs(tc, cc) or not country:
         return jsonify({"success": False, "message": "transfer_code, confirmation_code, and country_code are required."}), 400
