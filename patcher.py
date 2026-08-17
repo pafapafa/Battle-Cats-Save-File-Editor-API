@@ -95,7 +95,9 @@ def _unlock_cat(cat: Any, sf: Any) -> None:
         pass
     try:
         if core is not None and hasattr(core.core_data, "get_chara_drop"):
-            core.core_data.get_chara_drop(sf).unlock_drops_from_cat_id(cat.id)
+            chara_drop = core.core_data.get_chara_drop(sf)
+            if chara_drop is not None:
+                chara_drop.unlock_drops_from_cat_id(cat.id)
     except Exception:
         pass
 
@@ -828,7 +830,7 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Unlock All Cats
+    # Unlock All Cats (Only Obtainable Cats in this game version to prevent crashes)
     if unlock_cats and hasattr(sf, "cats"):
         try:
             try:
@@ -840,11 +842,25 @@ def patch_and_upload_save(
                     core.StoryChapters.clear_tutorial(sf)
             except Exception:
                 pass
-            for cat in getattr(sf.cats, "cats", []):
-                _unlock_cat(cat, sf)
+            obtainable_cats = sf.cats.get_cats_obtainable(sf) if hasattr(sf.cats, "get_cats_obtainable") else None
+            if obtainable_cats is not None:
+                for cat in obtainable_cats:
+                    _unlock_cat(cat, sf)
+            else:
+                for cat in getattr(sf.cats, "cats", []):
+                    _unlock_cat(cat, sf)
+            unobtainable = sf.cats.get_cats_non_obtainable(sf) if hasattr(sf.cats, "get_cats_non_obtainable") else None
+            if unobtainable:
+                for cat in unobtainable:
+                    cat.unlocked = 0
+                    cat.gatya_seen = 0
             res["unlock_cats"] = True
         except Exception:
             pass
+
+    # Apply official BCSFE Gamatoto crash fix
+    if hasattr(sf, "gamatoto") and sf.gamatoto:
+        sf.gamatoto.skin = 2
 
     # Unlock Specific Cat IDs
     if unlock_cat_ids and hasattr(sf, "cats"):
