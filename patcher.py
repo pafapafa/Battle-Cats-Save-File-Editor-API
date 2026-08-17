@@ -947,8 +947,13 @@ def patch_and_upload_save(
                     if getattr(cat, "unlocked", False):
                         try:
                             power_up = core.PowerUpHelper(cat, sf)
-                            max_base = power_up.get_max_max_base_upgrade_level() - 1
-                            max_plus = power_up.get_max_max_plus_upgrade_level()
+                            max_base = power_up.get_max_possible_base() - 1
+                            max_plus = power_up.get_max_possible_plus()
+                            
+                            if max_base != -1:
+                                power_up.reset_upgrade()
+                                power_up.upgrade_by(max_base)
+                            
                             cat.set_upgrade(sf, core.Upgrade(max_plus, max_base), True)
                         except Exception:
                             if hasattr(cat, "upgrade") and cat.upgrade:
