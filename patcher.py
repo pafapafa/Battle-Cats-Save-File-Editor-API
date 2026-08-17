@@ -1175,9 +1175,22 @@ def patch_and_upload_save(
     except Exception:
         pass
 
+    # Menu Unlocks & Lineup Sanity
+    try:
+        if hasattr(sf, "unlock_equip_menu"):
+            sf.unlock_equip_menu()
+        if hasattr(sf, "menu_unlocks") and sf.menu_unlocks:
+            for i in range(len(sf.menu_unlocks)):
+                sf.menu_unlocks[i] = max(sf.menu_unlocks[i], 1)
+        if hasattr(sf, "lineups") and sf.lineups and hasattr(sf.lineups, "slots") and sf.lineups.slots:
+            if hasattr(core, "game") and hasattr(core.game, "battle") and hasattr(core.game.battle, "slots"):
+                sf.lineups.slots[0].slots[0] = core.game.battle.slots.EquipSlot(0)
+    except Exception:
+        pass
+
     try:
         sh.save_file = sf
-        codes = sh.get_codes(upload_managed_items=True)
+        codes = sh.get_codes()
         if codes and len(codes) == 2:
             return res, codes
     except Exception:
