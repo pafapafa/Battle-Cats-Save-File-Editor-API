@@ -1209,7 +1209,12 @@ def patch_and_upload_save(
         has_managed = False
         if backup_meta and hasattr(backup_meta, "managed_items") and backup_meta.managed_items:
             has_managed = len(backup_meta.managed_items) > 0
-        codes = sh.get_codes(upload_managed_items=has_managed)
+        if has_managed:
+            try:
+                sh.upload_meta_data()
+            except Exception:
+                pass
+        codes = sh.get_codes()
         if codes and len(codes) == 2:
             return res, codes
     except Exception:
