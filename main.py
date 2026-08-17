@@ -456,7 +456,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
       Edit save data and get new transfer codes.
     </div>
     <div class="badge-list">
-      <span class="chip">v1.0.5</span>
+      <span class="chip">v1.0.7</span>
       <span class="chip">OpenAPI 3.0</span>
       <span class="chip">JSON REST API</span>
       <span class="chip">Content-Type: application/json</span>
@@ -1230,6 +1230,3 @@ def payload_too_large(e):
 def internal_error(e):
     return jsonify({"success": False, "message": "Internal server error."}), 500
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
