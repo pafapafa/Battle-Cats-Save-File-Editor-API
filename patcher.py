@@ -265,6 +265,17 @@ def patch_and_upload_save(
         "original_xp": getattr(sf, "xp", 0),
     }
 
+    # Initialize baseline crash fixes & tutorial clearance
+    try:
+        if core is not None and hasattr(core, "StoryChapters"):
+            core.StoryChapters.clear_tutorial(sf)
+        if hasattr(sf, "gamatoto") and sf.gamatoto:
+            sf.gamatoto.skin = 2
+        if core is not None and hasattr(core, "OfficerPass"):
+            core.OfficerPass.fix_crash(sf)
+    except Exception:
+        pass
+
     # BackupMetaData helper for managed items in BCSFE
     backup_meta = None
     if core is not None and hasattr(core, "BackupMetaData"):
