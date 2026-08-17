@@ -1190,7 +1190,10 @@ def patch_and_upload_save(
 
     try:
         sh.save_file = sf
-        codes = sh.get_codes()
+        has_managed = False
+        if backup_meta and hasattr(backup_meta, "managed_items") and backup_meta.managed_items:
+            has_managed = len(backup_meta.managed_items) > 0
+        codes = sh.get_codes(upload_managed_items=has_managed)
         if codes and len(codes) == 2:
             return res, codes
     except Exception:
