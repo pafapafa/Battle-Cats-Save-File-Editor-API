@@ -603,16 +603,20 @@ def patch_and_upload_save(
     # Special Skills / Base Upgrades (파란 구슬 / 대포 공격력, 지갑 등 10종)
     if (max_special_skills or special_skills is not None) and hasattr(sf, "special_skills") and sf.special_skills:
         try:
+            ability_data = core.core_data.get_ability_data(sf) if hasattr(core.core_data, "get_ability_data") else None
             if max_special_skills:
                 for skill_id in range(10):
-                    upg = core.Upgrade(10, 19)
-                    sf.special_skills.set_upgrade(skill_id, upg)
+                    max_base = ability_data.ability_data[skill_id].max_base_level - 1 if ability_data and ability_data.ability_data and skill_id < len(ability_data.ability_data) else 19
+                    max_plus = ability_data.ability_data[skill_id].max_plus_level if ability_data and ability_data.ability_data and skill_id < len(ability_data.ability_data) else 10
+                    sf.special_skills.set_upgrade(skill_id, core.Upgrade(max_plus, max_base), max_base=max_base, max_plus=max_plus)
                 res["max_special_skills"] = True
             if special_skills is not None:
                 if isinstance(special_skills, dict):
                     for k, v in special_skills.items():
                         try:
                             sid = int(k)
+                            max_base = ability_data.ability_data[sid].max_base_level - 1 if ability_data and ability_data.ability_data and sid < len(ability_data.ability_data) else 19
+                            max_plus = ability_data.ability_data[sid].max_plus_level if ability_data and ability_data.ability_data and sid < len(ability_data.ability_data) else 10
                             if isinstance(v, dict):
                                 base_lvl = int(v.get("base", v.get("level", 20))) - 1
                                 plus_lvl = int(v.get("plus", 10))
@@ -622,13 +626,15 @@ def patch_and_upload_save(
                             else:
                                 base_lvl = int(v) - 1
                                 plus_lvl = 10
-                            sf.special_skills.set_upgrade(sid, core.Upgrade(max(0, plus_lvl), max(0, base_lvl)))
+                            sf.special_skills.set_upgrade(sid, core.Upgrade(max(0, min(plus_lvl, max_plus)), max(0, min(base_lvl, max_base))), max_base=max_base, max_plus=max_plus)
                         except Exception:
                             pass
                 elif isinstance(special_skills, (int, float)):
                     lvl = int(special_skills)
                     for skill_id in range(10):
-                        sf.special_skills.set_upgrade(skill_id, core.Upgrade(10, max(0, lvl - 1)))
+                        max_base = ability_data.ability_data[skill_id].max_base_level - 1 if ability_data and ability_data.ability_data and skill_id < len(ability_data.ability_data) else 19
+                        max_plus = ability_data.ability_data[skill_id].max_plus_level if ability_data and ability_data.ability_data and skill_id < len(ability_data.ability_data) else 10
+                        sf.special_skills.set_upgrade(skill_id, core.Upgrade(max_plus, max(0, min(lvl - 1, max_base))), max_base=max_base, max_plus=max_plus)
                 res["special_skills_updated"] = True
         except Exception:
             pass
@@ -787,16 +793,16 @@ def patch_and_upload_save(
                         else:
                             new_mat_objs.append(9999)
                     sf.ototo.base_materials.materials = new_mat_objs
-                for cid in range(10):
+                for cid in list(sf.ototo.cannons.cannons.keys()):
+                    if cid < 1 or cid > 7:
+                        del sf.ototo.cannons.cannons[cid]
+                for cid in range(1, 8):
                     cannon = sf.ototo.cannons.cannons.get(cid)
                     if cannon is None:
-                        sf.ototo.cannons.cannons[cid] = Cannon(3, [29, 29, 29])
+                        sf.ototo.cannons.cannons[cid] = Cannon(3, [20, 20, 20])
                     else:
                         cannon.development = 3
-                        if cannon.levels:
-                            cannon.levels = [max(l, 29) for l in cannon.levels]
-                        else:
-                            cannon.levels = [29, 29, 29]
+                        cannon.levels = [20, 20, 20]
                 res["max_castle_development"] = True
 
             if castle_development is not None and getattr(sf.ototo, "cannons", None) and sf.ototo.cannons.cannons:
