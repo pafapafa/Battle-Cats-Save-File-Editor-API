@@ -244,6 +244,13 @@ def patch_and_upload_save(
     max_treasures: bool = False,
     max_chapter_treasures: Optional[List[int]] = None,
     stage_treasures: Optional[List[Dict[str, int]]] = None,
+    hundred_million_ticket: Optional[int] = None,
+    labyrinth_medals: Any = None,
+    treasure_chests: Any = None,
+    clear_story_all: bool = False,
+    clear_tutorial: bool = False,
+    clear_into_the_future: bool = False,
+    clear_cats_of_the_cosmos: bool = False,
     enable_safety: bool = True,
     save_file: Any = None,
     **kwargs: Any,
@@ -374,6 +381,15 @@ def patch_and_upload_save(
         except Exception:
             pass
 
+    # 100 Million Tickets
+    if hundred_million_ticket is not None and hasattr(sf, "hundred_million_ticket"):
+        try:
+            val = min(int(hundred_million_ticket), 99) if enable_safety else int(hundred_million_ticket)
+            sf.hundred_million_ticket = val
+            res["new_hundred_million_ticket"] = sf.hundred_million_ticket
+        except Exception:
+            pass
+
     # Platinum Shards
     if platinum_shards is not None and hasattr(sf, "platinum_shards"):
         try:
@@ -419,67 +435,65 @@ def patch_and_upload_save(
         except Exception:
             pass
 
-    # Catfruit & Seeds (개다래 열매 및 씨앗: 인덱스 0~17)
+    # Catfruit (Indices 0 to 17)
     if catfruit is not None and hasattr(sf, "catfruit"):
         try:
-            while len(sf.catfruit) < 30:
-                sf.catfruit.append(0)
-            if isinstance(catfruit, list):
-                for idx, val in enumerate(catfruit):
-                    if idx < 18:
-                        sf.catfruit[idx] = max(0, min(int(val), INT32_MAX))
-            else:
-                val = max(0, min(int(catfruit), INT32_MAX))
-                for i in range(18):
-                    sf.catfruit[i] = val
-            res["new_catfruit"] = sf.catfruit[:18]
+            val = max(0, min(int(catfruit), INT32_MAX))
+            for i in range(min(18, len(sf.catfruit))):
+                sf.catfruit[i] = val
+            res["new_catfruit"] = val
         except Exception:
             pass
 
-    # Behemoth Stones & Gems (수석 및 수석 결정: 인덱스 18~29)
+    # Behemoth Stones (Indices 18 to 29 in catfruit array)
     if behemoth_stones is not None and hasattr(sf, "catfruit"):
         try:
             while len(sf.catfruit) < 30:
                 sf.catfruit.append(0)
-            if isinstance(behemoth_stones, list):
-                for idx, val in enumerate(behemoth_stones):
-                    if 18 + idx < len(sf.catfruit):
-                        sf.catfruit[18 + idx] = max(0, min(int(val), INT32_MAX))
-            else:
-                val = max(0, min(int(behemoth_stones), INT32_MAX))
-                for i in range(18, min(30, len(sf.catfruit))):
-                    sf.catfruit[i] = val
-            res["new_behemoth_stones"] = sf.catfruit[18:]
+            val = max(0, min(int(behemoth_stones), INT32_MAX))
+            for i in range(18, 30):
+                sf.catfruit[i] = val
+            res["new_behemoth_stones"] = val
         except Exception:
             pass
 
-    # Catamins (비타민 A, B, C)
+    # Catamins
     if catamins is not None and hasattr(sf, "catamins"):
         try:
-            if isinstance(catamins, dict):
-                a_val = int(catamins.get("a", catamins.get("catamins_a", 0)))
-                b_val = int(catamins.get("b", catamins.get("catamins_b", 0)))
-                c_val = int(catamins.get("c", catamins.get("catamins_c", 0)))
-                sf.catamins = [max(0, min(x, INT32_MAX)) for x in [a_val, b_val, c_val]]
-            elif isinstance(catamins, list):
-                sf.catamins = [max(0, min(int(x), INT32_MAX)) for x in catamins]
-            else:
-                val = max(0, min(int(catamins), INT32_MAX))
-                sf.catamins = [val] * 3
-            res["new_catamins"] = sf.catamins
+            val = max(0, min(int(catamins), INT32_MAX))
+            for i in range(len(sf.catamins)):
+                sf.catamins[i] = val
+            res["new_catamins"] = val
         except Exception:
             pass
 
-    # Battle Items (6종 배틀 아이템)
+    # Battle Items
     if battle_items is not None and hasattr(sf, "battle_items") and hasattr(sf.battle_items, "items"):
         try:
             val = max(0, min(int(battle_items), INT32_MAX))
             for item in sf.battle_items.items:
-                if hasattr(item, "amount"):
-                    item.amount = val
-                elif hasattr(item, "set_amount"):
-                    item.set_amount(val)
+                item.amount = val
             res["new_battle_items"] = val
+        except Exception:
+            pass
+
+    # Treasure Chests
+    if treasure_chests is not None and hasattr(sf, "treasure_chests"):
+        try:
+            val = max(0, min(int(treasure_chests), INT32_MAX))
+            for i in range(len(sf.treasure_chests)):
+                sf.treasure_chests[i] = val
+            res["new_treasure_chests"] = val
+        except Exception:
+            pass
+
+    # Labyrinth Medals
+    if labyrinth_medals is not None and hasattr(sf, "labyrinth_medals"):
+        try:
+            val = max(0, min(int(labyrinth_medals), INT32_MAX))
+            for i in range(len(sf.labyrinth_medals)):
+                sf.labyrinth_medals[i] = val
+            res["new_labyrinth_medals"] = val
         except Exception:
             pass
 

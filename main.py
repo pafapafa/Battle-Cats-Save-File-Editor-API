@@ -1052,6 +1052,9 @@ def edit_save():
     catseyes = data.get("catseyes")
     catfruit = data.get("catfruit")
     behemoth_stones = data.get("behemoth_stones") or data.get("stones")
+    hundred_million_ticket = safe_int(data.get("hundred_million_ticket"))
+    treasure_chests = safe_int(data.get("treasure_chests"))
+    labyrinth_medals = safe_int(data.get("labyrinth_medals"))
     catamins = data.get("catamins")
     if not catamins:
         ca = data.get("catamins_a")
@@ -1116,6 +1119,7 @@ def edit_save():
         rare_tickets is not None, platinum_tickets is not None, legend_tickets is not None,
         platinum_shards is not None, np is not None, leadership is not None,
         catseyes is not None, catfruit is not None, behemoth_stones is not None, catamins is not None, battle_items is not None,
+        hundred_million_ticket is not None, treasure_chests is not None, labyrinth_medals is not None,
         gamatoto_level is not None, gamatoto_xp is not None, gamatoto_helpers, gamatoto_helper_ids, gamatoto_helper_rarities,
         ototo_engineers is not None, ototo_materials is not None, base_materials is not None,
         unlock_cats, unlock_cat_ids, remove_cat_ids,
@@ -1149,6 +1153,9 @@ def edit_save():
         rare_tickets=rare_tickets,
         platinum_tickets=platinum_tickets,
         legend_tickets=legend_tickets,
+        hundred_million_ticket=hundred_million_ticket,
+        treasure_chests=treasure_chests,
+        labyrinth_medals=labyrinth_medals,
         platinum_shards=platinum_shards,
         np=np,
         leadership=leadership,
