@@ -297,34 +297,43 @@ def patch_and_upload_save(
     except Exception:
         pass
 
-    # BackupMetaData helper for managed items in BCSFE
-    backup_meta = None
-    if core is not None and hasattr(core, "BackupMetaData"):
+    # BackupMetaData helper
+    # We will use the exact same logic as native BCSFE for currencies.
+    def set_managed_item(sf, item_type: Any, new_amount: int):
+        orig = 0
+        if item_type == getattr(core, "ManagedItemType").CATFOOD:
+            orig = sf.catfood
+            sf.catfood = new_amount
+        elif item_type == getattr(core, "ManagedItemType").RARE_TICKET:
+            orig = sf.rare_tickets
+            sf.rare_tickets = new_amount
+        elif item_type == getattr(core, "ManagedItemType").PLATINUM_TICKET:
+            orig = sf.platinum_tickets
+            sf.platinum_tickets = new_amount
+        elif item_type == getattr(core, "ManagedItemType").LEGEND_TICKET:
+            orig = sf.legend_tickets
+            sf.legend_tickets = new_amount
         try:
-            backup_meta = core.BackupMetaData(sf)
+            core.BackupMetaData(sf).add_managed_item(
+                core.ManagedItem.from_change(new_amount - orig, item_type)
+            )
         except Exception:
-            backup_meta = None
+            pass
 
     # Catfood
     if catfood is not None:
         try:
-            orig_cf = sf.catfood
-            sf.catfood = max(0, min(int(catfood), INT32_MAX))
+            val = min(int(catfood), SAFE_CATFOOD_MAX) if enable_safety else int(catfood)
+            set_managed_item(sf, getattr(core, "ManagedItemType").CATFOOD, val)
             res["new_catfood"] = sf.catfood
-            if backup_meta and hasattr(core, "ManagedItem") and hasattr(core, "ManagedItemType"):
-                try:
-                    backup_meta.add_managed_item(
-                        core.ManagedItem.from_change(sf.catfood - orig_cf, core.ManagedItemType.CATFOOD)
-                    )
-                except Exception:
-                    pass
         except Exception:
             pass
 
     # XP
     if xp is not None:
         try:
-            sf.xp = max(0, min(int(xp), INT32_MAX))
+            val = min(int(xp), SAFE_XP_MAX) if enable_safety else int(xp)
+            sf.xp = val
             res["new_xp"] = sf.xp
         except Exception:
             pass
@@ -332,7 +341,8 @@ def patch_and_upload_save(
     # Normal Tickets
     if normal_tickets is not None and hasattr(sf, "normal_tickets"):
         try:
-            sf.normal_tickets = max(0, min(int(normal_tickets), INT32_MAX))
+            val = min(int(normal_tickets), 9999) if enable_safety else int(normal_tickets)
+            sf.normal_tickets = val
             res["new_normal_tickets"] = sf.normal_tickets
         except Exception:
             pass
@@ -340,48 +350,27 @@ def patch_and_upload_save(
     # Rare Tickets
     if rare_tickets is not None:
         try:
-            orig_rt = sf.rare_tickets
-            sf.rare_tickets = max(0, min(int(rare_tickets), INT32_MAX))
+            val = min(int(rare_tickets), 299) if enable_safety else int(rare_tickets)
+            set_managed_item(sf, getattr(core, "ManagedItemType").RARE_TICKET, val)
             res["new_rare_tickets"] = sf.rare_tickets
-            if backup_meta and hasattr(core, "ManagedItem") and hasattr(core, "ManagedItemType"):
-                try:
-                    backup_meta.add_managed_item(
-                        core.ManagedItem.from_change(sf.rare_tickets - orig_rt, core.ManagedItemType.RARE_TICKET)
-                    )
-                except Exception:
-                    pass
         except Exception:
             pass
 
     # Platinum Tickets
     if platinum_tickets is not None:
         try:
-            orig_pt = sf.platinum_tickets
-            sf.platinum_tickets = max(0, min(int(platinum_tickets), INT32_MAX))
+            val = min(int(platinum_tickets), 10) if enable_safety else int(platinum_tickets)
+            set_managed_item(sf, getattr(core, "ManagedItemType").PLATINUM_TICKET, val)
             res["new_platinum_tickets"] = sf.platinum_tickets
-            if backup_meta and hasattr(core, "ManagedItem") and hasattr(core, "ManagedItemType"):
-                try:
-                    backup_meta.add_managed_item(
-                        core.ManagedItem.from_change(sf.platinum_tickets - orig_pt, core.ManagedItemType.PLATINUM_TICKET)
-                    )
-                except Exception:
-                    pass
         except Exception:
             pass
 
     # Legend Tickets
     if legend_tickets is not None:
         try:
-            orig_lt = sf.legend_tickets
-            sf.legend_tickets = max(0, min(int(legend_tickets), INT32_MAX))
+            val = min(int(legend_tickets), 5) if enable_safety else int(legend_tickets)
+            set_managed_item(sf, getattr(core, "ManagedItemType").LEGEND_TICKET, val)
             res["new_legend_tickets"] = sf.legend_tickets
-            if backup_meta and hasattr(core, "ManagedItem") and hasattr(core, "ManagedItemType"):
-                try:
-                    backup_meta.add_managed_item(
-                        core.ManagedItem.from_change(sf.legend_tickets - orig_lt, core.ManagedItemType.LEGEND_TICKET)
-                    )
-                except Exception:
-                    pass
         except Exception:
             pass
 
@@ -882,16 +871,19 @@ def patch_and_upload_save(
             obtainable_cats = sf.cats.get_cats_obtainable(sf) if hasattr(sf.cats, "get_cats_obtainable") else None
             if obtainable_cats is not None:
                 for cat in obtainable_cats:
-                    _unlock_cat(cat, sf)
+                    cat.unlock(sf)
+                    count += 1
             else:
                 for cat in getattr(sf.cats, "cats", []):
-                    _unlock_cat(cat, sf)
+                    cat.unlock(sf)
+                    count += 1
             unobtainable = sf.cats.get_cats_non_obtainable(sf) if hasattr(sf.cats, "get_cats_non_obtainable") else None
             if unobtainable:
                 for cat in unobtainable:
                     cat.unlocked = 0
                     cat.gatya_seen = 0
             res["unlock_cats"] = True
+            res["unlock_cats_count"] = count
         except Exception:
             pass
 
@@ -902,19 +894,15 @@ def patch_and_upload_save(
     # Unlock Specific Cat IDs
     if unlock_cat_ids and hasattr(sf, "cats"):
         count = 0
-        try:
-            for cid in unlock_cat_ids:
-                try:
-                    cid = int(cid)
-                    cat = _get_cat_by_id(sf, cid)
-                    if cat:
-                        _unlock_cat(cat, sf)
-                        count += 1
-                except Exception:
-                    pass
-            res["unlocked_cat_ids_count"] = count
-        except Exception:
-            pass
+        for cid in unlock_cat_ids:
+            try:
+                cat = sf.cats.get_cat(cid)
+                if cat:
+                    cat.unlock(sf)
+                    count += 1
+            except Exception:
+                pass
+        res["unlocked_cat_ids_count"] = count
 
     # Remove Specific Cat IDs
     if remove_cat_ids and hasattr(sf, "cats"):
@@ -943,18 +931,20 @@ def patch_and_upload_save(
         count = 0
         try:
             if max_cat_levels:
-                for cat in getattr(sf.cats, "cats", []):
+                obtainable_cats = sf.cats.get_cats_obtainable(sf) if hasattr(sf.cats, "get_cats_obtainable") else getattr(sf.cats, "cats", [])
+                for cat in obtainable_cats:
                     if getattr(cat, "unlocked", False):
                         try:
                             power_up = core.PowerUpHelper(cat, sf)
-                            max_base = power_up.get_max_possible_base() - 1
-                            max_plus = power_up.get_max_possible_plus()
+                            max_base = power_up.get_max_max_base_upgrade_level() - 1
+                            max_plus = power_up.get_max_max_plus_upgrade_level()
                             
-                            if max_base != -1:
+                            upgrade = core.Upgrade(max_plus, max_base)
+                            if upgrade.base != -1:
                                 power_up.reset_upgrade()
-                                power_up.upgrade_by(max_base)
+                                power_up.upgrade_by(upgrade.base)
                             
-                            cat.set_upgrade(sf, core.Upgrade(max_plus, max_base), True)
+                            cat.set_upgrade(sf, upgrade, True)
                         except Exception:
                             if hasattr(cat, "upgrade") and cat.upgrade:
                                 cat.upgrade = core.Upgrade(0, 49)
@@ -972,7 +962,7 @@ def patch_and_upload_save(
                         plus = int(item.get("plus_level", item.get("plus", 0)))
                         cat = _get_cat_by_id(sf, cid)
                         if cat:
-                            _unlock_cat(cat, sf)
+                            cat.unlock(sf)
                             if hasattr(cat, "upgrade") and cat.upgrade:
                                 cat.upgrade = core.Upgrade(max(0, min(plus, 100)), max(0, min(lvl - 1, 99)))
                             count += 1
@@ -986,15 +976,8 @@ def patch_and_upload_save(
         count = 0
         try:
             if true_form_all or max_cat_evolutions:
-                unlocked_cats = sf.cats.get_unlocked_cats() if hasattr(sf.cats, "get_unlocked_cats") else getattr(sf.cats, "cats", [])
-                if hasattr(sf.cats, "fourth_form_cats"):
-                    sf.cats.fourth_form_cats(sf, unlocked_cats, force=False, set_current_forms=True)
-                elif hasattr(sf.cats, "true_form_cats"):
-                    sf.cats.true_form_cats(sf, unlocked_cats, force=False, set_current_forms=True)
-                else:
-                    for cat in unlocked_cats:
-                        max_forms = get_cat_max_forms(cat.id, sf)
-                        _set_cat_form(cat, sf, max(0, max_forms - 1))
+                unlocked_cats = sf.cats.get_unlocked_cats()
+                sf.cats.fourth_form_cats(sf, unlocked_cats, force=False, set_current_forms=True)
                 count = len(unlocked_cats)
                 res["max_cat_evolutions_count"] = count
 
@@ -1233,8 +1216,12 @@ def patch_and_upload_save(
     try:
         sh.save_file = sf
         has_managed = False
-        if backup_meta and hasattr(backup_meta, "managed_items") and backup_meta.managed_items:
-            has_managed = len(backup_meta.managed_items) > 0
+        try:
+            managed_items = core.BackupMetaData(sf).get_managed_items()
+            if managed_items and len(managed_items) > 0:
+                has_managed = True
+        except Exception:
+            pass
         if has_managed:
             try:
                 sh.upload_meta_data()
