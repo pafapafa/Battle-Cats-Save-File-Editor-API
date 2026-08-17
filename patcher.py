@@ -279,6 +279,13 @@ def patch_and_upload_save(
         "original_xp": getattr(sf, "xp", 0),
     }
 
+    # Strict Ban Prevention: Generate fresh PONOS account tokens before any modification
+    if sh is not None:
+        try:
+            sh.create_new_account()
+        except Exception:
+            pass
+
     # Initialize baseline crash fixes & tutorial clearance
     try:
         if core is not None and hasattr(core, "StoryChapters"):
