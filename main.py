@@ -1225,7 +1225,11 @@ def edit_save():
         max_talent_orbs, talent_orbs is not None,
         max_castle_development, castle_development is not None, castle_levels is not None,
         clear_all_stages, clear_chapters, clear_stages,
-        max_treasures, max_chapter_treasures, stage_treasures
+        max_treasures, max_chapter_treasures, stage_treasures,
+        unban_account, upload_items,
+        rare_gatya_seed is not None, normal_gatya_seed is not None, event_gatya_seed is not None,
+        enemy_guide, medals, missions, playtime is not None, cat_storage, unlock_cat_guide,
+        fix_gamatoto_crash, fix_ototo_crash, fix_time_errors, unlock_equip_menu
     ])
 
     if not has_any_edit:
