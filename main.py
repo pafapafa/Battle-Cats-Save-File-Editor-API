@@ -503,7 +503,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
       Edit save data and get new transfer codes.
     </div>
     <div class="badge-list">
-      <span class="chip">v1.0.7</span>
+      <span class="chip">v1.1.0</span>
       <span class="chip">OpenAPI 3.0</span>
       <span class="chip">JSON REST API</span>
       <span class="chip">Content-Type: application/json</span>
