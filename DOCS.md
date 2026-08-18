@@ -1,4 +1,4 @@
-# Battle Cats Save File Editor API Specification (v1.0.4)
+# Battle Cats Save File Editor API Specification (v1.0.5)
 
 The Battle Cats Save File Editor API is a high-performance RESTful cloud service that provides raw binary patching, automated PONOS server cloud transfer handling, and save file management.
 
@@ -95,23 +95,9 @@ Applies target modifications, syncs server managed items, and issues new transfe
   "country_code": "kr",
   "catfood": 45000,
   "xp": 99999999,
-  "normal_tickets": 999,
-  "rare_tickets": 999,
-  "platinum_tickets": 99,
-  "legend_tickets": 9,
-  "platinum_shards": 99,
-  "np": 9999,
-  "leadership": 99,
-  "unlock_cats": true,
-  "unlock_cat_ids": [0, 1, 555],
-  "remove_cat_ids": [10, 11],
-  "clear_all_stages": true,
-  "clear_chapters": [0, 1, 2],
-  "clear_stages": [{"chapter": 0, "stage": 47}],
-  "max_treasures": true,
-  "max_chapter_treasures": [0, 1, 2],
-  "stage_treasures": [{"chapter": 0, "stage": 0, "treasure": 3}],
-  "enable_safety": false
+  "unban_account": true,
+  "fix_time_errors": true,
+  "rare_gatya_seed": 123456789
 }
 ```
 
@@ -145,6 +131,20 @@ Applies target modifications, syncs server managed items, and issues new transfe
 | `max_treasures` | `boolean` | No | Set all story chapter treasures to Superior |
 | `max_chapter_treasures` | `array[int]` | No | Specific chapter IDs to max treasures to Superior |
 | `stage_treasures` | `array[object]` | No | Specific stage treasure quality (`1` = Inferior, `2` = Normal, `3` = Superior) |
+| `unban_account` | `boolean` | No | Unban the account (remove ban flag) |
+| `fix_time_errors` | `boolean` | No | Fix HGT/time errors and enable events |
+| `fix_gamatoto_crash` | `boolean` | No | Fix Gamatoto expedition crashes |
+| `fix_ototo_crash` | `boolean` | No | Fix Ototo corps/development crashes |
+| `unlock_equip_menu` | `boolean` | No | Unlock the equip menu if it's missing |
+| `upload_items` | `boolean` | No | Force sync and upload current items to server |
+| `rare_gatya_seed` | `integer` | No | Set the Rare Gatya seed value |
+| `normal_gatya_seed` | `integer` | No | Set the Normal Gatya seed value |
+| `event_gatya_seed` | `integer` | No | Set the Event Gatya seed value |
+| `claim_all_rewards` | `boolean` | No | Claim all available mission/login rewards |
+| `max_special_skills` | `boolean` | No | Max out all 10 base abilities (cannon, wallet, etc) |
+| `max_all_talents` | `boolean` | No | Max out talents and ultra talents for all cats |
+| `max_talent_orbs` | `boolean` | No | Set all talent orbs to 99 |
+| `max_castle_development` | `boolean` | No | Max out all Ototo castle development and materials |
 | `enable_safety` | `boolean` | No | Clamp Cat Food (max 45k) and XP (max 100M) |
 
 #### Response (`200 OK`)
@@ -169,7 +169,8 @@ curl -X POST "https://battle-cats-save-file-editor-api.vercel.app/edit" \
            "transfer_code": "1a2b3c4d5",
            "confirmation_code": "1234",
            "country_code": "kr",
-           "catfood": 10000
+           "unban_account": true,
+           "fix_time_errors": true
          }'
 ```
 
@@ -182,7 +183,7 @@ payload = {
     "transfer_code": "1a2b3c4d5",
     "confirmation_code": "1234",
     "country_code": "kr",
-    "catfood": 10000
+    "rare_gatya_seed": 123456789
 }
 
 response = requests.post(url, json=payload, timeout=30)
@@ -205,7 +206,7 @@ async function editSave() {
             transfer_code: '1a2b3c4d5',
             confirmation_code: '1234',
             country_code: 'kr',
-            catfood: 10000
+            unban_account: true
         })
     });
     const data = await response.json();
