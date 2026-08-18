@@ -1172,7 +1172,6 @@ def patch_and_upload_save(
         sf.date_3 = now
         sf.timestamp = now.timestamp()
         sf.energy_penalty_timestamp = now.timestamp()
-        sf.events.clear_trade_progress()
         res["fix_time_errors"] = True
 
     unlock_equip_menu = kwargs.get("unlock_equip_menu", False)
