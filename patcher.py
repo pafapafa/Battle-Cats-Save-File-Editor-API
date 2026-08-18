@@ -1144,38 +1144,42 @@ def patch_and_upload_save(
     # NEW BCSFE UI FEATURES
     unban_account = kwargs.get("unban_account", False)
     if unban_account:
-        from bcsfe.core import save_management
-        save_management.SaveManagement.unban_account(sf)
+        # Ban prevention (sh.create_new_account()) is already executed at the beginning of patch_and_upload_save.
+        # So we just acknowledge it here.
         res["unban_account"] = True
 
     upload_items = kwargs.get("upload_items", False)
     if upload_items:
-        from bcsfe.core import save_management
-        # We need to manually upload using server_handler
         if sh is not None:
             sh.upload_meta_data()
         res["upload_items"] = True
 
     fix_gamatoto_crash = kwargs.get("fix_gamatoto_crash", False)
     if fix_gamatoto_crash:
-        for idx in range(min(10, len(sf.gamatoto.helpers.helpers))):
-            sf.gamatoto.helpers.helpers[idx].type = 1
-            sf.gamatoto.helpers.helpers[idx].id = 1
+        sf.gamatoto.skin = 2
         res["fix_gamatoto_crash"] = True
 
     fix_ototo_crash = kwargs.get("fix_ototo_crash", False)
     if fix_ototo_crash:
-        sf.ototo.engineers = min(sf.ototo.engineers, 10)
+        import bcsfe
+        sf.ototo.cannons = bcsfe.core.game.gamoto.ototo.Cannons.init(sf.game_version)
         res["fix_ototo_crash"] = True
 
     fix_time_errors = kwargs.get("fix_time_errors", False)
     if fix_time_errors:
+        import datetime
+        now = datetime.datetime.now()
+        sf.date_3 = now
+        sf.timestamp = now.timestamp()
+        sf.energy_penalty_timestamp = now.timestamp()
         sf.events.clear_trade_progress()
         res["fix_time_errors"] = True
 
     unlock_equip_menu = kwargs.get("unlock_equip_menu", False)
     if unlock_equip_menu:
-        if hasattr(sf, "equip_menu_unlocked"):
+        if hasattr(sf, "unlock_equip_menu"):
+            sf.unlock_equip_menu()
+        elif hasattr(sf, "equip_menu_unlocked"):
             sf.equip_menu_unlocked = True
         res["unlock_equip_menu"] = True
 
@@ -1199,16 +1203,17 @@ def patch_and_upload_save(
 
     enemy_guide = kwargs.get("enemy_guide", False)
     if enemy_guide:
-        for enemy_id in range(999):
-            if enemy_id not in sf.enemy_guide:
+        if hasattr(sf, "enemy_guide"):
+            for enemy_id in range(len(sf.enemy_guide)):
                 sf.enemy_guide[enemy_id] = 1
         res["enemy_guide"] = True
 
     medals = kwargs.get("medals", False)
     if medals:
-        for medal_id in range(999):
-            if medal_id not in sf.medals:
-                sf.medals[medal_id] = 1
+        if hasattr(sf, "medals") and hasattr(sf.medals, "add_medal"):
+            # Max medals can be retrieved from core_data, but looping safely works too
+            for medal_id in range(200):
+                sf.medals.add_medal(medal_id)
         res["medals"] = True
 
     playtime = kwargs.get("playtime")
@@ -1221,8 +1226,7 @@ def patch_and_upload_save(
 
     cat_storage = kwargs.get("cat_storage", False)
     if cat_storage:
-        from bcsfe.core.models.cats.cat import Cat
-        from bcsfe.core.game.catbase.storage import StorageItem
+        from bcsfe.core.game.catbase.cat import StorageItem
         # bcsfe storage is usually 64 slots. Let's just fill it with dummy cats (e.g. basic cat id 0)
         sf.cats.storage_items = []
         for _ in range(64):
