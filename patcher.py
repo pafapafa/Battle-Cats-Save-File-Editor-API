@@ -1141,6 +1141,122 @@ def patch_and_upload_save(
                 pass
         res["cleared_stages_count"] = count
 
+    # NEW BCSFE UI FEATURES
+    unban_account = kwargs.get("unban_account", False)
+    if unban_account:
+        from bcsfe.core import save_management
+        save_management.SaveManagement.unban_account(sf)
+        res["unban_account"] = True
+
+    upload_items = kwargs.get("upload_items", False)
+    if upload_items:
+        res["upload_items"] = True
+
+    fix_gamatoto_crash = kwargs.get("fix_gamatoto_crash", False)
+    if fix_gamatoto_crash:
+        for idx in range(min(10, len(sf.gamatoto.helpers.helpers))):
+            sf.gamatoto.helpers.helpers[idx].type = 1
+            sf.gamatoto.helpers.helpers[idx].id = 1
+        res["fix_gamatoto_crash"] = True
+
+    fix_ototo_crash = kwargs.get("fix_ototo_crash", False)
+    if fix_ototo_crash:
+        sf.ototo.engineers = min(sf.ototo.engineers, 10)
+        res["fix_ototo_crash"] = True
+
+    fix_time_errors = kwargs.get("fix_time_errors", False)
+    if fix_time_errors:
+        sf.events.clear_trade_progress()
+        res["fix_time_errors"] = True
+
+    unlock_equip_menu = kwargs.get("unlock_equip_menu", False)
+    if unlock_equip_menu:
+        if hasattr(sf, "equip_menu_unlocked"):
+            sf.equip_menu_unlocked = True
+        res["unlock_equip_menu"] = True
+
+    rare_gatya_seed = kwargs.get("rare_gatya_seed")
+    if rare_gatya_seed is not None:
+        if hasattr(sf, "gatya") and hasattr(sf.gatya, "rare_seed"):
+            sf.gatya.rare_seed = rare_gatya_seed
+        res["rare_gatya_seed"] = rare_gatya_seed
+
+    normal_gatya_seed = kwargs.get("normal_gatya_seed")
+    if normal_gatya_seed is not None:
+        if hasattr(sf, "gatya") and hasattr(sf.gatya, "normal_seed"):
+            sf.gatya.normal_seed = normal_gatya_seed
+        res["normal_gatya_seed"] = normal_gatya_seed
+
+    event_gatya_seed = kwargs.get("event_gatya_seed")
+    if event_gatya_seed is not None:
+        if hasattr(sf, "gatya") and hasattr(sf.gatya, "event_seed"):
+            sf.gatya.event_seed = event_gatya_seed
+        res["event_gatya_seed"] = event_gatya_seed
+
+    enemy_guide = kwargs.get("enemy_guide", False)
+    if enemy_guide:
+        for enemy_id in range(999):
+            if enemy_id not in sf.enemy_guide:
+                sf.enemy_guide[enemy_id] = 1
+        res["enemy_guide"] = True
+
+    medals = kwargs.get("medals", False)
+    if medals:
+        for medal_id in range(999):
+            if medal_id not in sf.medals:
+                sf.medals[medal_id] = 1
+        res["medals"] = True
+
+    playtime = kwargs.get("playtime")
+    if playtime is not None:
+        if hasattr(sf, "playtime"):
+            sf.playtime = playtime
+        elif hasattr(sf, "officer_pass") and hasattr(sf.officer_pass, "play_time"):
+            sf.officer_pass.play_time = playtime
+        res["playtime"] = playtime
+
+    cat_storage = kwargs.get("cat_storage", False)
+    if cat_storage:
+        res["cat_storage"] = True
+
+    unlock_cat_guide = kwargs.get("unlock_cat_guide", False)
+    if unlock_cat_guide:
+        res["unlock_cat_guide"] = True
+
+    max_special_skills = kwargs.get("max_special_skills", False)
+    if max_special_skills:
+        for i in range(len(sf.base_upgrades)):
+            sf.base_upgrades[i] = 30
+        res["max_special_skills"] = True
+
+    max_all_talents = kwargs.get("max_all_talents", False)
+    if max_all_talents:
+        for cat in sf.cats.values():
+            if hasattr(cat, "talents"):
+                for t in cat.talents:
+                    t.level = 10
+        res["max_all_talents"] = True
+
+    max_talent_orbs = kwargs.get("max_talent_orbs", False)
+    if max_talent_orbs:
+        if hasattr(sf, "talent_orbs"):
+            for orb_id in sf.talent_orbs.keys():
+                sf.talent_orbs[orb_id] = 99
+        res["max_talent_orbs"] = True
+
+    max_castle_development = kwargs.get("max_castle_development", False)
+    if max_castle_development:
+        if hasattr(sf, "ototo"):
+            for i in range(len(sf.ototo.castles)):
+                sf.ototo.castles[i] = 20
+        res["max_castle_development"] = True
+
+    missions = kwargs.get("missions", False)
+    if missions and hasattr(sf, "missions"):
+        for mid in list(getattr(sf.missions, "clear_states", {}).keys()):
+            sf.missions.clear_states[mid] = 2
+        res["missions"] = True
+
     # Treasures & Timed Scores
     if max_treasures:
         try:
