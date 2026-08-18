@@ -1150,6 +1150,10 @@ def patch_and_upload_save(
 
     upload_items = kwargs.get("upload_items", False)
     if upload_items:
+        from bcsfe.core import save_management
+        # We need to manually upload using server_handler
+        if sh is not None:
+            sh.upload_meta_data()
         res["upload_items"] = True
 
     fix_gamatoto_crash = kwargs.get("fix_gamatoto_crash", False)
@@ -1217,10 +1221,18 @@ def patch_and_upload_save(
 
     cat_storage = kwargs.get("cat_storage", False)
     if cat_storage:
+        from bcsfe.core.models.cats.cat import Cat
+        from bcsfe.core.game.catbase.storage import StorageItem
+        # bcsfe storage is usually 64 slots. Let's just fill it with dummy cats (e.g. basic cat id 0)
+        sf.cats.storage_items = []
+        for _ in range(64):
+            sf.cats.storage_items.append(StorageItem.from_cat(0))
         res["cat_storage"] = True
 
     unlock_cat_guide = kwargs.get("unlock_cat_guide", False)
     if unlock_cat_guide:
+        for cat in sf.cats.values():
+            cat.catguide_collected = True
         res["unlock_cat_guide"] = True
 
     max_special_skills = kwargs.get("max_special_skills", False)
