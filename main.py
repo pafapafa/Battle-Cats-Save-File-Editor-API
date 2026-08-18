@@ -140,7 +140,7 @@ OPENAPI_SPEC = {
     "openapi": "3.0.0",
     "info": {
         "title": "Battle Cats Save File Editor API",
-        "version": "1.0.7",
+        "version": "1.1.0",
         "description": "Battle Cats Save File Editor API."
     },
     "paths": {
@@ -213,7 +213,54 @@ OPENAPI_SPEC = {
                                 "legend_tickets": 9,
                                 "unlock_cats": True,
                                 "max_treasures": True,
-                                "enable_safety": False
+                                                    "scheme_items": {"type": "boolean"},
+                    "event_tickets": {"type": "boolean"},
+                    "reset_golden_cat_cpus": {"type": "boolean"},
+                    "unlock_cat_guide": {"type": "boolean"},
+                    "cat_storage": {"type": "boolean"},
+                    "clear_enigma_stages": {"type": "boolean"},
+                    "unlock_aku_realm": {"type": "boolean"},
+                    "outbreaks": {"type": "boolean"},
+                    "aku_chapters": {"type": "boolean"},
+                    "filibuster_reclearing": {"type": "boolean"},
+                    "sol": {"type": "boolean"},
+                    "event": {"type": "boolean"},
+                    "collab": {"type": "boolean"},
+                    "gauntlets": {"type": "boolean"},
+                    "collab_gauntlets": {"type": "boolean"},
+                    "uncanny": {"type": "boolean"},
+                    "catamin_stages": {"type": "boolean"},
+                    "behemoth_culling": {"type": "boolean"},
+                    "legend_quest": {"type": "boolean"},
+                    "towers": {"type": "boolean"},
+                    "zero_legends": {"type": "boolean"},
+                    "dojo_catclaw_championships": {"type": "boolean"},
+                    "cat_shrine": {"type": "boolean"},
+                    "ototo_cat_cannon": {"type": "boolean"},
+                    "unban_account": {"type": "boolean"},
+                    "upload_items": {"type": "boolean"},
+                    "inquiry_code": {"type": "boolean"},
+                    "password_refresh_token": {"type": "boolean"},
+                    "fix_gamatoto_crash": {"type": "boolean"},
+                    "fix_ototo_crash": {"type": "boolean"},
+                    "fix_time_errors": {"type": "boolean"},
+                    "unlock_equip_menu": {"type": "boolean"},
+                    "fix_officer_pass_crash": {"type": "boolean"},
+                    "unlocked_slots": {"type": "boolean"},
+                    "reset_gambling_events": {"type": "boolean"},
+                    "restart_pack": {"type": "boolean"},
+                    "enemy_guide": {"type": "boolean"},
+                    "medals": {"type": "boolean"},
+                    "missions": {"type": "boolean"},
+                    "battle_items_endless": {"type": "integer"},
+                    "challenge_score": {"type": "integer"},
+                    "dojo_score": {"type": "integer"},
+                    "itf_timed_scores": {"type": "integer"},
+                    "rare_gatya_seed": {"type": "integer"},
+                    "normal_gatya_seed": {"type": "integer"},
+                    "event_gatya_seed": {"type": "integer"},
+                    "playtime": {"type": "integer"},
+                    "enable_safety": False
                             }
                         }
                     }
@@ -511,7 +558,7 @@ SWAGGER_HTML = """<!DOCTYPE html>
       <pre class="code-block"><code>{
   "service": "Battle Cats Save File Editor API",
   "status": "online",
-  "version": "1.0.5"
+  "version": "1.1.0"
 }</code></pre>
     </div>
   </div>
@@ -989,7 +1036,7 @@ def health_check():
     return jsonify({
         "status": "online",
         "service": "Battle Cats Save File Editor API",
-        "version": "1.0.5"
+        "version": "1.1.0"
     })
 
 
