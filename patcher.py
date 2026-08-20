@@ -256,8 +256,6 @@ def patch_and_upload_save(
     **kwargs: Any,
 ) -> Tuple[Dict[str, Any], Optional[Tuple[str, str]]]:
     if enable_safety:
-        if catfood is not None:
-            catfood = min(catfood, SAFE_CATFOOD_MAX)
         if xp is not None:
             xp = min(xp, SAFE_XP_MAX)
         if rare_tickets is not None:
@@ -330,7 +328,7 @@ def patch_and_upload_save(
     # Catfood
     if catfood is not None:
         try:
-            val = min(int(catfood), SAFE_CATFOOD_MAX) if enable_safety else int(catfood)
+            val = int(catfood)
             set_managed_item(sf, getattr(core, "ManagedItemType").CATFOOD, val)
             res["new_catfood"] = sf.catfood
         except Exception:
