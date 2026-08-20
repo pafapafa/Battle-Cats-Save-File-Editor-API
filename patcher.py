@@ -255,11 +255,6 @@ def patch_and_upload_save(
     save_file: Any = None,
     **kwargs: Any,
 ) -> Tuple[Dict[str, Any], Optional[Tuple[str, str]]]:
-    if enable_safety:
-        if xp is not None:
-            xp = min(xp, SAFE_XP_MAX)
-        if rare_tickets is not None:
-            rare_tickets = min(rare_tickets, 299)
         if platinum_tickets is not None:
             platinum_tickets = min(platinum_tickets, 10)
         if legend_tickets is not None:
@@ -337,7 +332,7 @@ def patch_and_upload_save(
     # XP
     if xp is not None:
         try:
-            val = min(int(xp), SAFE_XP_MAX) if enable_safety else int(xp)
+            val = int(xp)
             sf.xp = val
             res["new_xp"] = sf.xp
         except Exception:
