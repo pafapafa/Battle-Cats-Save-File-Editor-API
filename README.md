@@ -1,5 +1,7 @@
 # Battle Cats Save File Editor API
 
+## Use at your own risk.
+
 High-Performance Battle Cats Save Customization and Cloud Sync REST API Engine.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
