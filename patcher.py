@@ -255,6 +255,7 @@ def patch_and_upload_save(
     save_file: Any = None,
     **kwargs: Any,
 ) -> Tuple[Dict[str, Any], Optional[Tuple[str, str]]]:
+    if enable_safety:
         if platinum_tickets is not None:
             platinum_tickets = min(platinum_tickets, 10)
         if legend_tickets is not None:
