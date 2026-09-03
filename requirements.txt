@@ -1,4 +1,7 @@
-flask
-requests
-bcsfe
-pyjwt
+Flask==3.1.3
+requests==2.34.2
+./vendor/bcsfe
+PyJWT==2.13.0
+PyYAML==6.0.3
+cryptography==50.0.1
+jsonschema==4.23.0

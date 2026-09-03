@@ -1,0 +1,3426 @@
+{
+  "schema_version": 1,
+  "reference": {
+    "name": "User-provided BCSFE source",
+    "version": "3.6.0",
+    "feature_registry": "src/bcsfe/cli/feature_handler.py",
+    "menu_entries_with_expanded_cat_submenus": 101,
+    "unique_features": 99,
+    "duplicate_menu_aliases": [
+      "special_skills",
+      "unlock_equip_menu"
+    ],
+    "sha256": "bddcc9232dbbe8ccb4cea4998df410e57588d5dea817f368ad535fdadfff063c"
+  },
+  "verification_scope": "Every registered typed action has at least one offline real-SaveFile binary integration case. Static game tables are explicit fixtures; this is not exhaustive input coverage or live PONOS account verification.",
+  "offline_binary_tested_actions": [
+    "account.gold_pass",
+    "account.inquiry_code",
+    "account.password_refresh_token",
+    "cats.forms",
+    "cats.guide",
+    "cats.levels",
+    "cats.lineups",
+    "cats.orbs",
+    "cats.remove",
+    "cats.storage.add",
+    "cats.storage.clear",
+    "cats.storage.remove",
+    "cats.talents",
+    "cats.unlock",
+    "enemy_guide.set",
+    "fixes.equip_menu",
+    "fixes.gamatoto",
+    "fixes.officer_pass",
+    "fixes.ototo",
+    "fixes.time",
+    "gamatoto.helpers",
+    "gamatoto.level",
+    "gamatoto.xp",
+    "gambling.reset",
+    "gatya.event_seed",
+    "gatya.normal_seed",
+    "gatya.rare_seed",
+    "items.battle_items",
+    "items.catamins",
+    "items.catfood",
+    "items.catfruit",
+    "items.catseyes",
+    "items.endless",
+    "items.event_capsules",
+    "items.event_capsules_2",
+    "items.event_tickets",
+    "items.evolve_by_id",
+    "items.golden_cpu_count",
+    "items.hundred_million_ticket",
+    "items.labyrinth_medals",
+    "items.leadership",
+    "items.legend_tickets",
+    "items.lucky_tickets",
+    "items.normal_tickets",
+    "items.np",
+    "items.platinum_shards",
+    "items.platinum_tickets",
+    "items.rare_ticket_trade",
+    "items.rare_tickets",
+    "items.restart_pack",
+    "items.scheme",
+    "items.treasure_chests",
+    "items.xp",
+    "lineups.unlocked_slots",
+    "medals.set",
+    "missions.set",
+    "ototo.cannons",
+    "ototo.engineers",
+    "ototo.materials",
+    "playtime.set",
+    "rewards.claim",
+    "save.region",
+    "save.version",
+    "shrine.set",
+    "skills.set",
+    "stages.aku",
+    "stages.behemoth",
+    "stages.catamin",
+    "stages.challenge_score",
+    "stages.collab",
+    "stages.collab_gauntlets",
+    "stages.dojo_catclaw",
+    "stages.dojo_score",
+    "stages.enigma",
+    "stages.enigma_clears",
+    "stages.event",
+    "stages.filibuster",
+    "stages.gauntlets",
+    "stages.itf_scores",
+    "stages.legend_quest",
+    "stages.outbreaks",
+    "stages.sol",
+    "stages.story",
+    "stages.towers",
+    "stages.treasures",
+    "stages.tutorial",
+    "stages.uncanny",
+    "stages.unlock_aku",
+    "stages.zero_legends"
+  ],
+  "features": [
+    {
+      "id": "special_skills",
+      "menu_key": "special_skills",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "special_skills"
+        ],
+        [
+          "other",
+          "special_skills"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 395,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_special_skills"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "skills.set"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "cat_storage",
+      "menu_key": "cat_storage",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "cat_storage"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/storage.py",
+        "line": 93,
+        "function": "bcsfe.cli.edits.storage.edit_storage"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.storage.add",
+        "cats.storage.remove",
+        "cats.storage.clear"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        },
+        {
+          "method": "POST",
+          "path": "/v2/save/inspect"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Storage display is available through save inspection; add/remove/clear preserve physical capacity and unselected slots."
+      ]
+    },
+    {
+      "id": "save_save",
+      "menu_key": "save_save",
+      "menu_paths": [
+        [
+          "save_management",
+          "save_save"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 15,
+        "function": "bcsfe.cli.save_management.SaveManagement.save_save"
+      },
+      "category": "file_account",
+      "implementation": "adapted",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/download"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "The raw save is returned as a download. The browser/client chooses the destination; the server does not overwrite a path on the user device. Item synchronization and new-account creation are explicit separate requests."
+      ]
+    },
+    {
+      "id": "save_upload",
+      "menu_key": "save_upload",
+      "menu_paths": [
+        [
+          "save_management",
+          "save_upload"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 66,
+        "function": "bcsfe.cli.save_management.SaveManagement.save_upload"
+      },
+      "category": "file_account",
+      "implementation": "implemented",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/upload"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_verified"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Uses the original transfer upload protocol. New-account creation is explicit rather than an implicit strict-ban-prevention side effect. Actual PONOS acceptance has not been tested."
+      ]
+    },
+    {
+      "id": "save_save_file",
+      "menu_key": "save_save_file",
+      "menu_paths": [
+        [
+          "save_management",
+          "save_save_file"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 38,
+        "function": "bcsfe.cli.save_management.SaveManagement.save_save_dialog"
+      },
+      "category": "file_account",
+      "implementation": "adapted",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/download"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "A download replaces the native save-file chooser. The client controls its local filename and destination."
+      ]
+    },
+    {
+      "id": "save_save_documents",
+      "menu_key": "save_save_documents",
+      "menu_paths": [
+        [
+          "save_management",
+          "save_save_documents"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 54,
+        "function": "bcsfe.cli.save_management.SaveManagement.save_save_data_dir"
+      },
+      "category": "file_account",
+      "implementation": "adapted",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/download"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "A download replaces writing directly to the desktop editor data directory."
+      ]
+    },
+    {
+      "id": "adb_push",
+      "menu_key": "adb_push",
+      "menu_paths": [
+        [
+          "save_management",
+          "adb_push"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 118,
+        "function": "bcsfe.cli.save_management.SaveManagement.adb_push"
+      },
+      "category": "device_cli",
+      "implementation": "unavailable_in_vercel",
+      "actions": [],
+      "endpoints": [],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "ADB/root device access and restarting the game require a companion on the device host; Vercel cannot perform these physical-device operations."
+      ]
+    },
+    {
+      "id": "adb_push_rerun",
+      "menu_key": "adb_push_rerun",
+      "menu_paths": [
+        [
+          "save_management",
+          "adb_push_rerun"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 199,
+        "function": "bcsfe.cli.save_management.SaveManagement.adb_push_rerun"
+      },
+      "category": "device_cli",
+      "implementation": "unavailable_in_vercel",
+      "actions": [],
+      "endpoints": [],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "ADB/root device access and restarting the game require a companion on the device host; Vercel cannot perform these physical-device operations."
+      ]
+    },
+    {
+      "id": "root_push",
+      "menu_key": "root_push",
+      "menu_paths": [
+        [
+          "save_management",
+          "root_push"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 162,
+        "function": "bcsfe.cli.save_management.SaveManagement.root_push"
+      },
+      "category": "device_cli",
+      "implementation": "unavailable_in_vercel",
+      "actions": [],
+      "endpoints": [],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "ADB/root device access and restarting the game require a companion on the device host; Vercel cannot perform these physical-device operations."
+      ]
+    },
+    {
+      "id": "root_push_rerun",
+      "menu_key": "root_push_rerun",
+      "menu_paths": [
+        [
+          "save_management",
+          "root_push_rerun"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 217,
+        "function": "bcsfe.cli.save_management.SaveManagement.root_push_rerun"
+      },
+      "category": "device_cli",
+      "implementation": "unavailable_in_vercel",
+      "actions": [],
+      "endpoints": [],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "ADB/root device access and restarting the game require a companion on the device host; Vercel cannot perform these physical-device operations."
+      ]
+    },
+    {
+      "id": "export_save",
+      "menu_key": "export_save",
+      "menu_paths": [
+        [
+          "save_management",
+          "export_save"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 235,
+        "function": "bcsfe.cli.save_management.SaveManagement.export_save"
+      },
+      "category": "file_account",
+      "implementation": "implemented",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/export"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "load_save",
+      "menu_key": "load_save",
+      "menu_paths": [
+        [
+          "save_management",
+          "load_save"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 488,
+        "function": "bcsfe.cli.save_management.SaveManagement.load_save"
+      },
+      "category": "file_account",
+      "implementation": "adapted",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/inspect"
+        },
+        {
+          "method": "POST",
+          "path": "/v2/save/import"
+        },
+        {
+          "method": "POST",
+          "path": "/v2/save/from-transfer"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_verified"
+      },
+      "argument_variants": [],
+      "notes": [
+        "File/base64, exported JSON and transfer-code reception have HTTP equivalents. Direct ADB/root loading still requires software beside the device. Receiving a transfer consumes its code."
+      ]
+    },
+    {
+      "id": "convert_region",
+      "menu_key": "convert_region",
+      "menu_paths": [
+        [
+          "save_management",
+          "convert_region"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 504,
+        "function": "bcsfe.cli.save_management.SaveManagement.convert_save_cc"
+      },
+      "category": "file_account",
+      "implementation": "adapted",
+      "actions": [
+        "save.region"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        },
+        {
+          "method": "POST",
+          "path": "/v2/account/convert-region"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_verified"
+      },
+      "argument_variants": [],
+      "notes": [
+        "save.region changes the local format/region. /v2/account/convert-region also requests fresh account credentials, as the source region conversion does. Remote creation is unverified."
+      ]
+    },
+    {
+      "id": "convert_version",
+      "menu_key": "convert_version",
+      "menu_paths": [
+        [
+          "save_management",
+          "convert_version"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 516,
+        "function": "bcsfe.cli.save_management.SaveManagement.convert_save_gv"
+      },
+      "category": "file_account",
+      "implementation": "implemented",
+      "actions": [
+        "save.version"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Uses the original version setter, then rejects any conversion that cannot retain a stable, complete binary round trip. Not every cross-version downgrade preserves all fields."
+      ]
+    },
+    {
+      "id": "catfood",
+      "menu_key": "catfood",
+      "menu_paths": [
+        [
+          "items",
+          "catfood"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 23,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_catfood"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.catfood"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "xp",
+      "menu_key": "xp",
+      "menu_paths": [
+        [
+          "items",
+          "xp"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 41,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_xp"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.xp"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "normal_tickets",
+      "menu_key": "normal_tickets",
+      "menu_paths": [
+        [
+          "items",
+          "normal_tickets"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 50,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_normal_tickets"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.normal_tickets"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "rare_tickets",
+      "menu_key": "rare_tickets",
+      "menu_paths": [
+        [
+          "items",
+          "rare_tickets"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 94,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_rare_tickets"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.rare_tickets"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "rare_ticket_trade_feature_name",
+      "menu_key": "rare_ticket_trade_feature_name",
+      "menu_paths": [
+        [
+          "items",
+          "rare_ticket_trade_feature_name"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/rare_ticket_trade.py",
+        "line": 9,
+        "function": "bcsfe.cli.edits.rare_ticket_trade.RareTicketTrade.rare_ticket_trade"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.rare_ticket_trade"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "platinum_tickets",
+      "menu_key": "platinum_tickets",
+      "menu_paths": [
+        [
+          "items",
+          "platinum_tickets"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 117,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_platinum_tickets"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.platinum_tickets"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "legend_tickets",
+      "menu_key": "legend_tickets",
+      "menu_paths": [
+        [
+          "items",
+          "legend_tickets"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 142,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_legend_tickets"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.legend_tickets"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "platinum_shards",
+      "menu_key": "platinum_shards",
+      "menu_paths": [
+        [
+          "items",
+          "platinum_shards"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 161,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_platinum_shards"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.platinum_shards"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "np",
+      "menu_key": "np",
+      "menu_paths": [
+        [
+          "items",
+          "np"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 176,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_np"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.np"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "leadership",
+      "menu_key": "leadership",
+      "menu_paths": [
+        [
+          "items",
+          "leadership"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 185,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_leadership"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.leadership"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "battle_items",
+      "menu_key": "battle_items",
+      "menu_paths": [
+        [
+          "items",
+          "battle_items"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 194,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_battle_items"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.battle_items"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "battle_items_endless",
+      "menu_key": "battle_items_endless",
+      "menu_paths": [
+        [
+          "items",
+          "battle_items_endless"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 198,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_battle_items_endless"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.endless"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "catseyes",
+      "menu_key": "catseyes",
+      "menu_paths": [
+        [
+          "items",
+          "catseyes"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 224,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_catseyes"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.catseyes"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "catfruit",
+      "menu_key": "catfruit",
+      "menu_paths": [
+        [
+          "items",
+          "catfruit"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 274,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_catfruit"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.catfruit",
+        "items.evolve_by_id"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Includes the original indexed evolution-material vector and game-item-ID access for fruits/seeds/stones; item IDs are resolved from game metadata."
+      ]
+    },
+    {
+      "id": "talent_orbs",
+      "menu_key": "talent_orbs",
+      "menu_paths": [
+        [
+          "items",
+          "talent_orbs"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/catbase/talent_orbs.py",
+        "line": 703,
+        "function": "bcsfe.core.game.catbase.talent_orbs.SaveOrbs.edit_talent_orbs"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.orbs"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "catamins",
+      "menu_key": "catamins",
+      "menu_paths": [
+        [
+          "items",
+          "catamins"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 202,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_catamins"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.catamins"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "scheme_items",
+      "menu_key": "scheme_items",
+      "menu_paths": [
+        [
+          "items",
+          "scheme_items"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 342,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_scheme_items"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.scheme"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "labyrinth_medals",
+      "menu_key": "labyrinth_medals",
+      "menu_paths": [
+        [
+          "items",
+          "labyrinth_medals"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 370,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_labyrinth_medals"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.labyrinth_medals"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "100_million_tickets",
+      "menu_key": "100_million_tickets",
+      "menu_paths": [
+        [
+          "items",
+          "100_million_tickets"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 61,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_100_million_ticket"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.hundred_million_ticket"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "event_tickets",
+      "menu_key": "event_tickets",
+      "menu_paths": [
+        [
+          "items",
+          "event_tickets"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/event_tickets.py",
+        "line": 35,
+        "function": "bcsfe.cli.edits.event_tickets.EventTickets.edit"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.event_tickets"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "treasure_chests",
+      "menu_key": "treasure_chests",
+      "menu_paths": [
+        [
+          "items",
+          "treasure_chests"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 247,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_treasure_chests"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.treasure_chests"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "reset_golden_cat_cpus",
+      "menu_key": "reset_golden_cat_cpus",
+      "menu_paths": [
+        [
+          "items",
+          "reset_golden_cat_cpus"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 17,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.reset_golden_cat_cpus"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.golden_cpu_count"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [
+        {
+          "action": "items.golden_cpu_count",
+          "args": {
+            "value": 0
+          }
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "unlock_remove_cats",
+      "menu_key": "unlock_remove_cats",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "unlock_remove_cats"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/cat_editor.py",
+        "line": 599,
+        "function": "bcsfe.cli.edits.cat_editor.CatEditor.unlock_remove_cats_run"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.unlock",
+        "cats.remove"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "upgrade_cats",
+      "menu_key": "upgrade_cats",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "upgrade_cats"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/cat_editor.py",
+        "line": 686,
+        "function": "bcsfe.cli.edits.cat_editor.CatEditor.upgrade_cats_run"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.levels"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "true_form_remove_form_cats",
+      "menu_key": "true_form_remove_form_cats",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "true_form_remove_form_cats"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/cat_editor.py",
+        "line": 622,
+        "function": "bcsfe.cli.edits.cat_editor.CatEditor.true_form_remove_form_cats_run"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.forms"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [
+        {
+          "action": "cats.forms",
+          "args": {
+            "operation": "true"
+          }
+        },
+        {
+          "action": "cats.forms",
+          "args": {
+            "operation": "remove_true"
+          }
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "force_true_form_cats",
+      "menu_key": "force_true_form_cats",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "force_true_form_cats"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/cat_editor.py",
+        "line": 670,
+        "function": "bcsfe.cli.edits.cat_editor.CatEditor.force_true_form_cats_run"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.forms"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [
+        {
+          "action": "cats.forms",
+          "args": {
+            "operation": "true",
+            "force": true
+          }
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "fourth_form_remove_form_cats",
+      "menu_key": "fourth_form_remove_form_cats",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "fourth_form_remove_form_cats"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/cat_editor.py",
+        "line": 646,
+        "function": "bcsfe.cli.edits.cat_editor.CatEditor.fourth_form_remove_form_cats_run"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.forms"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [
+        {
+          "action": "cats.forms",
+          "args": {
+            "operation": "fourth"
+          }
+        },
+        {
+          "action": "cats.forms",
+          "args": {
+            "operation": "remove_fourth"
+          }
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "force_fourth_form_cats",
+      "menu_key": "force_fourth_form_cats",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "force_fourth_form_cats"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/cat_editor.py",
+        "line": 678,
+        "function": "bcsfe.cli.edits.cat_editor.CatEditor.force_fourth_form_cats_run"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.forms"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [
+        {
+          "action": "cats.forms",
+          "args": {
+            "operation": "fourth",
+            "force": true
+          }
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "upgrade_talents_remove_talents_cats",
+      "menu_key": "upgrade_talents_remove_talents_cats",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "upgrade_talents_remove_talents_cats"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/cat_editor.py",
+        "line": 694,
+        "function": "bcsfe.cli.edits.cat_editor.CatEditor.upgrade_talents_remove_talents_cats_run"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.talents"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [
+        {
+          "action": "cats.talents",
+          "args": {
+            "operation": "set"
+          }
+        },
+        {
+          "action": "cats.talents",
+          "args": {
+            "operation": "max"
+          }
+        },
+        {
+          "action": "cats.talents",
+          "args": {
+            "operation": "remove"
+          }
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "unlock_remove_cat_guide",
+      "menu_key": "unlock_remove_cat_guide",
+      "menu_paths": [
+        [
+          "cats_special_skills",
+          "unlock_remove_cat_guide"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/cat_editor.py",
+        "line": 719,
+        "function": "bcsfe.cli.edits.cat_editor.CatEditor.unlock_cat_guide_remove_guide_run"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "cats.guide"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "clear_tutorial",
+      "menu_key": "clear_tutorial",
+      "menu_paths": [
+        [
+          "levels",
+          "clear_tutorial"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/clear_tutorial.py",
+        "line": 6,
+        "function": "bcsfe.cli.edits.clear_tutorial.clear_tutorial"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.tutorial"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "clear_story",
+      "menu_key": "clear_story",
+      "menu_paths": [
+        [
+          "levels",
+          "clear_story"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/story.py",
+        "line": 556,
+        "function": "bcsfe.core.game.map.story.StoryChapters.clear_story"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.story"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "challenge_score",
+      "menu_key": "challenge_score",
+      "menu_paths": [
+        [
+          "levels",
+          "challenge_score"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/challenge.py",
+        "line": 74,
+        "function": "bcsfe.core.game.map.challenge.edit_challenge_score"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.challenge_score"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "dojo_score",
+      "menu_key": "dojo_score",
+      "menu_paths": [
+        [
+          "levels",
+          "dojo_score"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/dojo.py",
+        "line": 358,
+        "function": "bcsfe.core.game.map.dojo.edit_dojo_score"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.dojo_score"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "add_enigma_stages",
+      "menu_key": "add_enigma_stages",
+      "menu_paths": [
+        [
+          "levels",
+          "add_enigma_stages"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/enigma.py",
+        "line": 220,
+        "function": "bcsfe.core.game.map.enigma.edit_enigma"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.enigma"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "clear_enigma_stages",
+      "menu_key": "clear_enigma_stages",
+      "menu_paths": [
+        [
+          "levels",
+          "clear_enigma_stages"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/gauntlets.py",
+        "line": 344,
+        "function": "bcsfe.core.game.map.gauntlets.GauntletChapters.edit_enigma_stages"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.enigma_clears"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "unlock_aku_realm",
+      "menu_key": "unlock_aku_realm",
+      "menu_paths": [
+        [
+          "levels",
+          "unlock_aku_realm"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/aku_realm.py",
+        "line": 6,
+        "function": "bcsfe.cli.edits.aku_realm.unlock_aku_realm"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.unlock_aku"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "story_treasures",
+      "menu_key": "story_treasures",
+      "menu_paths": [
+        [
+          "levels",
+          "story_treasures"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/story.py",
+        "line": 908,
+        "function": "bcsfe.core.game.map.story.StoryChapters.edit_treasures"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.treasures"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "outbreaks",
+      "menu_key": "outbreaks",
+      "menu_paths": [
+        [
+          "levels",
+          "outbreaks"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/outbreaks.py",
+        "line": 212,
+        "function": "bcsfe.core.game.map.outbreaks.Outbreaks.edit_outbreaks"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.outbreaks"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "aku_chapters",
+      "menu_key": "aku_chapters",
+      "menu_paths": [
+        [
+          "levels",
+          "aku_chapters"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/aku.py",
+        "line": 187,
+        "function": "bcsfe.core.game.map.aku.AkuChapters.edit_aku_chapters"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.aku"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "itf_timed_scores",
+      "menu_key": "itf_timed_scores",
+      "menu_paths": [
+        [
+          "levels",
+          "itf_timed_scores"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/story.py",
+        "line": 939,
+        "function": "bcsfe.core.game.map.story.StoryChapters.edit_itf_timed_scores"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.itf_scores"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "filibuster_reclearing",
+      "menu_key": "filibuster_reclearing",
+      "menu_paths": [
+        [
+          "levels",
+          "filibuster_reclearing"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 404,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.allow_filibuster_stage_reclearing"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.filibuster"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "sol",
+      "menu_key": "sol",
+      "menu_paths": [
+        [
+          "levels",
+          "sol"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/event.py",
+        "line": 828,
+        "function": "bcsfe.core.game.map.event.EventChapters.edit_sol_chapters"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.sol"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "event",
+      "menu_key": "event",
+      "menu_paths": [
+        [
+          "levels",
+          "event"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/event.py",
+        "line": 832,
+        "function": "bcsfe.core.game.map.event.EventChapters.edit_event_chapters"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.event"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "collab",
+      "menu_key": "collab",
+      "menu_paths": [
+        [
+          "levels",
+          "collab"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/event.py",
+        "line": 836,
+        "function": "bcsfe.core.game.map.event.EventChapters.edit_collab_chapters"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.collab"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "gauntlets",
+      "menu_key": "gauntlets",
+      "menu_paths": [
+        [
+          "levels",
+          "gauntlets"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/gauntlets.py",
+        "line": 329,
+        "function": "bcsfe.core.game.map.gauntlets.GauntletChapters.edit_gauntlets"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.gauntlets"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "collab_gauntlets",
+      "menu_key": "collab_gauntlets",
+      "menu_paths": [
+        [
+          "levels",
+          "collab_gauntlets"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/gauntlets.py",
+        "line": 334,
+        "function": "bcsfe.core.game.map.gauntlets.GauntletChapters.edit_collab_gauntlets"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.collab_gauntlets"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "uncanny",
+      "menu_key": "uncanny",
+      "menu_paths": [
+        [
+          "levels",
+          "uncanny"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/uncanny.py",
+        "line": 46,
+        "function": "bcsfe.core.game.map.uncanny.UncannyChapters.edit_uncanny"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.uncanny"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "catamin_stages",
+      "menu_key": "catamin_stages",
+      "menu_paths": [
+        [
+          "levels",
+          "catamin_stages"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/uncanny.py",
+        "line": 117,
+        "function": "bcsfe.core.game.map.uncanny.UncannyChapters.edit_catamin_stages"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.catamin"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "behemoth_culling",
+      "menu_key": "behemoth_culling",
+      "menu_paths": [
+        [
+          "levels",
+          "behemoth_culling"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/gauntlets.py",
+        "line": 339,
+        "function": "bcsfe.core.game.map.gauntlets.GauntletChapters.edit_behemoth_culling"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.behemoth"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "legend_quest",
+      "menu_key": "legend_quest",
+      "menu_paths": [
+        [
+          "levels",
+          "legend_quest"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/legend_quest.py",
+        "line": 370,
+        "function": "bcsfe.core.game.map.legend_quest.LegendQuestChapters.edit_legend_quest"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.legend_quest"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "towers",
+      "menu_key": "towers",
+      "menu_paths": [
+        [
+          "levels",
+          "towers"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/tower.py",
+        "line": 66,
+        "function": "bcsfe.core.game.map.tower.TowerChapters.edit_towers"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.towers"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "zero_legends",
+      "menu_key": "zero_legends",
+      "menu_paths": [
+        [
+          "levels",
+          "zero_legends"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/zero_legends.py",
+        "line": 283,
+        "function": "bcsfe.core.game.map.zero_legends.ZeroLegendsChapters.edit_zero_legends"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.zero_legends"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "dojo_catclaw_championships",
+      "menu_key": "dojo_catclaw_championships",
+      "menu_paths": [
+        [
+          "levels",
+          "dojo_catclaw_championships"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/map/zero_legends.py",
+        "line": 289,
+        "function": "bcsfe.core.game.map.zero_legends.ZeroLegendsChapters.edit_catclaw_championships"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "stages.dojo_catclaw"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Both the source CLI and API select maps already represented in the save. API progress acts on explicitly selected crowns; source cross-crown progress/reset effects can require multiple explicit operations. Metadata placeholder stages are excluded from normal API stage selection."
+      ]
+    },
+    {
+      "id": "engineers",
+      "menu_key": "engineers",
+      "menu_paths": [
+        [
+          "gamototo",
+          "engineers"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 346,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_engineers"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "ototo.engineers"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "respect_maxima=false follows the source DISABLE_MAXES option for recommended limits; metadata identities and representable storage/prompt bounds remain validated."
+      ]
+    },
+    {
+      "id": "base_materials",
+      "menu_key": "base_materials",
+      "menu_paths": [
+        [
+          "gamototo",
+          "base_materials"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 350,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_base_materials"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "ototo.materials"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "respect_maxima=false follows the source DISABLE_MAXES option for recommended limits; metadata identities and representable storage/prompt bounds remain validated."
+      ]
+    },
+    {
+      "id": "gamatoto_xp_level",
+      "menu_key": "gamatoto_xp_level",
+      "menu_paths": [
+        [
+          "gamototo",
+          "gamatoto_xp_level"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/gamoto/gamatoto.py",
+        "line": 502,
+        "function": "bcsfe.core.game.gamoto.gamatoto.edit_xp"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "gamatoto.xp",
+        "gamatoto.level"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "respect_maxima=false follows the source DISABLE_MAXES option for recommended limits; metadata identities and representable storage/prompt bounds remain validated."
+      ]
+    },
+    {
+      "id": "gamatoto_helpers",
+      "menu_key": "gamatoto_helpers",
+      "menu_paths": [
+        [
+          "gamototo",
+          "gamatoto_helpers"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/gamoto/gamatoto.py",
+        "line": 506,
+        "function": "bcsfe.core.game.gamoto.gamatoto.edit_helpers"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "gamatoto.helpers"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "respect_maxima=false follows the source DISABLE_MAXES option for recommended limits; metadata identities and representable storage/prompt bounds remain validated.",
+        "Empty helper slots (-1) are excluded from occupancy and are removed when rebuilding selected rarity groups; other occupied groups are preserved."
+      ]
+    },
+    {
+      "id": "ototo_cat_cannon",
+      "menu_key": "ototo_cat_cannon",
+      "menu_paths": [
+        [
+          "gamototo",
+          "ototo_cat_cannon"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/gamoto/ototo.py",
+        "line": 641,
+        "function": "bcsfe.core.game.gamoto.ototo.edit_cannon"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "ototo.cannons"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "respect_maxima=false follows the source DISABLE_MAXES option for recommended limits; metadata identities and representable storage/prompt bounds remain validated.",
+        "Effect part display level 0 stores -1, matching the original editor. Development still selects only 0..3."
+      ]
+    },
+    {
+      "id": "cat_shrine",
+      "menu_key": "cat_shrine",
+      "menu_paths": [
+        [
+          "gamototo",
+          "cat_shrine"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/gamoto/cat_shrine.py",
+        "line": 135,
+        "function": "bcsfe.core.game.gamoto.cat_shrine.CatShrine.edit_catshrine"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "shrine.set"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Level 1 is corrected to XP 0; the source get_xp_from_level(1) incorrectly reads the final boundary. This deliberate bug fix is not byte-for-byte emulation of that defect.",
+        "respect_maxima=false follows the source DISABLE_MAXES option for recommended limits; metadata identities and representable storage/prompt bounds remain validated.",
+        "The original disabled-maxima XP prompt caps at signed int32, while an enabled metadata maximum can exceed int32 because the save stores signed int64 offering XP."
+      ]
+    },
+    {
+      "id": "unban_account",
+      "menu_key": "unban_account",
+      "menu_paths": [
+        [
+          "account",
+          "unban_account"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 90,
+        "function": "bcsfe.cli.save_management.SaveManagement.unban_account"
+      },
+      "category": "account",
+      "implementation": "implemented",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/account/new"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_verified"
+      },
+      "argument_variants": [],
+      "notes": [
+        "The source menu actually creates a new account; it does not reverse a server ban on the old account. New-account creation and synchronization are implemented but not live verified."
+      ]
+    },
+    {
+      "id": "upload_items",
+      "menu_key": "upload_items",
+      "menu_paths": [
+        [
+          "account",
+          "upload_items"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/save_management.py",
+        "line": 250,
+        "function": "bcsfe.cli.save_management.SaveManagement.upload_items"
+      },
+      "category": "account",
+      "implementation": "implemented",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/account/upload-items"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_verified"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Uploads the original managed-item metadata. A false or unconfirmed upstream result is reported as failure; live account synchronization is unverified."
+      ]
+    },
+    {
+      "id": "inquiry_code",
+      "menu_key": "inquiry_code",
+      "menu_paths": [
+        [
+          "account",
+          "inquiry_code"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 321,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_inquiry_code"
+      },
+      "category": "account",
+      "implementation": "implemented",
+      "actions": [
+        "account.inquiry_code"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "password_refresh_token",
+      "menu_key": "password_refresh_token",
+      "menu_paths": [
+        [
+          "account",
+          "password_refresh_token"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 332,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_password_refresh_token"
+      },
+      "category": "account",
+      "implementation": "implemented",
+      "actions": [
+        "account.password_refresh_token"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "rare_gatya_seed",
+      "menu_key": "rare_gatya_seed",
+      "menu_paths": [
+        [
+          "gatya",
+          "rare_gatya_seed"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 354,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_rare_gatya_seed"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "gatya.rare_seed"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "normal_gatya_seed",
+      "menu_key": "normal_gatya_seed",
+      "menu_paths": [
+        [
+          "gatya",
+          "normal_gatya_seed"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 358,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_normal_gatya_seed"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "gatya.normal_seed"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "event_gatya_seed",
+      "menu_key": "event_gatya_seed",
+      "menu_paths": [
+        [
+          "gatya",
+          "event_gatya_seed"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 362,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_event_gatya_seed"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "gatya.event_seed"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "fix_gamatoto_crash",
+      "menu_key": "fix_gamatoto_crash",
+      "menu_paths": [
+        [
+          "fixes",
+          "fix_gamatoto_crash"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/fixes.py",
+        "line": 9,
+        "function": "bcsfe.cli.edits.fixes.Fixes.fix_gamatoto_crash"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "fixes.gamatoto"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "fix_ototo_crash",
+      "menu_key": "fix_ototo_crash",
+      "menu_paths": [
+        [
+          "fixes",
+          "fix_ototo_crash"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/fixes.py",
+        "line": 15,
+        "function": "bcsfe.cli.edits.fixes.Fixes.fix_ototo_crash"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "fixes.ototo"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Explicitly resets the cannon collection and selected parts, matching the original repair routine."
+      ]
+    },
+    {
+      "id": "fix_time_errors",
+      "menu_key": "fix_time_errors",
+      "menu_paths": [
+        [
+          "fixes",
+          "fix_time_errors"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/fixes.py",
+        "line": 22,
+        "function": "bcsfe.cli.edits.fixes.Fixes.fix_time_errors"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "fixes.time"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "unlock_equip_menu",
+      "menu_key": "unlock_equip_menu",
+      "menu_paths": [
+        [
+          "fixes",
+          "unlock_equip_menu"
+        ],
+        [
+          "other",
+          "unlock_equip_menu"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 399,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.unlock_equip_menu"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "fixes.equip_menu"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "fix_officer_pass_crash",
+      "menu_key": "fix_officer_pass_crash",
+      "menu_paths": [
+        [
+          "fixes",
+          "fix_officer_pass_crash"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/catbase/officer_pass.py",
+        "line": 75,
+        "function": "bcsfe.core.game.catbase.officer_pass.OfficerPass.fix_crash"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "fixes.officer_pass"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Explicitly resets playtime, officer cat, gold-pass state and related login state, matching the repair routine. It never runs merely because another field is edited."
+      ]
+    },
+    {
+      "id": "unlocked_slots",
+      "menu_key": "unlocked_slots",
+      "menu_paths": [
+        [
+          "other",
+          "unlocked_slots"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 366,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.edit_unlocked_slots"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "lineups.unlocked_slots"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "respect_maxima=false follows the source DISABLE_MAXES option for recommended limits; metadata identities and representable storage/prompt bounds remain validated."
+      ]
+    },
+    {
+      "id": "reset_gambling_events",
+      "menu_key": "reset_gambling_events",
+      "menu_paths": [
+        [
+          "other",
+          "reset_gambling_events"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/catbase/gambling.py",
+        "line": 107,
+        "function": "bcsfe.core.game.catbase.gambling.GamblingEvent.reset_events"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "gambling.reset"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "restart_pack",
+      "menu_key": "restart_pack",
+      "menu_paths": [
+        [
+          "other",
+          "restart_pack"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/basic_items.py",
+        "line": 315,
+        "function": "bcsfe.cli.edits.basic_items.BasicItems.set_restart_pack"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "items.restart_pack"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [
+        {
+          "action": "items.restart_pack",
+          "args": {
+            "value": 1
+          }
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "playtime",
+      "menu_key": "playtime",
+      "menu_paths": [
+        [
+          "other",
+          "playtime"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/catbase/playtime.py",
+        "line": 64,
+        "function": "bcsfe.core.game.catbase.playtime.edit"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "playtime.set"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "enemy_guide",
+      "menu_key": "enemy_guide",
+      "menu_paths": [
+        [
+          "other",
+          "enemy_guide"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/edits/enemy_editor.py",
+        "line": 169,
+        "function": "bcsfe.cli.edits.enemy_editor.EnemyEditor.edit_enemy_guide"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "enemy_guide.set"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Select internal save IDs, explicit game IDs, validity, or a name substring. Internal IDs are zero-based; game IDs subtract 2 explicitly."
+      ]
+    },
+    {
+      "id": "user_rank_rewards",
+      "menu_key": "user_rank_rewards",
+      "menu_paths": [
+        [
+          "other",
+          "user_rank_rewards"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/catbase/user_rank_rewards.py",
+        "line": 267,
+        "function": "bcsfe.core.game.catbase.user_rank_rewards.edit_user_rank_rewards"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "rewards.claim"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Changes claimed flags on eligible rewards, including unclaim and fix-claimed; it does not directly grant the reward items."
+      ]
+    },
+    {
+      "id": "gold_pass",
+      "menu_key": "gold_pass",
+      "menu_paths": [
+        [
+          "other",
+          "gold_pass"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/catbase/nyanko_club.py",
+        "line": 230,
+        "function": "bcsfe.core.game.catbase.nyanko_club.NyankoClub.edit_gold_pass"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "account.gold_pass"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Edits the local gold-pass save model using the source routine. It does not purchase, activate, or verify a server-side subscription."
+      ]
+    },
+    {
+      "id": "medals",
+      "menu_key": "medals",
+      "menu_paths": [
+        [
+          "other",
+          "medals"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/catbase/medals.py",
+        "line": 91,
+        "function": "bcsfe.core.game.catbase.medals.Medals.edit_medals"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "medals.set"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "missions",
+      "menu_key": "missions",
+      "menu_paths": [
+        [
+          "other",
+          "missions"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/game/catbase/mission.py",
+        "line": 202,
+        "function": "bcsfe.core.game.catbase.mission.Missions.edit_missions"
+      },
+      "category": "gameplay",
+      "implementation": "implemented",
+      "actions": [
+        "missions.set"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/v2/save/edit"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": true,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": []
+    },
+    {
+      "id": "config",
+      "menu_key": "config",
+      "menu_paths": [
+        [
+          "editor",
+          "config"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/io/config.py",
+        "line": 469,
+        "function": "bcsfe.core.io.config.Config.edit_config"
+      },
+      "category": "editor_metadata",
+      "implementation": "adapted",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/v2/editor/config"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "The API exposes defaults/maxima and uses explicit per-request action options. It does not offer persistent mutation of every terminal/editor preference."
+      ]
+    },
+    {
+      "id": "update_external",
+      "menu_key": "update_external",
+      "menu_paths": [
+        [
+          "editor",
+          "update_external"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/__init__.py",
+        "line": 359,
+        "function": "bcsfe.core.update_external_content"
+      },
+      "category": "editor_metadata",
+      "implementation": "not_applicable_to_http",
+      "actions": [],
+      "endpoints": [],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Terminal themes/locales and self-updating the desktop package are not exposed as HTTP save editing. The vendored source is updated through deployment."
+      ]
+    },
+    {
+      "id": "manage_game_data",
+      "menu_key": "manage_game_data",
+      "menu_paths": [
+        [
+          "editor",
+          "manage_game_data"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/core/__init__.py",
+        "line": 376,
+        "function": "bcsfe.core.manage_game_data"
+      },
+      "category": "editor_metadata",
+      "implementation": "adapted",
+      "actions": [],
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/v2/metadata/versions"
+        },
+        {
+          "method": "POST",
+          "path": "/v2/metadata/prepare"
+        },
+        {
+          "method": "DELETE",
+          "path": "/v2/metadata/cache"
+        }
+      ],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "Available metadata versions, download preparation, and deletion of one or all verified cache versions have HTTP operations. Unknown/unverified directories are preserved; the cache is server-local and may be temporary on Vercel."
+      ]
+    },
+    {
+      "id": "exit",
+      "menu_key": "exit",
+      "menu_paths": [
+        [
+          "exit",
+          "exit"
+        ]
+      ],
+      "source": {
+        "path": "src/bcsfe/cli/main.py",
+        "line": 266,
+        "function": "bcsfe.cli.main.Main.exit_editor"
+      },
+      "category": "editor_cli",
+      "implementation": "not_applicable_to_http",
+      "actions": [],
+      "endpoints": [],
+      "verification": {
+        "offline_binary_action_samples": false,
+        "live_game_server": "not_required_for_file_edit"
+      },
+      "argument_variants": [],
+      "notes": [
+        "An HTTP request finishes on return; there is no shared interactive editor process to exit."
+      ]
+    }
+  ],
+  "global_limits": [
+    "Actual game account reception, creation, upload and in-game acceptance remain unverified.",
+    "Vercel cannot access a user device through ADB/root without a separate local companion.",
+    "Terminal UI choices and host filesystem destinations are adapted to HTTP request arguments and downloads.",
+    "Malformed or non-stable save round trips and edits that lose fields during serialization are rejected.",
+    "The original parser/serializer and game-version branches are vendored from the provided source; supported fields still depend on the input game version."
+  ]
+}

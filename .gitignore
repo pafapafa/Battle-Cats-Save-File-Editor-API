@@ -22,3 +22,13 @@ SAVE_DATA*
 transfer_backup/
 bcsfe_backups/
 *.temp
+
+# Private template configuration and order storage
+template_secrets.py
+*.sqlite
+*.sqlite-*
+*.save
+
+# Local package build outputs
+build/
+*.egg-info/

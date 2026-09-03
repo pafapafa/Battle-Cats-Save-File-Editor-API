@@ -1,0 +1,2 @@
+# Preserve the byte identity of the supplied upstream source and data files.
+vendor/bcsfe/** -text
