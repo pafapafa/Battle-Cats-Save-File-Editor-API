@@ -261,50 +261,139 @@ def recovery(recovery_id):
 
 def register_template_api(app, spec):
     app.register_blueprint(bp)
-    spec.setdefault('components', {}).setdefault('securitySchemes', {})['TemplateToken'] = {
-        'type': 'http', 'scheme': 'bearer', 'description': 'Server-side TEMPLATE_API_KEY'}
+    components = spec.setdefault('components', {})
+    components.setdefault('securitySchemes', {})['TemplateToken'] = {
+        'type': 'http', 'scheme': 'bearer', 'description': 'Server-side TEMPLATE_API_KEY (at least 32 characters).'}
+
+    def object_schema(properties):
+        return {'type': 'object', 'properties': properties, 'required': list(properties)}
+
+    def reference(name):
+        return {'$ref': '#/components/schemas/' + name}
+
+    def json_response(description, schema):
+        return {'description': description, 'content': {'application/json': {'schema': schema}}}
+
+    record_id = {'type': 'string', 'minLength': 24, 'maxLength': 24, 'pattern': '^[0-9a-f]{24}$'}
+    nullable_id = {'oneOf': [record_id, {'type': 'null'}]}
+    cursor = {'oneOf': [record_id, {'const': ''}], 'description': 'Omit or use an empty string for the first page; otherwise use next_cursor.'}
+    timestamp = {'type': 'string', 'format': 'date-time'}
+    listed_timestamp = {'type': ['string', 'null'], 'description': 'Creation time reported by JSONBin, or null when unavailable.'}
+    digest = {'type': 'string', 'minLength': 64, 'maxLength': 64, 'pattern': '^[0-9a-f]{64}$'}
+    region = {'type': 'string', 'enum': ['kr', 'en', 'jp', 'tw']}
+    order_id = {'type': 'string', 'minLength': 1, 'maxLength': 100,
+                'pattern': r'^[A-Za-z0-9_.:-]{1,100}(?![\s\S])',
+                'description': 'Letters, numbers, underscore, dot, colon or hyphen. An audit label, not an idempotency key.'}
     country_schema = {'type': 'string', 'enum': ['auto', 'kr', 'en', 'jp', 'tw'], 'default': 'kr',
                       'description': 'Use auto to detect the save region from its checksum. An explicit region must match the file. Defaults to kr for existing clients; stored metadata always contains the detected kr, en, jp or tw region.'}
+    upload_name = {'type': 'string', 'default': 'Backup',
+                   'description': 'Leading and trailing whitespace is removed. The resulting name must contain 1 to 100 characters.'}
+    encoded_save = {'type': 'string', 'format': 'byte',
+                    'description': 'Standard Base64 of a raw save containing 32 bytes to 1 MiB, including its original checksum.'}
     upload_schema = {'type': 'object', 'required': ['save_base64'], 'properties': {
-        'save_base64': {'type': 'string', 'format': 'byte'},
-        'name': {'type': 'string', 'maxLength': 100},
-        'country_code': country_schema}}
+        'save_base64': encoded_save, 'name': upload_name, 'country_code': country_schema}}
+    multipart_schema = {'type': 'object', 'required': ['file'], 'properties': {
+        'file': {'type': 'string', 'format': 'binary', 'description': 'Raw save file, 32 bytes to 1 MiB.'},
+        'name': upload_name, 'country_code': country_schema}}
+    metadata = {'success': {'const': True}, 'template_id': record_id,
+                'name': {'type': 'string'}, 'country_code': region,
+                'game_version': {'type': 'integer'}, 'bytes': {'type': 'integer', 'minimum': 32, 'maximum': MAX_SAVE},
+                'sha256': digest, 'created_at': timestamp,
+                'clone_ready': {'type': 'boolean', 'description': 'The current library can reserialize this file without changing any bytes. This does not confirm game-server acceptance.'}}
+    order_fields = {'template_id': record_id, 'order_id': order_id, 'attempt_id': record_id,
+                    'created_at': timestamp}
+    issuance_fields = {**order_fields, 'recovery_id': record_id, 'status': {'const': 'issued'},
+                       'transfer_code': {'type': 'string', 'minLength': 1},
+                       'confirmation_code': {'type': 'string', 'minLength': 1}}
+    clone_fields = {'success': {'const': True}, 'retry_safe': {'const': False}, **issuance_fields}
+    persisted_clone = object_schema({**clone_fields, 'persisted': {'const': True}, 'issuance_id': record_id})
+    unpersisted_clone = object_schema({**clone_fields, 'persisted': {'const': False}, 'message': {'type': 'string'}})
+    persisted_clone['additionalProperties'] = False
+    unpersisted_clone['additionalProperties'] = False
+    schemas = {
+        'TemplateError': object_schema({'success': {'const': False}, 'message': {'type': 'string'}}),
+        'TemplateMetadata': object_schema(metadata),
+        'TemplateList': object_schema({'success': {'const': True},
+            'templates': {'type': 'array', 'items': object_schema({'template_id': record_id, 'created_at': listed_timestamp})},
+            'next_cursor': nullable_id}),
+        'TemplateRecordList': object_schema({'success': {'const': True},
+            'records': {'type': 'array', 'items': object_schema({'id': record_id, 'created_at': listed_timestamp})},
+            'next_cursor': nullable_id}),
+        'TemplateAttempt': object_schema({'success': {'const': True}, **order_fields,
+            'status': {'const': 'started', 'description': 'An immutable start marker, not a final outcome. Check issuance and recovery records.'}}),
+        'TemplateRecovery': object_schema({'success': {'const': True}, 'recovery_id': record_id,
+            **order_fields, 'country_code': region, 'sha256': digest}),
+        'TemplateIssuance': object_schema({'success': {'const': True}, 'issuance_id': record_id, **issuance_fields}),
+        'TemplateClonePersisted': persisted_clone,
+        'TemplateCloneUnpersisted': unpersisted_clone,
+        'TemplateCloneNeedsAttention': object_schema({'success': {'const': False}, 'retry_safe': {'const': False},
+            'status': {'const': 'needs_attention'}, 'message': {'type': 'string'},
+            'attempt_id': record_id, 'recovery_id': nullable_id,
+            'backup_base64': {**encoded_save, 'description': 'Original template bytes, always preserved.'},
+            'save_base64': {**encoded_save, 'description': 'Available current save state; it may still be the original. Falls back to the original if serialization fails.'},
+            'recovery_serialized': {'type': 'boolean', 'description': 'Whether the current in-memory state could be serialized. This does not confirm that account creation succeeded.'}}),
+    }
+    schemas['TemplateList']['description'] = 'IDs and creation times only; request each template for full metadata. A filtered page may be empty while next_cursor is non-null.'
+    schemas['TemplateRecordList']['description'] = 'IDs and creation times for the requested kind. Follow next_cursor even when records is empty.'
+    schemas['TemplateRecovery']['description'] = 'Recovery metadata only. Download raw save bytes from the corresponding /download route.'
+    schemas['TemplateIssuance']['description'] = 'Stored issuance result. It does not contain the immediate clone response fields persisted or retry_safe.'
+    components.setdefault('schemas', {}).update(schemas)
+
+    binary_response = {'description': 'Exact save bytes as an attachment; this response is not JSON.',
+        'headers': {'Content-Disposition': {'description': 'Attachment filename.', 'schema': {'type': 'string'}}},
+        'content': {'application/octet-stream': {'schema': {'type': 'string', 'format': 'binary'}}}}
     operations = [
-        ('/v1/backups', 'post', 'Download an exact file backup', upload_schema),
-        ('/v1/templates', 'post', 'Store an immutable private JSONBin template', upload_schema),
-        ('/v1/templates', 'get', 'List template IDs (follow next_cursor)', None),
-        ('/v1/templates/{template_id}', 'get', 'Read template metadata', None),
-        ('/v1/templates/{template_id}/download', 'get', 'Download the original save bytes', None),
+        ('/v1/backups', 'post', 'Download an exact file backup', upload_schema, binary_response),
+        ('/v1/templates', 'post', 'Store an immutable private JSONBin template', upload_schema,
+         json_response('Template stored.', reference('TemplateMetadata'))),
+        ('/v1/templates', 'get', 'List template IDs (follow next_cursor)', None,
+         json_response('Template ID page.', reference('TemplateList'))),
+        ('/v1/templates/{template_id}', 'get', 'Read template metadata', None,
+         json_response('Template metadata without save_base64.', reference('TemplateMetadata'))),
+        ('/v1/templates/{template_id}/download', 'get', 'Download the original save bytes', None, binary_response),
         ('/v1/templates/{template_id}/clones', 'post', 'Issue a separate account from a template; do not auto-retry',
-         {'type': 'object', 'required': ['order_id'], 'properties': {'order_id': {'type': 'string'}}}),
-        ('/v1/template-records', 'get', 'List attempt, issuance or recovery record IDs', None),
-        ('/v1/attempts/{attempt_id}', 'get', 'Read an issuance attempt marker', None),
-        ('/v1/recoveries/{recovery_id}', 'get', 'Read recovery metadata', None),
-        ('/v1/issuances/{issuance_id}', 'get', 'Read saved issuance codes', None),
-        ('/v1/recoveries/{recovery_id}/download', 'get', 'Download a new-account recovery save', None),
+         object_schema({'order_id': order_id}),
+         json_response('Codes issued. Check persisted: false means result storage failed and issuance_id is absent; preserve this response.',
+                       {'oneOf': [reference('TemplateClonePersisted'), reference('TemplateCloneUnpersisted')]})),
+        ('/v1/template-records', 'get', 'List attempt, issuance or recovery record IDs', None,
+         json_response('Record ID page for the requested kind.', reference('TemplateRecordList'))),
+        ('/v1/attempts/{attempt_id}', 'get', 'Read an issuance attempt marker', None,
+         json_response('Immutable attempt-start metadata.', reference('TemplateAttempt'))),
+        ('/v1/recoveries/{recovery_id}', 'get', 'Read recovery metadata', None,
+         json_response('Recovery metadata without save_base64.', reference('TemplateRecovery'))),
+        ('/v1/issuances/{issuance_id}', 'get', 'Read saved issuance codes', None,
+         json_response('Saved issuance result and codes.', reference('TemplateIssuance'))),
+        ('/v1/recoveries/{recovery_id}/download', 'get', 'Download a new-account recovery save', None, binary_response),
     ]
-    for path, method, summary, schema in operations:
+    for path, method, summary, schema, success_response in operations:
+        success_status = '201' if method == 'post' and path != '/v1/backups' else '200'
+        errors = {'400': 'Invalid input.', '401': 'Missing or invalid template Bearer token.',
+                  '500': 'Unexpected operation failure.', '503': 'Storage, integrity check, or configuration unavailable.'}
+        if method == 'post':
+            errors.update({'413': 'Request body or Base64 save is too large.', '429': 'Deployment request limit reached.'})
+        if path != '/v1/backups':
+            errors['404'] = 'Record/storage resource not found, wrong record type, or invalid record ID/cursor.'
+        if schema is upload_schema or '/clones' in path:
+            errors['422'] = 'Invalid checksum, region mismatch, unsupported save, or failed clone serialization check.'
+        responses = {success_status: success_response,
+                     **{code: json_response(description, reference('TemplateError')) for code, description in errors.items()}}
         operation = {'tags': ['Backups and Templates'], 'summary': summary,
-            'security': [{'TemplateToken': []}],
-            'responses': {('201' if method == 'post' and path != '/v1/backups' else '200'): {'description': 'Success'},
-                          '400': {'description': 'Invalid input'}, '401': {'description': 'Unauthorized'},
-                          '422': {'description': 'Unsupported save'}, '502': {'description': 'Issuance uncertain; no retry'},
-                          '503': {'description': 'Storage or configuration unavailable'}}}
+                     'security': [{'TemplateToken': []}], 'responses': responses}
         if '/clones' in path:
             operation['description'] = 'Experimental upstream account creation. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.'
+            responses['502'] = json_response('Issuance needs attention. Preserve both Base64 files and inspect the attempt; do not retry automatically.', reference('TemplateCloneNeedsAttention'))
+        elif path == '/v1/backups':
+            operation['description'] = 'Validates the upload and returns the original bytes. Does not store a JSONBin template or create a game account.'
         for name in re.findall(r'{(.*?)}', path):
-            operation.setdefault('parameters', []).append({'in': 'path', 'name': name, 'required': True, 'schema': {'type': 'string'}})
+            operation.setdefault('parameters', []).append({'in': 'path', 'name': name, 'required': True, 'schema': record_id})
         if method == 'get' and path == '/v1/templates':
-            operation['parameters'] = [{'in': 'query', 'name': 'cursor', 'schema': {'type': 'string'}}]
+            operation['parameters'] = [{'in': 'query', 'name': 'cursor', 'schema': cursor}]
         if path == '/v1/template-records':
             operation['parameters'] = [
-                {'in': 'query', 'name': 'cursor', 'schema': {'type': 'string'}},
+                {'in': 'query', 'name': 'cursor', 'schema': cursor},
                 {'in': 'query', 'name': 'kind', 'schema': {'type': 'string', 'enum': ['attempt', 'issuance', 'recovery'], 'default': 'issuance'}}]
         if schema:
             operation['requestBody'] = {'required': True, 'content': {'application/json': {'schema': schema}}}
             if schema is upload_schema:
-                operation['requestBody']['content']['multipart/form-data'] = {'schema': {
-                    'type': 'object', 'required': ['file'], 'properties': {
-                        'file': {'type': 'string', 'format': 'binary'},
-                        'name': {'type': 'string'}, 'country_code': country_schema}}}
+                operation['requestBody']['content']['multipart/form-data'] = {'schema': multipart_schema}
         spec['paths'].setdefault(path, {})[method] = operation

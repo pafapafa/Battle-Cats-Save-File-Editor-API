@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 import requests
 from flask import Flask
+from jsonschema import Draft202012Validator, ValidationError
 from bcsfe import core
 from bcsfe.core.game.catbase.cat import Talent
 from template_api import register_template_api
@@ -330,6 +331,105 @@ class APITests(unittest.TestCase):
             r = self.clone(bid)
         self.assertEqual(422, r.status_code)
         self.assertEqual([], self.handlers)
+    def validate_documented_response(self, path, method, response):
+        operation = self.spec['paths'][path][method]
+        schema = operation['responses'][str(response.status_code)]['content']['application/json']['schema']
+        document = {'components': self.spec['components'], 'allOf': [schema]}
+        Draft202012Validator(document).validate(response.get_json())
+        return response.get_json()
+
+    def test_openapi_matches_real_metadata_lists_records_and_binary_responses(self):
+        # Exercise real JSONBinStore record/list shapes using an in-memory HTTP session.
+        self.vault = JSONBinStore(api_key='fake-jsonbin-key', session=BinSession())
+        for schema in self.spec['components']['schemas'].values():
+            Draft202012Validator.check_schema(schema)
+        uploaded = self.client.post('/v1/templates', json={'save_base64': base64.b64encode(self.raw).decode(), 'country_code': 'auto'}, headers=self.headers)
+        metadata = self.validate_documented_response('/v1/templates', 'post', uploaded)
+        bid = metadata['template_id']
+        listed = self.validate_documented_response('/v1/templates', 'get', self.client.get('/v1/templates', headers=self.headers))
+        self.assertEqual([bid], [item['template_id'] for item in listed['templates']])
+        self.validate_documented_response('/v1/templates/{template_id}', 'get', self.client.get('/v1/templates/' + bid, headers=self.headers))
+        issued = self.validate_documented_response('/v1/templates/{template_id}/clones', 'post', self.clone(bid))
+        self.assertTrue(issued['persisted'])
+        for kind, plural in [('attempt', 'attempts'), ('recovery', 'recoveries'), ('issuance', 'issuances')]:
+            with self.subTest(kind=kind):
+                listing = self.validate_documented_response('/v1/template-records', 'get', self.client.get('/v1/template-records?kind=' + kind, headers=self.headers))
+                self.assertEqual([issued[kind + '_id']], [item['id'] for item in listing['records']])
+                route = '/v1/' + plural + '/{' + kind + '_id}'
+                response = self.client.get('/v1/' + plural + '/' + issued[kind + '_id'], headers=self.headers)
+                details = self.validate_documented_response(route, 'get', response)
+                self.assertNotIn('save_base64', details)
+                if kind == 'issuance':
+                    self.assertNotIn('persisted', details)
+                    self.assertNotIn('retry_safe', details)
+        downloads = [
+            ('/v1/backups', 'post', self.client.post('/v1/backups', data={'file': (io.BytesIO(self.raw), 'save.dat')}, headers=self.headers)),
+            ('/v1/templates/{template_id}/download', 'get', self.client.get('/v1/templates/' + bid + '/download', headers=self.headers)),
+            ('/v1/recoveries/{recovery_id}/download', 'get', self.client.get('/v1/recoveries/' + issued['recovery_id'] + '/download', headers=self.headers)),
+        ]
+        for path, method, response in downloads:
+            with self.subTest(path=path):
+                self.assertEqual(200, response.status_code)
+                self.assertEqual('application/octet-stream', response.mimetype)
+                self.assertTrue(response.headers['Content-Disposition'].startswith('attachment;'))
+                declared = self.spec['paths'][path][method]['responses']['200']['content']
+                self.assertEqual({'application/octet-stream': {'schema': {'type': 'string', 'format': 'binary'}}}, declared)
+                if path != '/v1/recoveries/{recovery_id}/download':
+                    self.assertEqual(self.raw, response.data)
+
+    def test_openapi_matches_clone_unpersisted_and_both_recovery_failure_shapes(self):
+        path = '/v1/templates/{template_id}/clones'
+        bid = self.upload()
+        self.vault.fail = 'issuance'
+        issued = self.validate_documented_response(path, 'post', self.clone(bid))
+        self.assertFalse(issued['persisted'])
+        self.assertNotIn('issuance_id', issued)
+        wrong = copy.deepcopy(issued)
+        wrong['persisted'] = True
+        schema = self.spec['paths'][path]['post']['responses']['201']['content']['application/json']['schema']
+        with self.assertRaises(ValidationError):
+            Draft202012Validator({'components': self.spec['components'], 'allOf': [schema]}).validate(wrong)
+        self.vault.fail = None
+        for failure in ('create', 'codes'):
+            with self.subTest(failure=failure):
+                self.failure = failure
+                response = self.clone(bid)
+                self.assertEqual(502, response.status_code)
+                result = self.validate_documented_response(path, 'post', response)
+                self.assertEqual(self.raw, base64.b64decode(result['backup_base64']))
+                self.assertEqual(failure == 'create', result['recovery_id'] is None)
+
+    def test_openapi_request_rules_preserve_trimmed_names_and_exact_order_ids(self):
+        schema = self.spec['paths']['/v1/templates']['post']['requestBody']['content']['application/json']['schema']
+        request_data = {'save_base64': base64.b64encode(self.raw).decode(), 'name': ' ' * 110 + 'Valid' + ' ' * 110}
+        Draft202012Validator(schema).validate(request_data)
+        response = self.client.post('/v1/templates', json=request_data, headers=self.headers)
+        self.assertEqual(201, response.status_code)
+        self.assertEqual('Valid', response.get_json()['name'])
+        bid = response.get_json()['template_id']
+        order_schema = self.spec['paths']['/v1/templates/{template_id}/clones']['post']['requestBody']['content']['application/json']['schema']
+        Draft202012Validator(order_schema).validate({'order_id': 'order_1:ABC.2-3'})
+        for value in ('order\n', '', 'x' * 101, 'order/1'):
+            with self.subTest(value=value):
+                with self.assertRaises(ValidationError):
+                    Draft202012Validator(order_schema).validate({'order_id': value})
+                response = self.client.post('/v1/templates/' + bid + '/clones', json={'order_id': value}, headers=self.headers)
+                self.assertEqual(400, response.status_code)
+                self.validate_documented_response('/v1/templates/{template_id}/clones', 'post', response)
+        self.assertEqual([], self.handlers)
+
+    def test_openapi_error_payloads_match_http_statuses(self):
+        samples = [
+            ('/v1/templates', 'get', self.client.get('/v1/templates')),
+            ('/v1/templates/{template_id}', 'get', self.client.get('/v1/templates/not-an-id', headers=self.headers)),
+            ('/v1/templates', 'post', self.client.post('/v1/templates', json={'save_base64': base64.b64encode(b'x' * 50).decode(), 'country_code': 'auto'}, headers=self.headers)),
+            ('/v1/templates', 'post', self.client.post('/v1/templates', json={'save_base64': 'a' * 1398105}, headers=self.headers)),
+        ]
+        self.assertEqual([401, 404, 422, 413], [response.status_code for _, _, response in samples])
+        for path, method, response in samples:
+            with self.subTest(status=response.status_code):
+                self.validate_documented_response(path, method, response)
+
     def test_openapi_security_and_upload_types(self):
         op = self.spec['paths']['/v1/templates']['post']
         self.assertEqual([{'TemplateToken': []}], op['security'])

@@ -2,7 +2,7 @@
 
 A Flask API for save-file backups, private templates, and BCSFE editing. The project uses the supplied BCSFE source in `vendor/bcsfe`; it does not reimplement the save parser or its field offsets.
 
-The interactive documentation is available at `/docs`. Start with **Backups** to select a save file, detect its region, download a backup, or store a private template. The editor and reference views provide action schemas and file-editing controls.
+The English HTTP API reference is available at `/docs`. It documents endpoints, authentication, request bodies, and responses. Machine-readable schemas are available at `/openapi.json`.
 
 ## Run locally
 
@@ -17,14 +17,13 @@ Open `http://127.0.0.1:5000/docs`. The OpenAPI document is at `/openapi.json`; a
 
 File editing accepts `EDITOR_API_KEY`, falling back to `TEMPLATE_API_KEY` when the editor key is not configured. Backup and template routes use `TEMPLATE_API_KEY`. Private cloud templates also require `JSONBIN_API_KEY`. Environment variables take precedence over the local, gitignored `template_secrets.py` configuration. See [TEMPLATES.md](TEMPLATES.md) for setup and recovery details.
 
-## Back up a save
+## Backup and copy APIs
 
-1. Open **Backups** in `/docs` and enter the template API key.
-2. Select the raw save file. The interface detects its region.
-3. Download a backup, or give it a name and save it as a private cloud template.
-4. Use the template list to inspect or download a stored original.
+Store a persistent backup with `POST /v1/templates`, using Bearer authentication and either a multipart `file` or JSON `save_base64`. The response returns a `template_id`. List stored backups with `GET /v1/templates`, inspect one with `GET /v1/templates/{id}`, and retrieve its original bytes with `GET /v1/templates/{id}/download`.
 
-A downloaded backup is a save file. Restoring it to the game requires a separate import or transfer workflow. **Create copy** requests a separate game account from a template; it is distinct from downloading the original file. Live account creation and transfer acceptance require separate verification.
+`POST /v1/backups` validates and returns the uploaded file without storing it in JSONBin. For a separate game account based on a stored template, call `POST /v1/templates/{id}/clones` with an `order_id` in the JSON body. This is an account-issuance operation, distinct from downloading the original. Live account creation and transfer acceptance require separate verification.
+
+See [TEMPLATES.md](TEMPLATES.md) for request examples, storage configuration, duplicate-order handling, and recovery responses. Downloaded save files require a separate import or transfer workflow to restore them inside the game.
 
 ## Edit a file
 

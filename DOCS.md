@@ -1,6 +1,6 @@
 # API reference
 
-Open `/docs` for the Backups workspace, file editor, feature search, and action-specific schemas. `/openapi.json` describes the file, account, backup, and template endpoints, including the arguments for the registered editing actions.
+Open `/docs` for the English HTTP API reference. `/openapi.json` describes file, account, backup, and template endpoints, including authentication, request bodies, responses, and the arguments for registered editing actions.
 
 ## Documentation
 
@@ -12,11 +12,20 @@ Open `/docs` for the Backups workspace, file editor, feature search, and action-
 | [LEGACY.md](LEGACY.md) | Compatibility contracts for `/edit` and `/info` |
 | [EXAMPLES.md](EXAMPLES.md) | Current Python clients and historical language examples |
 
-## Backups workspace
+## Backup API
 
-The default Backups view accepts a raw save file and detects its region. Use it to download a file backup, save a named private template, or inspect and download existing templates. Creating a copy from a template requests a separate game account and uses the issuance/recovery workflow described in [TEMPLATES.md](TEMPLATES.md).
+| Request | Purpose |
+| --- | --- |
+| `POST /v1/templates` | Store a persistent original backup from multipart `file` or JSON `save_base64`; returns `template_id` |
+| `GET /v1/templates` | List stored template IDs |
+| `GET /v1/templates/{id}` | Read backup metadata |
+| `GET /v1/templates/{id}/download` | Download the original save bytes |
+| `POST /v1/templates/{id}/clones` | Request a separate game account from the backup; requires JSON `order_id` |
+| `POST /v1/backups` | Validate and return an uploaded file without cloud storage |
 
 Backup and template requests use `Authorization: Bearer <TEMPLATE_API_KEY>`. The JSONBin master key stays on the server. File-editor requests use `EDITOR_API_KEY`, falling back to `TEMPLATE_API_KEY` only when the editor key is not configured.
+
+See [TEMPLATES.md](TEMPLATES.md) for request examples, record pagination, duplicate-order handling, and recovery behavior. Downloading a backup does not create a game account; the `/clones` request explicitly invokes account issuance.
 
 ## Limits and responses
 

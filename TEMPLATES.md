@@ -4,16 +4,14 @@ A backup preserves the original save file. A private template stores that file i
 
 The file workflow uses raw saves produced by BCSFE. It does not call the legacy `/edit` handler. Downloads provide recovery files; they do not automatically restore data inside the game app.
 
-## Use the Backups workspace
+## HTTP workflow
 
-Open `/docs`, choose **Backups**, and enter the template API key. Select a raw save file; the interface detects its region. Then choose the operation you need:
+1. Send `POST /v1/templates` with a raw multipart `file` or JSON `save_base64`, plus a name and region. The API stores the original and returns `template_id`.
+2. Use `GET /v1/templates` to list stored templates and `GET /v1/templates/{id}` to inspect one.
+3. Use `GET /v1/templates/{id}/download` to retrieve the original save bytes.
+4. To request a separate game account from a template, send `POST /v1/templates/{id}/clones` with JSON `order_id`. This produces issuance and recovery records.
 
-| Operation | Result |
-| --- | --- |
-| Download backup | Download the validated original bytes without cloud storage |
-| Save private template | Store a named, encrypted original in JSONBin |
-| Browse templates | Inspect stored originals and download them by template ID |
-| Create copy | Request a separate account from a stored template, with issuance and recovery records |
+`POST /v1/backups` provides a separate nonpersistent operation: it validates and returns the uploaded original without storing it in JSONBin. All these operations are HTTP APIs; `/docs` provides their reference documentation.
 
 If starting from a transfer code, first receive the save through `/v2/save/from-transfer`. Reception uses that code. Register the returned save containing refreshed credentials as the template and retain the original/recovery files returned by the API.
 
@@ -66,6 +64,23 @@ Records are compressed and encrypted. Large records are divided among smaller pr
 
 A template with `clone_ready: false` can still be stored and downloaded, but copy issuance is blocked. This flag means the current library could not reproduce the original bytes through a stable load/save round trip.
 
+## Download a stored original
+
+Use the `template_id` returned by the storage request:
+
+```python
+response = requests.get(
+    base + "/v1/templates/" + template_id + "/download",
+    headers=headers,
+    timeout=120,
+)
+response.raise_for_status()
+with open("downloaded-backup.save", "xb") as file:
+    file.write(response.content)
+```
+
+The response is the original binary save. This request does not create an account or issue transfer codes.
+
 ## Routes
 
 | Method and path | Behavior |
@@ -85,6 +100,14 @@ A template with `clone_ready: false` can still be stored and downloaded, but cop
 Lists follow JSONBin pagination. A filtered page can be empty while `next_cursor` is present. Continue with `cursor=<next_cursor>` until `next_cursor` is `null`.
 
 ## Copy issuance and duplicate orders
+
+Send `POST /v1/templates/{id}/clones` with the template Bearer key and a JSON body:
+
+```json
+{"order_id": "order-2026-0001"}
+```
+
+`order_id` accepts 1 to 100 characters: letters, numbers, `_`, `.`, `:`, or `-`.
 
 A copy request loads a fresh save from the immutable template. The API checks that the account identifier changed, confirms account creation and managed-item synchronization, stores recovery data, and then requests transfer codes. Authentication failure alone does not trigger automatic account creation.
 

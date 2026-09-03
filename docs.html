@@ -8,95 +8,88 @@
   <script src="/static/docs.js" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="#backups">BCSFE <span>API</span></a>
-    <span class="topbar-label">Documentation</span>
-    <div class="topbar-actions"><a href="/openapi.json" class="spec-link">OpenAPI <span aria-hidden="true">↗</span></a><button id="authorize" class="button small" type="button"><span id="connection-dot" class="dot"></span><span id="connection-label">Connect</span></button></div>
-  </header>
+  <header class="topbar"><a class="brand" href="#overview">BCSFE <span>API</span></a><span class="topbar-label">Documentation</span><a href="/openapi.json" class="spec-link">OpenAPI JSON ↗</a></header>
   <aside class="sidebar" aria-label="Documentation navigation">
-    <div class="nav-heading">WORKSPACE</div>
-    <nav>
-      <a data-page="backups" href="#backups">Backups</a>
-      <a data-page="editor" href="#editor">Save editor</a>
-    </nav>
     <div class="nav-heading">DOCUMENTATION</div>
-    <nav>
-      <a data-page="overview" href="#overview">Getting started</a>
-      <a data-page="reference" href="#reference">API reference</a>
-      <a data-page="transfers" href="#transfers">Accounts &amp; transfers</a>
-    </nav>
+    <nav><a data-page="overview" href="#overview">Getting started</a><a data-page="backups" href="#backups">Backups &amp; copies</a><a data-page="editing" href="#editing">File editing</a><a data-page="reference" href="#reference">API reference</a><a data-page="transfers" href="#transfers">Accounts &amp; transfers</a></nav>
     <div class="sidebar-bottom"><span class="version">v2.0</span><span>BCSFE 3.6.0</span></div>
   </aside>
-  <div class="mobile-nav"><label class="sr-only" for="mobile-page">Page</label><select id="mobile-page"><option value="backups">Backups</option><option value="editor">Save editor</option><option value="overview">Getting started</option><option value="reference">API reference</option><option value="transfers">Accounts &amp; transfers</option></select></div>
+  <div class="mobile-nav"><label class="sr-only" for="mobile-page">Documentation page</label><select id="mobile-page"><option value="overview">Getting started</option><option value="backups">Backups &amp; copies</option><option value="editing">File editing</option><option value="reference">API reference</option><option value="transfers">Accounts &amp; transfers</option></select></div>
   <main>
-    <section class="page" id="page-backups" aria-labelledby="backups-heading">
-      <div class="breadcrumb">Workspace <span>/</span> Backups</div>
-      <h1 id="backups-heading">Backups</h1>
-      <p class="lead">Keep a save file in your library. Download it later or use it to create an account copy.</p>
-      <form id="backup-form" class="upload-panel">
-        <div class="section-title"><h2>Save a backup</h2><span class="muted">Up to 1 MB</span></div>
-        <label class="file-drop" id="backup-drop" for="backup-file">
-          <svg width="28" height="32" viewBox="0 0 28 32" fill="none" aria-hidden="true"><path d="M5 1h11l7 7v23H5z" stroke="currentColor" stroke-width="1.5"/><path d="M16 1v8h7M10 17h8M10 22h8" stroke="currentColor" stroke-width="1.5"/></svg>
-          <span><strong id="backup-file-label">Choose a save file</strong><span class="drop-hint" id="backup-file-hint">or drop it here · SAVE_DATA, .save, .sav</span></span>
-          <span class="button browse" aria-hidden="true">Browse files</span>
-          <input id="backup-file" type="file" aria-label="Choose a save file">
-        </label>
-        <div class="backup-fields"><div class="field"><label for="backup-name">Name <span class="optional">optional</span></label><input id="backup-name" maxlength="100" placeholder="e.g. Main account — before editing"></div><div class="field region-field"><label for="backup-region">Region</label><select id="backup-region"><option value="auto">Detect automatically</option><option value="kr">Korea</option><option value="en">English</option><option value="jp">Japan</option><option value="tw">Taiwan</option></select></div></div>
-        <div class="form-actions"><button class="button primary" id="save-backup" type="submit">Save backup</button><button class="button text-button" id="local-backup" type="button">Download a local copy</button><span class="muted storage-note">Stored privately in your library.</span></div>
-        <p class="feedback" id="backup-feedback" role="status" aria-live="polite"></p>
-      </form>
-      <div class="section-title library-title"><h2>Saved backups</h2><button class="button small" id="refresh-backups" type="button">Refresh</button></div>
-      <div class="table-scroll"><table class="library"><thead><tr><th>Name</th><th>Region</th><th class="wide-only">Version</th><th class="wide-only">Saved</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="backup-list"></tbody></table></div>
-      <div class="empty-state" id="backup-empty"><p>Connect an API key to view your backups.</p><button type="button" class="button" id="connect-library">Connect API key</button></div>
-      <div class="list-footer"><p class="feedback" id="library-feedback" role="status"></p><button id="more-backups" class="button small" type="button" hidden>Load more</button></div>
-      <div id="copy-result" class="result-panel" hidden></div>
-      <details class="history-section" id="copy-history"><summary>Copy history</summary><div class="section-title"><p class="muted">Previously issued account copies.</p><button type="button" class="button small" id="refresh-history">Refresh</button></div><div id="history-list"></div><button type="button" id="more-history" class="button small" hidden>Load more</button><p class="feedback" id="history-feedback" role="status"></p></details>
-      <p class="footnote">Downloading a backup returns the original file. Creating an account copy contacts the game server; its result is shown separately.</p>
+    <section class="page prose" id="page-overview">
+      <div class="breadcrumb">Documentation <span>/</span> Getting started</div><h1>BCSFE API</h1><p class="lead">Edit save files, store backups and issue account copies from your own application.</p>
+      <h2>Base URL</h2><pre><code id="base-url">https://YOUR_API_HOST</code></pre><p>Use this origin as <code>API_URL</code> in the examples below. Requests and responses use JSON unless an endpoint specifies a file.</p>
+      <h2>Authentication</h2><pre><code>Authorization: Bearer YOUR_API_KEY</code></pre><p>Backup and copy endpoints use <code>TEMPLATE_API_KEY</code>. Editor and account endpoints use <code>EDITOR_API_KEY</code>, falling back to the template key when a separate editor key is not configured. Keys must contain at least 32 characters.</p>
+      <h2>Common workflows</h2><table><thead><tr><th>Task</th><th>Endpoint</th></tr></thead><tbody><tr><td><a href="#backups">Store a reusable backup</a></td><td><code>POST /v1/templates</code></td></tr><tr><td>Download the stored original</td><td><code>GET /v1/templates/{template_id}/download</code></td></tr><tr><td>Create an account copy</td><td><code>POST /v1/templates/{template_id}/clones</code></td></tr><tr><td><a href="#editing">Edit a save file</a></td><td><code>POST /v2/save/edit</code></td></tr><tr><td><a href="#transfers">Receive a transfer</a></td><td><code>POST /v2/save/from-transfer</code></td></tr></tbody></table>
+      <h2>Limits and errors</h2><table><tbody><tr><td>Save size</td><td>Up to 1 MiB</td></tr><tr><td>Request body</td><td>Up to 2 MiB</td></tr><tr><td>Edit batch</td><td>1–100 operations</td></tr><tr><td>400 / 401</td><td>Invalid request / missing or invalid API key</td></tr><tr><td>422</td><td>Unsupported save, invalid operation or failed validation</td></tr><tr><td>429</td><td>Request limit reached</td></tr><tr><td>502 / 503</td><td>Unconfirmed remote result / storage or configuration unavailable</td></tr></tbody></table><p>File edits are checked by saving and reading the result again. This verifies persistence; game-server acceptance requires separate verification.</p>
+      <h2>Machine-readable documentation</h2><p><a href="/openapi.json">OpenAPI specification</a> describes routes and request schemas. <a href="/v2/features">Feature coverage</a> includes edit actions and their source mapping. Browse both in the <a href="#reference">API reference</a>.</p>
     </section>
-    <section class="page" id="page-editor" aria-labelledby="editor-heading" hidden>
-      <div class="breadcrumb">Workspace <span>/</span> Save editor</div><h1 id="editor-heading">Save editor</h1><p class="lead">Apply operations to a save file and download the result.</p>
-      <form id="editor-form"><div class="editor-file-row"><div class="field"><label for="editor-file">Save file</label><input type="file" id="editor-file"></div><div class="field"><label for="editor-region">Region</label><select id="editor-region"><option value="kr">Korea</option><option value="en">English</option><option value="jp">Japan</option><option value="tw">Taiwan</option></select></div></div><div class="section-title"><label for="operations">Operations</label><a href="#reference">Browse actions <span aria-hidden="true">→</span></a></div><textarea id="operations" spellcheck="false" aria-describedby="operations-help">[
-  {
-    "action": "items.xp",
-    "args": { "value": 99999999 }
-  }
-]</textarea><p class="help" id="operations-help">Use the action names and arguments from the API reference. Your input file is kept unchanged.</p><button id="run-edit" class="button primary" type="submit">Apply operations</button></form><p class="feedback" id="editor-feedback" role="status" aria-live="polite"></p><div id="editor-result" class="result-panel" hidden></div>
+    <section class="page prose" id="page-backups" hidden>
+      <div class="breadcrumb">Documentation <span>/</span> Backups &amp; copies</div><h1>Backups &amp; copies</h1><p class="lead">Store a save once, keep its template ID, and reuse it through HTTP.</p>
+      <p>These endpoints use <code>TEMPLATE_API_KEY</code>. Stored templates are private, encrypted JSONBin records. Configure <code>JSONBIN_API_KEY</code> on the server; clients only need the template API key.</p>
+      <h2>1. Store a backup</h2><div class="code-label"><span class="method post">POST</span><code>/v1/templates</code><button type="button" class="copy-code" data-copy="backup-request">Copy</button></div><pre id="backup-request"><code>curl -X POST "$API_URL/v1/templates" \
+  -H "Authorization: Bearer $TEMPLATE_API_KEY" \
+  -F "file=@original.save" \
+  -F "country_code=auto" \
+  -F "name=Starter account"</code></pre>
+      <p>Alternatively, send JSON with <code>save_base64</code>, <code>country_code</code> and <code>name</code>. Set the region to <code>auto</code> to detect it from the file checksum; omitting it defaults to <code>kr</code>.</p><p>The <code>201</code> response contains these fields, plus the file size, SHA-256 digest and creation time:</p><pre><code>{
+  "success": true,
+  "template_id": "YOUR_TEMPLATE_ID",
+  "name": "Starter account",
+  "country_code": "kr",
+  "game_version": 150500,
+  "clone_ready": true
+}</code></pre><p>Save <code>template_id</code> in your application's database. The stored original is immutable. <code>clone_ready</code> means the save passed the binary round-trip check needed for copying.</p>
+      <h2>2. Download the original</h2><div class="code-label"><span class="method get">GET</span><code>/v1/templates/{template_id}/download</code><button type="button" class="copy-code" data-copy="backup-download">Copy</button></div><pre id="backup-download"><code>curl "$API_URL/v1/templates/$TEMPLATE_ID/download" \
+  -H "Authorization: Bearer $TEMPLATE_API_KEY" \
+  -o original.save</code></pre><p>Returns the exact stored bytes as <code>application/octet-stream</code>. Restoring them to the game requires your existing save-import or transfer workflow.</p>
+      <h2>3. Create an account copy</h2><div class="code-label"><span class="method post">POST</span><code>/v1/templates/{template_id}/clones</code><button type="button" class="copy-code" data-copy="clone-request">Copy</button></div><pre id="clone-request"><code>curl -X POST "$API_URL/v1/templates/$TEMPLATE_ID/clones" \
+  -H "Authorization: Bearer $TEMPLATE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"order_id":"order-1001"}'</code></pre><p>The API creates separate account credentials from the saved state, synchronizes managed items and requests transfer codes. The original template remains unchanged. A successful <code>201</code> response includes:</p><pre><code>{
+  "success": true,
+  "persisted": true,
+  "retry_safe": false,
+  "order_id": "order-1001",
+  "transfer_code": "ISSUED_TRANSFER_CODE",
+  "confirmation_code": "ISSUED_CONFIRMATION_CODE",
+  "attempt_id": "ATTEMPT_ID",
+  "recovery_id": "RECOVERY_ID",
+  "issuance_id": "ISSUANCE_ID",
+  "status": "issued"
+}</code></pre><p>Reserve each order in your application's database before calling this endpoint. <code>order_id</code> is an audit label, not a deduplication guarantee. The <a href="https://github.com/pafapafa/Battle-Cats-Save-File-Editor-API/blob/main/examples/vending_backend.py">vending backend example</a> demonstrates persistent order reservation and uncertain-result handling.</p>
+      <h2>List backups and review issued copies</h2><table><thead><tr><th>Endpoint</th><th>Result</th></tr></thead><tbody><tr><td><code>GET /v1/templates</code></td><td>Template IDs and <code>next_cursor</code></td></tr><tr><td><code>GET /v1/templates/{template_id}</code></td><td>Name, region, version and file metadata</td></tr><tr><td><code>GET /v1/template-records?kind=issuance</code></td><td>Issuance record IDs and <code>next_cursor</code></td></tr><tr><td><code>GET /v1/issuances/{issuance_id}</code></td><td>Saved transfer codes and order reference</td></tr><tr><td><code>GET /v1/attempts/{attempt_id}</code></td><td>Account-creation attempt marker</td></tr><tr><td><code>GET /v1/recoveries/{recovery_id}/download</code></td><td>Available new-account recovery file</td></tr></tbody></table><p>Pass each returned <code>next_cursor</code> as the next request's <code>cursor</code>. Continue until it is null, including when a filtered page is empty. Listing template IDs does not include their full metadata; fetch each template by ID when needed.</p>
+      <h2>Recovery after an unconfirmed request</h2><p>An unconfirmed copy returns <code>502</code>, <code>retry_safe: false</code> and available recovery references or Base64 save data. Preserve that response and review the attempt before issuing another request. If <code>persisted</code> is false in a successful response, store the returned codes yourself.</p>
+      <h2>Return a backup without storing it</h2><p><code>POST /v1/backups</code> accepts the same multipart or JSON input as template creation and returns the original file directly. It does not create a JSONBin record. Use <code>POST /v1/templates</code> when the file must remain available for later download or copying.</p>
     </section>
-    <section class="page prose" id="page-overview" aria-labelledby="overview-heading" hidden>
-      <div class="breadcrumb">Documentation <span>/</span> Getting started</div><h1 id="overview-heading">Getting started</h1><p class="lead">Read, edit and back up Battle Cats save files over HTTP.</p>
-      <h2>Authentication</h2><p>Send your editor key in the <code>Authorization</code> header. Backup and copy endpoints use the template key. If a separate editor key is not configured, the template key works for both.</p><pre><code>Authorization: Bearer YOUR_API_KEY
-Content-Type: application/json</code></pre><p>Use <button class="inline-button" id="connect-overview" type="button">Connect</button> to authorize requests made from this page.</p>
-      <h2>Edit a file</h2><p>Encode the file as Base64 and include the operations you want to apply.</p><div class="code-label"><span class="method post">POST</span><code>/v2/save/edit</code><button type="button" class="copy-code" data-copy="quickstart-code">Copy</button></div><pre id="quickstart-code"><code>{
+    <section class="page prose" id="page-editing" hidden>
+      <div class="breadcrumb">Documentation <span>/</span> File editing</div><h1>File editing</h1><p class="lead">Send a save file and a batch of typed operations. Receive the edited file and its original backup.</p>
+      <div class="code-label"><span class="method post">POST</span><code>/v2/save/edit</code><button type="button" class="copy-code" data-copy="edit-request">Copy</button></div><pre id="edit-request"><code>{
   "country_code": "kr",
   "save_base64": "BASE64_OF_SAVE_FILE",
   "operations": [
     { "action": "items.xp", "args": { "value": 99999999 } }
   ]
-}</code></pre><p>The response contains <code>save_base64</code> for the edited file, <code>backup_base64</code> for the original, and <code>changes</code> for the fields that changed. Set <code>output</code> to <code>"file"</code> to receive the edited file directly.</p>
-      <h2>Back up a file</h2><p>Use <a href="#backups">Backups</a> to upload a file without writing a request. For API integrations, send a multipart <code>file</code> to <code>POST /v1/templates</code>. Set <code>country_code</code> to <code>auto</code> to detect the region.</p><pre><code>curl -X POST "$API_URL/v1/templates" \
-  -H "Authorization: Bearer $TEMPLATE_API_KEY" \
-  -F "file=@original.save" \
-  -F "country_code=auto" \
-  -F "name=Before editing"</code></pre>
-      <h2>Limits and errors</h2><table><tbody><tr><td>Save file</td><td>Up to 1 MiB</td></tr><tr><td>Request body</td><td>Up to 2 MiB</td></tr><tr><td>Operations per request</td><td>1–100</td></tr><tr><td>400 / 401</td><td>Invalid request / missing or invalid API key</td></tr><tr><td>422</td><td>Invalid edit, unsupported data or a failed save check</td></tr><tr><td>502 / 503</td><td>Unconfirmed remote result / unavailable configuration or storage</td></tr></tbody></table><p>File edits are checked by saving and reading the result again. This verifies persistence, not acceptance by the game server. ADB/root device operations are outside this hosted API.</p><p>Older <code>/edit</code> and <code>/info</code> integrations remain available with stricter inputs and authentication. Both receive a transfer and consume its code.</p>
+}</code></pre><p>Send <code>Content-Type: application/json</code> and your editor Bearer token. Browse the <a href="#reference">action schemas</a> for required arguments, ranges and defaults.</p>
+      <h2>Response</h2><p>The JSON response contains <code>save_base64</code> for the edited file, <code>backup_base64</code> for the original, <code>changes</code>, <code>change_count</code> and <code>sha256</code>. Set <code>output</code> to <code>"file"</code> to receive the edited file directly.</p><p>Operations run on a copy and are applied atomically. The API serializes and reparses the result, checks the checksum and verifies that edited fields survived serialization. A failed batch is not returned as a partially successful edit.</p>
+      <h2>Inspect and export</h2><table><tbody><tr><td><code>POST /v2/save/inspect</code></td><td>Inspect a save without editing it.</td></tr><tr><td><code>POST /v2/save/export</code></td><td>Export editable save state to JSON.</td></tr><tr><td><code>POST /v2/save/import</code></td><td>Import JSON state and validate the resulting save.</td></tr><tr><td><code>POST /v2/save/download</code></td><td>Return a validated file.</td></tr></tbody></table>
+      <h2>Metadata and source compatibility</h2><p>Ordinary file edits use the vendored BCSFE parser and offsets. Operations that need cat or map data use versioned game metadata. See <code>/v2/metadata/prepare</code> and the relevant action schema before building a batch.</p><p>Actions with <code>respect_maxima</code> use BCSFE's recommended limits by default. Setting it to false does not bypass the field's integer range. Cat IDs and array indexes are zero-based; displayed levels, forms and crowns follow each action's schema.</p>
     </section>
-    <section class="page" id="page-reference" aria-labelledby="reference-heading" hidden>
-      <div class="breadcrumb">Documentation <span>/</span> API reference</div><h1 id="reference-heading">API reference</h1><p class="lead">Endpoints and action arguments, loaded from the running API.</p><div class="reference-tabs" role="group" aria-label="Reference view"><button id="show-actions" class="selected" type="button">Edit actions <span id="action-count"></span></button><button id="show-endpoints" type="button">Endpoints</button></div><div class="reference-filter"><input type="search" id="reference-search" placeholder="Search actions or endpoints" aria-label="Search reference"><select id="action-group" aria-label="Action group"><option value="all">All groups</option></select></div><p id="reference-feedback" class="feedback" role="status"></p><div id="reference-list"></div><details class="history-section"><summary>Source coverage</summary><p id="coverage-summary" class="muted"></p><a href="/v2/features">View full coverage JSON <span aria-hidden="true">↗</span></a></details>
+    <section class="page" id="page-reference" hidden>
+      <div class="breadcrumb">Documentation <span>/</span> API reference</div><h1>API reference</h1><p class="lead">Endpoint contracts and edit arguments from the running API.</p>
+      <div class="reference-tabs" role="group" aria-label="Reference view"><button id="show-endpoints" class="selected" type="button">Endpoints</button><button id="show-actions" type="button">Edit actions <span id="action-count"></span></button></div><div class="reference-filter"><input type="search" id="reference-search" placeholder="Search endpoints or actions" aria-label="Search reference"><select id="action-group" aria-label="Action group" hidden><option value="all">All groups</option></select></div><p id="reference-feedback" class="feedback" role="status"></p><div id="reference-list"></div><details class="coverage"><summary>Source coverage</summary><p id="coverage-summary"></p><a href="/v2/features">Full coverage JSON ↗</a></details>
     </section>
-    <section class="page prose" id="page-transfers" aria-labelledby="transfers-heading" hidden>
-      <div class="breadcrumb">Documentation <span>/</span> Accounts &amp; transfers</div><h1 id="transfers-heading">Accounts &amp; transfers</h1><p class="lead">Receive a save, issue transfer codes or create an account from a saved template.</p>
+    <section class="page prose" id="page-transfers" hidden>
+      <div class="breadcrumb">Documentation <span>/</span> Accounts &amp; transfers</div><h1>Accounts &amp; transfers</h1><p class="lead">Receive a save, upload an edited account or request new credentials.</p>
       <h2>Receive a save</h2><div class="code-label"><span class="method post">POST</span><code>/v2/save/from-transfer</code></div><pre><code>{
   "transfer_code": "YOUR_TRANSFER_CODE",
   "confirmation_code": "YOUR_PIN",
   "country_code": "kr",
   "game_version": 150500
 }</code></pre><p>Receiving a transfer consumes the supplied code. Keep the returned <code>save_base64</code>; it includes refreshed credentials. The received original is also returned as <code>backup_base64</code>.</p>
-      <h2>Create a copy from a backup</h2><p>Select <strong>Create copy</strong> beside a <a href="#backups">saved backup</a>. The API creates a new account from the saved state and requests transfer codes. The stored backup is preserved.</p><div class="code-label"><span class="method post">POST</span><code>/v1/templates/{template_id}/clones</code></div><pre><code>{ "order_id": "your-unique-order-reference" }</code></pre><p>A successful response contains the transfer code, confirmation code and recovery record. Use a persistent order reservation in automated clients: the order reference alone does not prevent concurrent duplicate requests.</p>
-      <h2>Other account endpoints</h2><table><tbody><tr><td><code>POST /v2/save/upload</code></td><td>Upload a save and issue transfer codes.</td></tr><tr><td><code>POST /v2/account/new</code></td><td>Create account credentials and synchronize managed items. Upload separately to issue codes.</td></tr><tr><td><code>POST /v2/account/convert-region</code></td><td>Change region and create an account for it. Include <code>target_country_code</code>.</td></tr><tr><td><code>POST /v2/account/upload-items</code></td><td>Upload item metadata.</td></tr></tbody></table>
-      <h2>Interrupted requests</h2><p>When an account request is not confirmed, the API returns available recovery files and <code>retry_safe: false</code>. Preserve those files and review the attempt before issuing another request. Account creation is never retried automatically after an authentication failure.</p><p>Real account acceptance and in-game behavior still require verification. The API reports the server result it receives.</p>
+      <h2>Account endpoints</h2><table><tbody><tr><td><code>POST /v2/save/upload</code></td><td>Upload a save and issue transfer codes.</td></tr><tr><td><code>POST /v2/account/new</code></td><td>Create account credentials and synchronize managed items. Upload separately to issue codes.</td></tr><tr><td><code>POST /v2/account/convert-region</code></td><td>Change region and create an account for it. Include <code>target_country_code</code>.</td></tr><tr><td><code>POST /v2/account/upload-items</code></td><td>Upload item metadata.</td></tr></tbody></table><p>To issue copies from a reusable stored save, use the <a href="#backups">backup and copy endpoints</a>.</p>
+      <h2>Unconfirmed results</h2><p>When an account request is not confirmed, the API returns available recovery files and <code>retry_safe: false</code>. Preserve those files before reviewing the attempt. Account creation is not retried automatically after an authentication failure.</p><p>Live account creation and in-game acceptance require separate verification. ADB/root device operations and terminal-only controls are outside this hosted API.</p><h2>Legacy integrations</h2><p><code>POST /edit</code> and <code>POST /info</code> remain available with strict validation and authentication. Both receive a transfer and consume its code.</p>
     </section>
   </main>
-  <dialog id="auth-dialog"><form id="auth-form"><div class="dialog-heading"><h2>Connect to your API</h2><button class="close-button" type="button" data-close="auth-dialog" aria-label="Close">×</button></div><p class="muted">Use the key configured on your server.</p><div class="field"><label for="api-key">API key</label><input id="api-key" type="password" autocomplete="off" placeholder="Template or shared API key"></div><details class="auth-advanced"><summary>Separate editor key</summary><div class="field"><label for="editor-key">Editor key <span class="optional">optional</span></label><input id="editor-key" type="password" autocomplete="off"></div></details><label class="check-label"><input id="remember-key" type="checkbox">Remember for this tab</label><p id="auth-feedback" class="feedback" role="status"></p><div class="dialog-actions"><button class="button" type="button" id="disconnect">Disconnect</button><button class="button primary" type="submit" id="connect-submit">Connect</button></div></form></dialog>
-  <dialog id="clone-dialog"><div class="dialog-heading"><h2>Create account copy</h2><button class="close-button" type="button" data-close="clone-dialog" aria-label="Close">×</button></div><p>Create a new account from <strong id="clone-name"></strong>. Your saved backup will be kept.</p><p class="muted">This contacts the game server and requests new transfer codes.</p><div class="field"><label for="clone-order">Order reference</label><input id="clone-order" maxlength="100"></div><p id="clone-feedback" class="feedback" role="status"></p><div class="dialog-actions"><button class="button" type="button" data-close="clone-dialog">Cancel</button><button id="confirm-clone" class="button primary" type="button">Create copy</button></div></dialog>
 </body>
 </html>
