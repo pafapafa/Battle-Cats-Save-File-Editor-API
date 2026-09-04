@@ -12,8 +12,8 @@ Open the [deployed API documentation](https://battle-cats-save-file-editor-api.v
 | [FEATURES.md](FEATURES.md) | All 99 original source menu features, their API bindings, implementation status, and notes |
 | [reference_features.json](reference_features.json) and `/v2/features` | Machine-readable menu mapping, action schemas, and source references |
 | [TEMPLATES.md](TEMPLATES.md) | File backups, private JSONBin templates, copy issuance, and recovery |
-| [LEGACY.md](LEGACY.md) | Compatibility contracts for `/edit` and `/info` |
-| [EXAMPLES.md](EXAMPLES.md) | Current Python clients and historical language examples |
+| [TRANSFERS.md](TRANSFERS.md) | Transfer workflow contracts for `/edit` and `/info` |
+| [EXAMPLES.md](EXAMPLES.md) | Python and other language clients, real request-file preparation, dependencies, and run commands |
 
 ## Browse by category
 
@@ -74,6 +74,6 @@ Inspect the JSON `message` when a request fails. Endpoint-specific preflight and
 
 ## File operations and transfers
 
-Ordinary file inspection, editing, export, and import do not consume transfer codes. `/v2/save/from-transfer`, legacy `/info`, and legacy `/edit` include transfer reception. Reception uses the supplied transfer code; preserve the returned save because it can contain refreshed account credentials.
+Ordinary file inspection, editing, export, and import do not consume transfer codes. `/v2/save/from-transfer`, `/info`, and `/edit` include transfer reception. Reception uses the supplied transfer code; preserve the returned save because it can contain refreshed account credentials.
 
 The API validates local save serialization and reports remote responses. Live game-account acceptance is not established by local file or transport tests.

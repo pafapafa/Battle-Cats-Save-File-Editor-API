@@ -78,7 +78,7 @@ class RecentSaves:
         return RecentSaves(res)
 
     def to_json(self) -> list[dict[str, Any]]:
-        return [save.to_dict() for save in self.saves][-10:]  # only store 10
+        return [save.to_dict() for save in self.saves][-10:]
 
     @staticmethod
     def from_path(path: core.Path) -> RecentSaves | None:

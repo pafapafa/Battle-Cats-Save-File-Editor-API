@@ -13,11 +13,8 @@ class SaveManagement:
 
     @staticmethod
     def save_save(save_file: core.SaveFile, check_strict: bool = True):
-        """Save the save file without a dialog.
 
-        Args:
-            save_file (core.SaveFile): The save file to save.
-        """
+
         SaveManagement.upload_items_checker(save_file, check_strict)
 
         if save_file.save_path is None:
@@ -36,11 +33,8 @@ class SaveManagement:
 
     @staticmethod
     def save_save_dialog(save_file: core.SaveFile):
-        """Save the save file with a dialog.
 
-        Args:
-            save_file (core.SaveFile): The save file to save.
-        """
+
         SaveManagement.upload_items_checker(save_file)
         save_file.save_path = main.Main.save_save_dialog(save_file)
         if save_file.save_path is None:
@@ -52,11 +46,8 @@ class SaveManagement:
 
     @staticmethod
     def save_save_data_dir(save_file: core.SaveFile):
-        """Save the save file to the data folder.
 
-        Args:
-            save_file (core.SaveFile): The save file to save.
-        """
+
         SaveManagement.upload_items_checker(save_file)
         save_file.save_path = core.SaveFile.get_save_path()
         save_file.to_file(save_file.save_path)
@@ -64,11 +55,8 @@ class SaveManagement:
 
     @staticmethod
     def save_upload(save_file: core.SaveFile):
-        """Save the save file and upload it to the server.
 
-        Args:
-            save_file (core.SaveFile): The save file to save.
-        """
+
         if core.core_data.config.get_bool(core.ConfigKey.STRICT_BAN_PREVENTION):
             color.color_print_key("strict_ban_prevention_enabled")
             SaveManagement.create_new_account(save_file)
@@ -88,11 +76,8 @@ class SaveManagement:
 
     @staticmethod
     def unban_account(save_file: core.SaveFile):
-        """Unban the account.
 
-        Args:
-            save_file (core.SaveFile): The save file to unban.
-        """
+
         server_handler = core.ServerHandler(save_file)
         success = server_handler.create_new_account()
         if success:
@@ -102,11 +87,8 @@ class SaveManagement:
 
     @staticmethod
     def create_new_account(save_file: core.SaveFile):
-        """Create a new account.
 
-        Args:
-            save_file (core.SaveFile): The save file to create a new account.
-        """
+
         server_handler = core.ServerHandler(save_file)
         success = server_handler.create_new_account()
         if success:
@@ -118,14 +100,8 @@ class SaveManagement:
     def adb_push(
         save_file: core.SaveFile,
     ) -> core.AdbHandler | core.WayDroidHandler | None:
-        """Push the save file to the device.
 
-        Args:
-            save_file (core.SaveFile): The save file to push.
 
-        Returns:
-            core.AdbHandler: The AdbHandler instance.
-        """
         SaveManagement.save_save(save_file)
         try:
             adb_handler = core.AdbHandler()
@@ -160,14 +136,8 @@ class SaveManagement:
 
     @staticmethod
     def root_push(save_file: core.SaveFile) -> core.RootHandler | None:
-        """Push the save file to the device.
 
-        Args:
-            save_file (core.SaveFile): The save file to push.
 
-        Returns:
-            core.AdbHandler: The AdbHandler instance.
-        """
         SaveManagement.save_save(save_file)
         root_handler = core.RootHandler()
         if not root_handler.is_android():
@@ -197,11 +167,8 @@ class SaveManagement:
 
     @staticmethod
     def adb_push_rerun(save_file: core.SaveFile):
-        """Push the save file to the device and rerun the game.
 
-        Args:
-            save_file (core.SaveFile): The save file to push.
-        """
+
         adb_handler = SaveManagement.adb_push(save_file)
         if not adb_handler:
             return
@@ -215,11 +182,8 @@ class SaveManagement:
 
     @staticmethod
     def root_push_rerun(save_file: core.SaveFile):
-        """Push the save file to the device and rerun the game.
 
-        Args:
-            save_file (core.SaveFile): The save file to push.
-        """
+
         root_handler = SaveManagement.root_push(save_file)
         if not root_handler:
             return
@@ -233,11 +197,8 @@ class SaveManagement:
 
     @staticmethod
     def export_save(save_file: core.SaveFile):
-        """Export the save file to a json file.
 
-        Args:
-            save_file (core.SaveFile): The save file to export.
-        """
+
         data = save_file.to_dict()
         path = main.Main.save_json_dialog(data)
         if path is None:
@@ -248,11 +209,8 @@ class SaveManagement:
 
     @staticmethod
     def upload_items(save_file: core.SaveFile, check_strict: bool = True):
-        """Upload the items to the server.
 
-        Args:
-            save_file (core.SaveFile): The save file to upload.
-        """
+
         if (
             core.core_data.config.get_bool(core.ConfigKey.STRICT_BAN_PREVENTION)
             and check_strict
@@ -338,15 +296,8 @@ class SaveManagement:
     def select_save(
         starting_options: bool = False, input_file: str | None = None
     ) -> tuple[core.SaveFile | None, bool]:
-        """Select a new save file.
-
-        Args:
-            starting_options (bool, optional): Whether to add the starting specific options. Defaults to False.
 
 
-        Returns:
-            core.SaveFile | None: The save file.
-        """
         if input_file is not None:
             file = SaveManagement.load_save_file_path(core.Path(input_file), None, None)
             if file is None:
@@ -486,11 +437,8 @@ class SaveManagement:
 
     @staticmethod
     def load_save(save_file: core.SaveFile):
-        """Load a new save file.
 
-        Args:
-            save_file (core.SaveFile): The current save file.
-        """
+
         SaveManagement.upload_items_checker(save_file)
         new_save_file, stop = SaveManagement.select_save()
         if new_save_file is None:

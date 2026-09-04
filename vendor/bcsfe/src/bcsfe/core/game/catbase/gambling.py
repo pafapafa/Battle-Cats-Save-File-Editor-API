@@ -76,7 +76,7 @@ class GamblingEvent:
         for key, value in self.start_times.items():
             data.write_short(key)
 
-            # this is a bad conversion, since float is timestamp i assume and int as the date as YYYMMDD. FIXME
+
             if game_version < 90100:
                 data.write_double(float(value))
             else:
@@ -100,7 +100,7 @@ class GamblingEvent:
     def reset(self):
         self.completed = {}
         self.values = {}
-        # TODO: check start times
+
         self.start_times = {}
 
     @staticmethod

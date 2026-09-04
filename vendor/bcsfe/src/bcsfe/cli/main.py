@@ -17,7 +17,7 @@ import json
 
 
 class Main:
-    """Main class for the CLI."""
+
 
     def __init__(self):
         self.save_file = None
@@ -26,11 +26,11 @@ class Main:
         self.fh = None
 
     def wipe_temp_save(self):
-        """Wipe the temp save."""
+
         core.SaveFile.get_temp_path().remove()
 
     def main(self, input_path: str | None = None):
-        """Main function for the CLI."""
+
         self.wipe_temp_save()
         core.GameDataGetter.delete_old_versions(5)
         self.print_locale_version()
@@ -52,7 +52,7 @@ class Main:
 
     @staticmethod
     def check_update():
-        """Check for updates."""
+
 
         updater = core.Updater()
         has_pre_release = updater.has_enabled_pre_release()
@@ -140,7 +140,7 @@ class Main:
         print()
 
     def load_save_options(self, input_path: str | None = None):
-        """Load save options."""
+
         save_file, stop = save_management.SaveManagement.select_save(True, input_path)
         if save_file is None:
             return stop
@@ -159,7 +159,7 @@ class Main:
         return False
 
     def feature_handler(self):
-        """Run the feature handler."""
+
         if self.save_file is None:
             return
         self.fh = feature_handler.FeatureHandler(self.save_file)
@@ -167,14 +167,8 @@ class Main:
 
     @staticmethod
     def save_save_dialog(save_file: core.SaveFile) -> core.Path | None:
-        """Save save file dialog.
 
-        Args:
-            save_file (core.SaveFile): Save file to save.
 
-        Returns:
-            core.Path: Path to save file.
-        """
         path = file_dialog.FileDialog().save_file(
             "save_save_dialog",
             initialdir=core.SaveFile.get_saves_path().to_str(),
@@ -189,14 +183,8 @@ class Main:
 
     @staticmethod
     def save_json_dialog(json_data: dict[str, Any]) -> core.Path | None:
-        """Save json file dialog.
 
-        Args:
-            json_data (dict): Json data to save.
 
-        Returns:
-            core.Path: Path to save file.
-        """
         path = file_dialog.FileDialog().save_file(
             "save_json_dialog",
             initialfile="SAVE_DATA.json",
@@ -211,11 +199,8 @@ class Main:
 
     @staticmethod
     def load_save_file() -> core.Path | None:
-        """Load save file from file dialog.
 
-        Returns:
-            core.Path: Path to save file.
-        """
+
         path = file_dialog.FileDialog().get_file(
             "select_save_file",
             initialdir=core.SaveFile.get_saves_path().to_str(),
@@ -229,11 +214,8 @@ class Main:
 
     @staticmethod
     def load_save_data_json() -> tuple[core.Path, core.CountryCode] | None:
-        """Load save data from json file.
 
-        Returns:
-            core.Path: Path to save file.
-        """
+
         path = file_dialog.FileDialog().get_file(
             "load_save_data_json",
             initialfile="SAVE_DATA.json",
@@ -266,7 +248,7 @@ class Main:
     def exit_editor(
         save_file: core.SaveFile | None = None, check_temp: bool = True
     ) -> NoReturn:
-        """Exit the editor."""
+
         save_file_temp = None
         if check_temp:
             temp_path = core.SaveFile.get_temp_path()
@@ -310,6 +292,6 @@ class Main:
 
     @staticmethod
     def leave() -> NoReturn:
-        """Leave the editor."""
+
         color.color_print_key("leave")
         sys.exit()

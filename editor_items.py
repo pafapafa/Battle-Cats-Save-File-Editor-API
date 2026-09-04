@@ -1,4 +1,3 @@
-"""Strict adapters for scalar resources, indexed items and account fields."""
 import math
 import random
 import re
@@ -299,8 +298,8 @@ def special_skills(sf,args):
             plus_range=_skill_bounds('max' if maximize else change['plus'],'plus',0,U16,ability.max_plus_level,respect)
         plans.append((index,base_range,plus_range))
     for index,base_range,plus_range in plans:
-        # Resolve a range once for each requested component. Passing a range to
-        # the upstream mirror would draw separately for the hidden cannon skill.
+
+
         level=-1 if base_range is None else random.randint(*base_range) if base_range[0] != base_range[1] else base_range[0]
         plus=-1 if plus_range is None else random.randint(*plus_range) if plus_range[0] != plus_range[1] else plus_range[0]
         upgrade=core.Upgrade(plus=plus,base=-1 if level == -1 else level-1)

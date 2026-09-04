@@ -1,15 +1,3 @@
-"""File-based v2 API client. Never receives or uploads game transfer codes.
-
-Examples:
-  python cli.py features
-  python cli.py inspect original.save --country kr
-  python cli.py edit original.save operations.json edited.save --country kr
-  python cli.py export original.save state.json --country kr
-  python cli.py import state.json restored.save
-
-Set EDITOR_API_KEY (or TEMPLATE_API_KEY) in the environment. --token is also
-accepted. Existing files are never overwritten; choose a new output filename.
-"""
 from __future__ import annotations
 
 import argparse
@@ -146,7 +134,7 @@ def output_path(path, inputs=()):
 
 
 def write_new(path, data):
-    """Exclusive creation also protects against another process creating output."""
+
     target = Path(path).resolve()
     created = False
     try:
@@ -161,7 +149,7 @@ def write_new(path, data):
 
 
 def parser():
-    value = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    value = argparse.ArgumentParser(description="BCSFE API client for save inspection, editing, export, and import.")
     value.add_argument("--url", default=DEFAULT_URL, help="API origin (default: https://battle-cats-save-file-editor-api.vercel.app)")
     value.add_argument("--token", default=None, help="API bearer key; defaults to EDITOR_API_KEY/TEMPLATE_API_KEY")
     commands = value.add_subparsers(dest="command", required=True)

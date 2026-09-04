@@ -1,8 +1,3 @@
-"""Translate the legacy /edit payload to explicit, validated editor operations.
-
-No save, network, configuration, or account mutation occurs here. Ambiguous old
-menu booleans now require an explicit value/object instead of reporting success.
-"""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -109,10 +104,10 @@ def _list(value, name):
 
 def _normalize(payload):
     if type(payload) is not dict or any(type(k) is not str for k in payload):
-        raise ValueError("Legacy payload must be an object with string keys")
+        raise ValueError("Transfer payload must be an object with string keys")
     unknown = set(payload) - SUPPORTED_FIELDS
     if unknown:
-        raise ValueError("Unknown legacy fields: " + ", ".join(sorted(unknown)))
+        raise ValueError("Unknown transfer fields: " + ", ".join(sorted(unknown)))
     result = {k: deepcopy(v) for k, v in payload.items() if k not in CREDENTIAL_FIELDS}
     for alias, canonical in ALIASES.items():
         if alias not in result:
@@ -159,7 +154,7 @@ def _pick_alias(record, keys, label, required=False):
     return first, True
 
 
-def legacy_to_operations(payload):
+def transfer_to_operations(payload):
     data = _normalize(payload)
     safety = _bool(data.pop("enable_safety", False), "enable_safety")
     for field in ("unban_account", "upload_items"):
@@ -175,7 +170,7 @@ def legacy_to_operations(payload):
         schema = actions[action]["schema"]
         if "respect_maxima" in schema.get("properties", {}):
             if "respect_maxima" in args and args["respect_maxima"] is not safety:
-                raise ValueError("Use the top-level enable_safety option for legacy requests")
+                raise ValueError("Use the top-level enable_safety option for transfer requests")
             args["respect_maxima"] = safety
         errors = sorted(StrictValidator(schema).iter_errors(args), key=lambda error: str(list(error.path)))
         if errors:
@@ -184,7 +179,7 @@ def legacy_to_operations(payload):
             raise ValueError(f"{action}.{location}: {error.message}")
         operations.append({"action": action, "args": args})
 
-    # Bulk requests are applied before individual overrides, independent of JSON key order.
+
     for field, (action, args) in SIMPLE_FLAGS.items():
         if field in data and _bool(data.pop(field), field):
             add(action, args)
@@ -311,7 +306,7 @@ def legacy_to_operations(payload):
                 if "id" not in record and "cat_id" not in record:
                     raise ValueError("Each cat_talents entry requires a cat id")
                 if set(record) - {"id", "cat_id", "levels", "talents"}:
-                    # A numeric cat-id mapping whose value is directly a talent-id mapping.
+
                     ident = record.get("id", record.get("cat_id"))
                     levels = {key: val for key, val in record.items() if key not in ("id", "cat_id")}
                 else:
@@ -356,8 +351,8 @@ def legacy_to_operations(payload):
             if treasures:
                 args = {"chapters": [cid], "level": entry.get("treasure", 3)}
                 if individual:
-                    # This legacy field used a raw treasure slot. The typed API uses
-                    # in-game order, so convert once here to preserve the old slot.
+
+
                     from bcsfe import core
                     raw_slot = _int(entry["stage"], "treasure stage", 0, 47)
                     args["stages"] = [core.StoryChapters.convert_stage_id(raw_slot)]
@@ -405,5 +400,5 @@ def legacy_to_operations(payload):
         value = data.pop("playtime")
         add("playtime.set", value if type(value) is dict else {"frames": value})
     if data:
-        raise ValueError("Untranslated legacy fields: " + ", ".join(sorted(data)))
+        raise ValueError("Untranslated transfer fields: " + ", ".join(sorted(data)))
     return operations

@@ -240,13 +240,13 @@ class EventSubChapterStars:
         for _ in range(total_stages):
             for chapter in self.chapters:
                 chapter.stages.append(EventStage.read(data, is_int))
-                # chapter.read_stages(data, total_stages, is_int)
+
 
     def write_stages(self, data: core.Data, is_int: bool):
         for i in range(len(self.chapters[0].stages)):
             for chapter in self.chapters:
                 chapter.stages[i].write(data, is_int)
-                # chapter.write_stages(data, is_int)
+
 
     def read_chapter_unlock_state(self, data: core.Data, is_int: bool):
         for chapter in self.chapters:
@@ -656,14 +656,14 @@ class EventChapters:
         if gv < 20:
             return
         if gv < 33:
-            total_map_types = 3  # type: ignore
-            total_subchapters = 150  # type: ignore
+            total_map_types = 3
+            total_subchapters = 150
         elif gv < 41:
-            total_map_types = 4  # type: ignore
-            total_subchapters = 150  # type: ignore
+            total_map_types = 4
+            total_subchapters = 150
         else:
-            total_map_types = data.read_int()  # type: ignore
-            total_subchapters = data.read_int()  # type: ignore
+            total_map_types = data.read_int()
+            total_subchapters = data.read_int()
 
         for chapter in self.chapters:
             chapter.read_legend_restrictions(data)

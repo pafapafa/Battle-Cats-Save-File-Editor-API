@@ -79,20 +79,14 @@ class SaveFile:
         return None
 
     def get_salt(self) -> str:
-        """Get the salt for the save file. This is used for hashing the save file.
 
-        Returns:
-            str: The salt
-        """
+
         salt = f"battlecats{self.cc.get_patching_code()}"
         return salt
 
     def get_current_hash(self) -> str | None:
-        """Get the current hash for the save file. This is used for hashing the save file.
 
-        Returns:
-            str: The current hash
-        """
+
         self.data.reset_pos()
         self.data.set_pos(-32)
         try:
@@ -102,11 +96,8 @@ class SaveFile:
         return hash
 
     def get_new_hash(self, existing_hash: bool = True) -> str:
-        """Get the new hash for the save file. This is used for hashing the save file.
 
-        Returns:
-            str: The new hash
-        """
+
         salt = self.get_salt()
         self.data.reset_pos()
         if existing_hash:
@@ -118,7 +109,7 @@ class SaveFile:
         return hash.to_hex()
 
     def set_hash(self, add: bool = False):
-        """Set the hash of the save file."""
+
         hash = self.get_new_hash(existing_hash=not add)
         if not add:
             self.data.set_pos(-32)
@@ -127,11 +118,8 @@ class SaveFile:
         self.data.write_string(hash, write_length=False)
 
     def verify_hash(self) -> bool:
-        """Verify the hash of the save file.
 
-        Returns:
-            bool: Whether the hash is valid
-        """
+
         current_hash = self.get_current_hash()
         if current_hash is None:
             return False
@@ -162,7 +150,7 @@ class SaveFile:
         self.package_name = package_name
 
     def load(self):
-        """Load the save file. For most of this stuff I have no idea what it is used for"""
+
 
         self.data.reset_pos()
         self.dst_index = 0
@@ -1193,7 +1181,7 @@ class SaveFile:
                 val_12 = None
 
                 if self.game_version >= 140500:
-                    # game seems to read more than just this, may break in the future
+
                     val_12 = self.data.read_string()
 
                 val_13 = self.data.read_bool()
@@ -2196,7 +2184,7 @@ class SaveFile:
                 self.data.write_bool(v10)
                 self.data.write_bool(v11)
                 if self.game_version >= 140500:
-                    # game seems to write more than this, may not work with all saves
+
                     self.data.write_string(v12 or "")
 
                 self.data.write_bool(v13)

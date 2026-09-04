@@ -415,7 +415,7 @@ class Gamatoto:
             )
             .add_new_key(
                 "enter_gamatoto_level",
-                lambda _: self.edit_level(current_level, gamatoto_levels),  # type: ignore
+                lambda _: self.edit_level(current_level, gamatoto_levels),
             ),
             "edit_gamatoto_level_q",
         )

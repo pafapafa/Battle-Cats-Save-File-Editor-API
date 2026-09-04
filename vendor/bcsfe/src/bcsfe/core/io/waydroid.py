@@ -69,7 +69,7 @@ class WayDroidHandler(io.root_handler.RootHandler):
     def pull_file(
         self, device_path: core.Path, local_path: core.Path
     ) -> core.CommandResult:
-        # copy file to sdcard
+
 
         result = self.run_shell_cmd(
             f"cp {device_path.to_str_forwards()} /sdcard/{device_path.basename()} && chmod o+rw /sdcard/{device_path.basename()}"
@@ -80,14 +80,12 @@ class WayDroidHandler(io.root_handler.RootHandler):
 
         device_path = core.Path("/sdcard/").add(device_path.basename())
 
-        # adb pull
 
         result = self.adb_handler.adb_pull_file(device_path, local_path)
         if not result.success:
             return result
 
-        # delete /sdcard file again
-        #
+
         return self.adb_handler.run_shell(f"rm /sdcard/{device_path.basename()}")
 
     def push_file(
@@ -97,7 +95,6 @@ class WayDroidHandler(io.root_handler.RootHandler):
 
         device_path = core.Path("/sdcard/").add(device_path.basename())
 
-        # push to /sdcard with adb
 
         import time
 
@@ -114,8 +111,7 @@ class WayDroidHandler(io.root_handler.RootHandler):
         if not result.success:
             return result
 
-        # remove temp file
-        #
+
         return self.adb_handler.run_shell(f"rm '/sdcard/{device_path.basename()}'")
 
     def get_battlecats_packages(self) -> list[str]:

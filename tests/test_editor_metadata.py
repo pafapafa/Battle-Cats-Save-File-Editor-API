@@ -1,4 +1,3 @@
-"""Metadata fixtures exercise real tar parsing and disk publication, offline."""
 import contextlib
 from io import BytesIO, StringIO
 import json

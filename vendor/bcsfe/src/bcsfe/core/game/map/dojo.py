@@ -194,7 +194,7 @@ class Ranking:
         submit_error_flag = stream.read_bool()
 
         if game_version >= 140500:
-            # game seems to do more that just this, may break in the future
+
             other = stream.read_string()
         else:
             other = None
@@ -226,7 +226,7 @@ class Ranking:
         stream.write_bool(self.should_show_start_message)
         stream.write_bool(self.submit_error_flag)
         if game_version >= 140500:
-            # game seems to do more that just this, may break in the future
+
             stream.write_string(self.other or "")
 
     def read_did_win_rewards(self, stream: core.Data):

@@ -227,7 +227,7 @@ class TalentData:
         talent_data_cat = self.get_cat_skill(cat.id)
         if talent_data_cat is None or cat.talents is None:
             return None
-        # save_talent_data = cat.talents
+
         talent_names: list[str] = []
         max_levels: list[int] = []
         current_levels: list[int] = []
@@ -356,60 +356,41 @@ class NyankoPictureBook:
 
 
 class EvolveItem:
-    """Represents an item used to evolve a unit."""
+
 
     def __init__(
         self,
         item_id: int,
         amount: int,
     ):
-        """Initializes a new EvolveItem object.
 
-        Args:
-            item_id (int): The ID of the item.
-            amount (int): The amount of the item.
-        """
+
         self.item_id = item_id
         self.amount = amount
 
     def __str__(self) -> str:
-        """Gets a string representation of the EvolveItem object.
 
-        Returns:
-            str: The string representation of the EvolveItem object.
-        """
+
         return f"{self.item_id}:{self.amount}"
 
     def __repr__(self) -> str:
-        """Gets a string representation of the EvolveItem object.
 
-        Returns:
-            str: The string representation of the EvolveItem object.
-        """
+
         return str(self)
 
 
 class EvolveItems:
-    """Represents the items used to evolve a unit."""
+
 
     def __init__(self, evolve_items: list[EvolveItem]):
-        """Initializes a new EvolveItems object.
 
-        Args:
-            evolve_items (list[EvolveItem]): The items used to evolve a unit.
-        """
+
         self.evolve_items = evolve_items
 
     @staticmethod
     def from_unit_buy_list(raw_data: core.Row, start_index: int) -> EvolveItems:
-        """Creates a new EvolveItems object from a row from unitbuy.csv.
 
-        Args:
-            raw_data (core.Row): The row from unitbuy.csv.
 
-        Returns:
-            EvolveItems: The EvolveItems object.
-        """
         items: list[EvolveItem] = []
         for i in range(5):
             item_id = raw_data[start_index + i * 2].to_int()

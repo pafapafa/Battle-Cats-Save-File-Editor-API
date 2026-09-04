@@ -179,7 +179,7 @@ class BattleItems:
     def read_endless_items(self, stream: core.Data):
         for i in range(6):
             if i >= len(self.items):
-                _ = EndlessItem.read(stream)  # ensure we still read 6 items
+                _ = EndlessItem.read(stream)
             else:
                 item = self.items[i]
                 item.read_endless_items(stream)
@@ -187,7 +187,7 @@ class BattleItems:
     def write_endless_items(self, stream: core.Data):
         for i in range(6):
             if i >= len(self.items):
-                EndlessItem.init().write(stream)  # ensure we still write 6 items
+                EndlessItem.init().write(stream)
             else:
                 item = self.items[i]
                 item.write_endless_items(stream)

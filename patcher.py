@@ -1,6 +1,5 @@
-"""Legacy Python imports backed by the typed engine. Requires Flask app context."""
 from editor_engine import apply_operations
-from editor_legacy import legacy_to_operations
+from editor_transfer import transfer_to_operations
 from bcsfe_runtime import core, scoped_runtime
 INT32_MAX=2**31-1
 
@@ -19,7 +18,7 @@ def download_ponos_save(tc,cc,country='kr'):
 
 def patch_and_upload_save(sf,sh,**payload):
     from editor_api import APIProblem, b64, confirmed_codes, handler
-    operations=legacy_to_operations(payload)
+    operations=transfer_to_operations(payload)
     original=sf.to_data().data
     with scoped_runtime():
         if operations:

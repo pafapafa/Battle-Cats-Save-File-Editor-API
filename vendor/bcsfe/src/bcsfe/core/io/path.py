@@ -5,7 +5,7 @@ import shutil
 
 from bcsfe import core, __app_name__
 import re
-import sys  # type: ignore maybe fix issue with windows not creating dirs, idk someone said this on stackoverflow
+import sys
 
 
 class Path:
@@ -28,7 +28,7 @@ class Path:
     def open(self):
         self.generate_dirs()
         if os.name == "nt":
-            os.startfile(self.path)  # type: ignore
+            os.startfile(self.path)
         elif os.name == "posix":
             cmd = f"dbus-send --session --dest=org.freedesktop.FileManager1 --type=method_call --print-reply /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:'file://{self.path}' string:''"
             core.Command(cmd, display_output=False).run_in_thread()
@@ -40,7 +40,7 @@ class Path:
     def open_file(self):
         os_name = os.name
         if os_name == "nt":
-            os.startfile(self.path)  # type: ignore
+            os.startfile(self.path)
         elif os_name == "posix":
             cmd = f"xdg-open {self.path}"
             core.Command(cmd, display_output=False).run_in_thread()
@@ -81,7 +81,7 @@ class Path:
             else:
                 path = Path.join(data_home, __app_name__)
 
-            # migrate old data
+
             if path.is_empty():
                 orig = Path.join(os.environ["HOME"], "Documents", __app_name__)
                 orig.copy(path)
@@ -103,7 +103,7 @@ class Path:
             path = Path.join(data_home, __app_name__)
         path.generate_dirs()
 
-        # migrate from old Documents location
+
         if path.is_empty():
             orig = Path.join(
                 os.environ["HOME"], "Documents", __app_name__, "config.yaml"
@@ -124,7 +124,7 @@ class Path:
             path = Path.join(data_home, __app_name__)
         path.generate_dirs()
 
-        # no need to migrate log file really
+
         return path
 
     def is_empty(self) -> bool:

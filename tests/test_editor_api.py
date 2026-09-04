@@ -1,4 +1,3 @@
-"""HTTP behavior, binary persistence, transport failures and backup recovery."""
 import base64
 import copy
 import datetime
@@ -178,7 +177,7 @@ class EditorHTTPTests(unittest.TestCase):
         r=self.post('/v2/save/from-transfer',{'transfer_code':'abc','confirmation_code':'1234'})
         self.assertEqual(r.status_code,422,r.json)
         self.assertEqual(base64.b64decode(r.json['backup_base64']),b'unsupported-save-bytes'*4)
-    def test_legacy_exception_after_reception_returns_recovery(self):
+    def test_transfer_exception_after_reception_returns_recovery(self):
         app.config['EDITOR_RECEIVE_FACTORY']=lambda *args:self.receive(self.raw)
         for endpoint in ('/info','/edit'):
             with self.subTest(endpoint=endpoint),patch.object(FakeHandler,'raise_method','password'):
@@ -187,11 +186,11 @@ class EditorHTTPTests(unittest.TestCase):
                 self.assertEqual(base64.b64decode(r.json['backup_base64']),self.raw)
                 self.assertFalse(r.json['retry_safe'])
 
-    def test_legacy_rejects_bad_payload_before_consuming_transfer(self):
+    def test_transfer_rejects_bad_payload_before_consuming_transfer(self):
         called=[];app.config['EDITOR_RECEIVE_FACTORY']=lambda *args:called.append(args)
         r=self.post('/edit',{'tc':'abc','cc':'1234','catamins':True})
         self.assertEqual(r.status_code,422,r.json);self.assertEqual(called,[])
-    def test_legacy_success_and_failed_upload_preserve_only_requested_edit(self):
+    def test_transfer_success_and_failed_upload_preserve_only_requested_edit(self):
         app.config['EDITOR_RECEIVE_FACTORY']=lambda *args:self.receive(self.raw)
         data={'tc':'abc','cc':'1234','country':'kr','xp':0}
         r=self.post('/edit',data);self.assertEqual(r.status_code,200,r.json)

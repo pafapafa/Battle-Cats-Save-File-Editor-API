@@ -7,15 +7,11 @@ from bcsfe.cli import color
 
 
 class PropertySet:
-    """Represents a set of properties in a property file."""
+
 
     def __init__(self, locale: str, property: str):
-        """Initializes a new instance of the PropertySet class.
 
-        Args:
-            locale (str): Language code of the locale.
-            property (str): Name of the property file.
-        """
+
         self.locale = locale
         self.property = property
         self.path = LocalManager.get_locale_folder(locale).add(property + ".properties")
@@ -23,11 +19,8 @@ class PropertySet:
         self.parse()
 
     def parse(self):
-        """Parses the property file.
 
-        Raises:
-            KeyError: If a key is already defined in the property file.
-        """
+
         lines = self.path.read().to_str().splitlines()
         i = 0
         in_multi_line = False
@@ -49,7 +42,7 @@ class PropertySet:
                 if line.startswith(">"):
                     multi_line_text += line[1:]
                 else:
-                    multi_line_text = multi_line_text[:-1]  # remove extra newline
+                    multi_line_text = multi_line_text[:-1]
                 self.properties[multi_line_key] = (multi_line_text, self.property)
                 multi_line_text = ""
                 multi_line_key = ""
@@ -74,42 +67,27 @@ class PropertySet:
             i += 1
 
     def get_key(self, key: str) -> str:
-        """Gets a key from the property file.
 
-        Args:
-            key (str): Key to get.
 
-        Returns:
-            str: Value of the key.
-        """
         return (
             self.properties.get(key, key)[0].replace("\\n", "\n").replace("\\t", "\t")
         )
 
     @staticmethod
     def from_config(property: str) -> PropertySet:
-        """Gets a PropertySet from the language code in the config.
 
-        Args:
-            property (str): Name of the property file.
 
-        Returns:
-            PropertySet: PropertySet for the property file.
-        """
         return PropertySet(
             core.core_data.config.get_str(core.ConfigKey.LOCALE), property
         )
 
 
 class LocalManager:
-    """Manages properties for a locale"""
+
 
     def __init__(self, locale: str | None = None):
-        """Initializes a new instance of the LocalManager class.
 
-        Args:
-            locale (str): Language code of the locale.
-        """
+
         if locale is None:
             lc = core.core_data.config.get_str(core.ConfigKey.LOCALE)
         else:
@@ -253,7 +231,7 @@ class LocalManager:
         ]
 
     def parse(self):
-        """Parses all property files in the locale folder recursively."""
+
         for file in self.path.glob("**/*.properties", recursive=True):
             file_name = file.strip_path_from(self.path).path
             property_set = PropertySet(self.locale, file_name[:-11])
@@ -274,14 +252,8 @@ class LocalManager:
                 self.en_properties.update(property_set.properties)
 
     def get_key(self, key: str, escape: bool = True, **kwargs: Any) -> str:
-        """Gets a key from the property file.
 
-        Args:
-            key (str): Key to get.
 
-        Returns:
-            str: Value of the key.
-        """
         try:
             text = self.get_key_recursive(key, kwargs, escape)
         except RecursionError:
@@ -440,7 +412,7 @@ class LocalManager:
         if value is None:
             value = self.en_properties.get(key, (key, key))
         value = value[0].replace("\\n", "\n").replace("\\t", "\t")
-        # replace {{key}} with the value of the key
+
         if "{{" not in value:
             return value
         char_index = 0
@@ -463,14 +435,8 @@ class LocalManager:
 
     @staticmethod
     def get_all_aliases(value: str) -> list[str]:
-        """Gets all aliases from a string. Aliases are separated by |.
 
-        Args:
-            value (str): String to get aliases from.
 
-        Returns:
-            list[str]: List of aliases.
-        """
         if "|" not in value:
             return [value]
         i = 0
@@ -489,19 +455,13 @@ class LocalManager:
 
     @staticmethod
     def from_config() -> LocalManager:
-        """Gets a LocalManager from the language code in the config.
 
-        Returns:
-            LocalManager: LocalManager for the locale.
-        """
+
         return LocalManager(core.core_data.config.get_str(core.ConfigKey.LOCALE))
 
     def check_duplicates(self):
-        """Checks for duplicate keys in all property files.
 
-        Raises:
-            KeyError: If a key is already defined in the property file.
-        """
+
         keys: set[str] = set()
         for property in self.properties.values():
             for key in property.properties.keys():
@@ -511,11 +471,8 @@ class LocalManager:
 
     @staticmethod
     def get_all_locales() -> list[str]:
-        """Gets all locales in the locales folder.
 
-        Returns:
-            list[str]: List of locales.
-        """
+
         locales: list[str] = []
         for folder in LocalManager.get_locales_folder().get_dirs():
             locales.append(folder.basename())
@@ -525,43 +482,28 @@ class LocalManager:
 
     @staticmethod
     def get_locales_folder() -> core.Path:
-        """Gets the locales folder.
 
-        Returns:
-            core.Path: Path to the locales folder.
-        """
+
         return core.Path.get_data_folder().add("locales")
 
     @staticmethod
     def get_external_locales_folder() -> core.Path:
-        """Gets the external locales folder.
 
-        Returns:
-            core.Path: Path to the external locales folder.
-        """
+
         return core.Path.get_data_folder().add("external_locales")
 
     @staticmethod
     def get_locale_folder(locale: str) -> core.Path:
-        """Gets the folder for a locale.
 
-        Args:
-            locale (str): Language code of the locale.
 
-        Returns:
-            core.Path: Path to the locale folder.
-        """
         if locale.startswith("ext-"):
             return LocalManager.get_external_locales_folder().add(locale)
         return LocalManager.get_locales_folder().add(locale)
 
     @staticmethod
     def remove_locale(locale: str):
-        """Removes a locale.
 
-        Args:
-            locale (str): Language code of the locale.
-        """
+
         if locale not in LocalManager.get_all_locales():
             return
         if locale.startswith("ext-"):
@@ -677,11 +619,8 @@ class ExternalLocaleManager:
     def save_locale(
         external_locale: ExternalLocale,
     ):
-        """Saves an external locale.
 
-        Args:
-            external_locale (ExternalLocale): External locale to save.
-        """
+
         if external_locale.git_repo is None:
             return
         folder = LocalManager.get_external_locales_folder().add(
@@ -703,14 +642,8 @@ class ExternalLocaleManager:
 
     @staticmethod
     def parse_external_locale(path: core.Path) -> ExternalLocale | None:
-        """Parses an external locale.
 
-        Args:
-            path (core.Path): Path to the external locale.
 
-        Returns:
-            ExternalLocale: External locale.
-        """
         if not path.exists():
             return None
         json_data = core.JsonFile.from_data(path.add("locale.json").read()).as_object()
@@ -718,11 +651,8 @@ class ExternalLocaleManager:
 
     @staticmethod
     def update_external_locale(external_locale: ExternalLocale):
-        """Updates an external locale.
 
-        Args:
-            external_locale (ExternalLocale): External locale to update.
-        """
+
         if external_locale.git_repo is None:
             return
         color.color_print_key(
@@ -746,7 +676,7 @@ class ExternalLocaleManager:
 
     @staticmethod
     def update_all_external_locales(_: Any = None):
-        """Updates all external locales."""
+
         dirs = LocalManager.get_external_locales_folder().get_dirs()
         if not dirs:
             color.color_print_key(
@@ -766,11 +696,7 @@ class ExternalLocaleManager:
 
     @staticmethod
     def get_external_locale_config() -> ExternalLocale | None:
-        """Gets the external locale from the config.
 
-        Returns:
-            ExternalLocale: External locale.
-        """
 
         locale = core.core_data.config.get_str(core.ConfigKey.LOCALE)
         if not locale.startswith("ext-"):
@@ -781,11 +707,7 @@ class ExternalLocaleManager:
 
     @staticmethod
     def get_external_locale(locale: str) -> ExternalLocale | None:
-        """Gets the external locale from the code.
 
-        Returns:
-            ExternalLocale: External locale.
-        """
 
         if not locale.startswith("ext-"):
             return None

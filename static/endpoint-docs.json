@@ -36,9 +36,9 @@
       "description": "Inspect available static tables, manage verified cache entries, and read defaults."
     },
     {
-      "id": "legacy",
-      "title": "Legacy compatibility",
-      "description": "Transfer-based compatibility routes using existing field names."
+      "id": "transfer-editing",
+      "title": "Transfer workflows",
+      "description": "Receive account transfers, inspect their saves, or edit and issue replacement codes."
     }
   ],
   "endpoints": {
@@ -415,7 +415,7 @@
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
         "Returns 201 only after the immutable private template is stored. Requires the server-side JSONBin key.",
         "Multipart alternative: file=@account.save, country_code=auto, name=Starter. Name defaults to Backup and must be 1–100 characters after trimming.",
-        "country_code defaults to kr for compatibility; auto detects kr/en/jp/tw from the original checksum. The response stores the actual region.",
+        "country_code defaults to kr; auto detects kr/en/jp/tw from the original checksum. The response stores the actual region.",
         "clone_ready=false permits storage and download, but copy issuance will fail its serialization check."
       ],
       "example": {
@@ -487,7 +487,7 @@
     },
     "POST /v1/templates/{template_id}/clones": {
       "category": "issuance",
-      "description": "Experimental upstream account creation. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.",
+      "description": "Requests account creation using the BCSFE transport. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
         "Creates a separate game account and requests transfer codes from an immutable template. Source template bytes remain unchanged.",
@@ -686,12 +686,12 @@
       }
     },
     "POST /info": {
-      "category": "legacy",
+      "category": "transfer-editing",
       "description": "Consumes the supplied transfer code, refreshes credentials, and returns resource totals plus original/current Base64 saves. It does not issue replacement codes. Prefer /v2/save/inspect for file-only reads.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
         "Transfer aliases: transfer_code/tc, confirmation_code/confirmation_pin/cc, country_code/country/cc_str. cc is the PIN, not a region.",
-        "Conflicting aliases and extra fields fail. Uses game_version=150500; game_version is not an accepted legacy input.",
+        "Conflicting aliases and extra fields fail. Uses game_version=150500; game_version is not an accepted transfer input.",
         "Consumes the transfer code and returns refreshed save data. Does not issue replacement codes."
       ],
       "example": {
@@ -721,14 +721,14 @@
       }
     },
     "POST /edit": {
-      "category": "legacy",
-      "description": "Converts legacy fields to typed edits, receives the transfer, applies edits, runs requested remote flags, and requests replacement transfer codes. Consumes the input code. Preserve returned recovery bytes and do not automatically repeat uncertain requests. Changes are limited to 1,000 entries; change_count is the full count.",
+      "category": "transfer-editing",
+      "description": "Converts transfer-edit fields to typed edits, receives the transfer, applies edits, runs requested remote flags, and requests replacement transfer codes. Consumes the input code. Preserve returned recovery bytes and do not automatically repeat uncertain requests. Changes are limited to 1,000 entries; change_count is the full count.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
         "Requires an effective edit or unban_account/upload_items=true. False flags do not count as edits.",
         "enable_safety defaults to false; actual save-format and metadata bounds still apply. Unknown fields and invalid types are rejected rather than silently ignored.",
-        "See LegacyEditRequest in OpenAPI for every accepted top-level key and LEGACY.md for nested alternatives, aliases, and conversion rules.",
-        "Consumes the original transfer and uploads the result to issue replacement codes. Changes are truncated at 1,000 entries; this legacy response has no changes_truncated flag."
+        "See TransferEditRequest in OpenAPI for every accepted top-level key and TRANSFERS.md for nested alternatives, aliases, and conversion rules.",
+        "Consumes the original transfer and uploads the result to issue replacement codes. Changes are truncated at 1,000 entries; this transfer-edit response has no changes_truncated flag."
       ],
       "example": {
         "transfer_code": "SOURCE123",

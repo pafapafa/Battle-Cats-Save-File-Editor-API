@@ -1,4 +1,3 @@
-"""Immutable encrypted records in private JSONBin bins; not a distributed order lock."""
 from __future__ import annotations
 import base64
 import hashlib
@@ -109,7 +108,7 @@ class JSONBinStore:
                 chunk_ids.append(self.create_bin({'format': 'bcsfe-chunk-v1',
                     'payload': token[offset:offset + CHUNK_SIZE]}, 'bcsfe-chunk-' + uuid.uuid4().hex))
             root = {'format': 'bcsfe-manifest-v1', 'payload': self.seal({'chunks': chunk_ids})}
-        # No source bin is ever updated. The root is created after all chunks.
+
         return self.create_bin(root, name)
 
     def load(self, bin_id, kind):

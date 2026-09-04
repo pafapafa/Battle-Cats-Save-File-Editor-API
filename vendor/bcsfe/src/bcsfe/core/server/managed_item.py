@@ -10,14 +10,14 @@ from bcsfe import core
 
 
 class DetailType(Enum):
-    """Enum for the different types of details."""
+
 
     GET = "get"
     USE = "use"
 
 
 class ManagedItemType(Enum):
-    """Enum for the different types of managed items."""
+
 
     CATFOOD = "catfood"
     RARE_TICKET = "rareTicket"
@@ -26,7 +26,7 @@ class ManagedItemType(Enum):
 
 
 class ManagedItem:
-    """Managed item for backupmetadata"""
+
 
     def __init__(
         self,
@@ -50,7 +50,7 @@ class ManagedItem:
     def from_change(
         change: int, managed_item_type: ManagedItemType
     ) -> ManagedItem:
-        """Create a managed item from a change."""
+
         if change > 0:
             detail_type = DetailType.GET
         else:
@@ -59,7 +59,7 @@ class ManagedItem:
         return managed_item
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert the managed item to a dictionary."""
+
 
         data = {
             "amount": self.amount,
@@ -71,7 +71,7 @@ class ManagedItem:
         return data
 
     def to_short_form(self) -> str:
-        """Convert the managed item to a short form."""
+
 
         return f"{self.amount}_{self.detail_created_at}_{self.managed_item_type.value}_{self.detail_type.value}"
 
@@ -151,7 +151,7 @@ class BackupMetaData:
     def create(
         self, save_key: str | None = None, add_managed_items: bool = True
     ) -> str:
-        """Create the backup metadata."""
+
 
         return BackupMetaData.create_static(
             self.save_file.inquiry_code,

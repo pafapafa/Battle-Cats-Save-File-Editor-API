@@ -15,8 +15,8 @@ class Updater:
 
     def get_pypi_json(self) -> dict[str, Any] | None:
         url = f"https://pypi.org/pypi/{__app_name__}/json"
-        # add a User-Agent since pypi started to block the default requests user-agent
-        # this probably won't be needed in the future as i assume this block is temporary
+
+
         response = core.RequestHandler(
             url, headers={"User-Agent": "BCSFE-Updater"}
         ).get()

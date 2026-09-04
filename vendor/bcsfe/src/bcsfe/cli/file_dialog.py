@@ -30,14 +30,11 @@ class FileDialog:
                 return
 
             self.root.withdraw()
-            self.root.wm_attributes("-topmost", 1)  # type: ignore
+            self.root.wm_attributes("-topmost", 1)
 
     def select_files_in_dir(self, path: core.Path, ignore_json: bool) -> str | None:
-        """Print current files in directory.
 
-        Args:
-            path (core.Path): Path to directory.
-        """
+
         color.color_print_key("current_files_dir", dir=path)
         path.generate_dirs()
         files = path.get_files()
@@ -46,7 +43,7 @@ class FileDialog:
 
         files.sort(key=lambda file: file.basename())
 
-        # remove files with .json extension
+
         if ignore_json:
             files = [file for file in files if file.get_extension() != "json"]
 
@@ -108,7 +105,7 @@ class FileDialog:
             return None
 
         return (
-            self.filedialog.askopenfilename(  # type: ignore
+            self.filedialog.askopenfilename(
                 title=title,
                 filetypes=filetypes,
                 initialdir=initialdir,
@@ -124,17 +121,8 @@ class FileDialog:
         initialfile: str,
         filetypes: list[tuple[str, str]] | None = None,
     ) -> str | None:
-        """Save file dialog
 
-        Args:
-            title (str): Title of dialog.
-            filetypes (list[tuple[str, str]] | None, optional): File types. Defaults to None.
-            initialdir (str, optional): Initial directory. Defaults to "".
-            initialfile (str, optional): Initial file. Defaults to "".
 
-        Returns:
-            str | None: Path to file.
-        """
         if filetypes is None:
             filetypes = []
         title = core.core_data.local_manager.get_key(title)
@@ -144,7 +132,7 @@ class FileDialog:
             path = color.color_input_key("enter_path_default", default=def_path)
             return path.strip().strip("'").strip('"') if path else def_path
         return (
-            self.filedialog.asksaveasfilename(  # type: ignore
+            self.filedialog.asksaveasfilename(
                 title=title,
                 filetypes=filetypes,
                 initialdir=initialdir,

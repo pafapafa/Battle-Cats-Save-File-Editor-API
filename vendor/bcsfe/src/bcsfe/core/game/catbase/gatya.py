@@ -255,7 +255,7 @@ class GatyaInfo:
         data = self.get_data()
         if data is None:
             return None
-        # find <h2>...</h2>
+
         data = data.get_bytes()
         h2 = data.find(b"<h2>")
         if h2 == -1:
@@ -264,7 +264,7 @@ class GatyaInfo:
         if h2_end == -1:
             return None
         text = data[h2 + 4 : h2_end].decode("utf-8")
-        # remove <span...</span>
+
         span = text.find("<span")
         if span == -1:
             return text
@@ -397,7 +397,7 @@ class GatyaDataOption:
     @staticmethod
     def from_csv(csv: core.CSV) -> GatyaDataOption:
         sets: list[GatyaDataOptionSet] = []
-        csv.read_line()  # skip headers
+        csv.read_line()
         for row in csv:
             sets.append(GatyaDataOptionSet.from_csv_row(row))
 

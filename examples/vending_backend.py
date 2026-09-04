@@ -1,8 +1,3 @@
-"""Use on a persistent vending backend, never Vercel's temporary filesystem.
-
-One durable SQLite order database must be shared by every worker using this helper.
-For multiple machines, use your existing transactional order database instead.
-"""
 from contextlib import contextmanager
 import json
 import sqlite3
@@ -38,7 +33,7 @@ def issue_once(api_url, token, template_id, order_id, db_path, session=None):
             if status == 'issued':
                 return json.loads(result)
             raise OrderNeedsAttention('Order is pending or uncertain; inspect it without issuing again.')
-    # The unique order reservation is committed before the external side effect.
+
     client = session or requests
     try:
         response = client.post(api_url.rstrip('/') + '/v1/templates/' + template_id + '/clones',

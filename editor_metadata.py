@@ -1,4 +1,3 @@
-"""Headless, bounded metadata reads for the unchanged vendored BCSFE runtime."""
 from __future__ import annotations
 
 from io import BytesIO
@@ -25,7 +24,7 @@ MARKER_FORMAT = "bcsfe-api-metadata-v1"
 
 
 class MetadataError(ValueError):
-    """A metadata operation failed without asking for terminal input."""
+    pass
 
 
 def _https_url(url):
@@ -43,7 +42,7 @@ def _public_source(url):
 
 
 def _read_url(url, maximum):
-    """Follow bounded HTTPS redirects; never log bodies, credentials or URLs."""
+
     url = _https_url(url)
     try:
         for redirect in range(4):
@@ -89,8 +88,8 @@ def _validated_metadata(data, source):
             _version_number(version)
             if not isinstance(archive_path, str) or not archive_path or len(archive_path) > 2048:
                 raise MetadataError("Metadata archive path is invalid")
-            # Archives must stay under the declared base URL. No alternate host,
-            # traversal, query, backslash or fragment is accepted from the index.
+
+
             parsed = urlsplit(archive_path)
             if parsed.scheme or parsed.netloc or parsed.query or parsed.fragment or "\\" in archive_path or ".." in PurePosixPath(archive_path).parts:
                 raise MetadataError("Metadata archive path escapes its source")
@@ -125,7 +124,7 @@ def _get_version(self, versions, cc):
 
 
 def _within(root, path):
-    """Resolve the final absolute Windows/Unix path before any move/removal."""
+
     root = Path(root).resolve()
     path = Path(path).resolve()
     if path == root or not path.is_relative_to(root):
@@ -243,8 +242,8 @@ def _extract_archive(data, destination, marker):
 def _download_version_data(self):
     if _has_downloaded(self):
         return True
-    # A cached exact version may have left the upstream constructor without a
-    # URL. Resolve it again if its API completion marker is absent or invalid.
+
+
     if self.url is None or self.filepath is None:
         self.metadata = _get_metadata()
         self.all_versions = core.GameDataGetter.get_versions(self.metadata)
@@ -330,7 +329,7 @@ def _downloaded_versions_region(cc):
 
 
 def install_headless_metadata():
-    """Install once after CoreData initialization; never edit the vendor files."""
+
     cls = core.GameDataGetter
     if getattr(cls, "_api_headless_installed", False):
         return
@@ -367,7 +366,7 @@ def prepare_metadata(country_code: str, game_version: int):
 
 
 def delete_metadata(country_code: str, game_version: int | None = None):
-    """Delete only verified API-owned cached versions; preserve unknown entries."""
+
     if type(country_code) is not str or country_code not in core.CountryCode.get_all_str():
         raise MetadataError("country_code must be en, jp, kr or tw")
     if game_version is not None and (type(game_version) is not int or not 1 <= game_version <= 999999):
@@ -403,7 +402,7 @@ def delete_metadata(country_code: str, game_version: int | None = None):
         planned.append((entry.name, resolved))
     deleted = []
     for version, path in planned:
-        # Validate both ownership boundaries again immediately before recursion.
+
         _within(owned, path)
         resolved = _within(region, path)
         try:

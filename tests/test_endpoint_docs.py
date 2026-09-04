@@ -1,4 +1,3 @@
-"""Endpoint documentation must track real routes, payloads and response formats."""
 import copy
 import json
 import re
@@ -93,7 +92,7 @@ class EndpointDocsTests(unittest.TestCase):
                 data = {**self.fixture.payload, 'operations': [{'action': 'items.xp', 'args': {'value': 4321}}], 'output': output}
                 self.documented_response('/v2/save/edit', 'post', self.fixture.post('/v2/save/edit', data))
 
-    def test_actual_account_and_legacy_success_and_recovery_responses(self):
+    def test_actual_account_and_transfer_success_and_recovery_responses(self):
         app.config['EDITOR_RECEIVE_FACTORY'] = lambda *args: self.fixture.receive(self.fixture.raw)
         for path, payload in [
             ('/v2/save/from-transfer', {'transfer_code': 'SOURCE123', 'confirmation_code': '1234'}),

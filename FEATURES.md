@@ -271,7 +271,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.save_save`.
 | Implementation | Implemented (`implemented`) |
 | Edit actions | None |
 | HTTP endpoints | `POST /v2/save/upload` |
-| Source | [src/bcsfe/cli/save_management.py:66](vendor/bcsfe/src/bcsfe/cli/save_management.py#L66) |
+| Source | [src/bcsfe/cli/save_management.py:57](vendor/bcsfe/src/bcsfe/cli/save_management.py#L57) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.save_upload`.
 
@@ -287,7 +287,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.save_upload`.
 | Implementation | Adapted to HTTP (`adapted`) |
 | Edit actions | None |
 | HTTP endpoints | `POST /v2/save/download` |
-| Source | [src/bcsfe/cli/save_management.py:38](vendor/bcsfe/src/bcsfe/cli/save_management.py#L38) |
+| Source | [src/bcsfe/cli/save_management.py:35](vendor/bcsfe/src/bcsfe/cli/save_management.py#L35) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.save_save_dialog`.
 
@@ -303,7 +303,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.save_save_dialog`.
 | Implementation | Adapted to HTTP (`adapted`) |
 | Edit actions | None |
 | HTTP endpoints | `POST /v2/save/download` |
-| Source | [src/bcsfe/cli/save_management.py:54](vendor/bcsfe/src/bcsfe/cli/save_management.py#L54) |
+| Source | [src/bcsfe/cli/save_management.py:48](vendor/bcsfe/src/bcsfe/cli/save_management.py#L48) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.save_save_data_dir`.
 
@@ -319,7 +319,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.save_save_data_dir`
 | Implementation | Unavailable on Vercel (`unavailable_in_vercel`) |
 | Edit actions | None |
 | HTTP endpoints | None |
-| Source | [src/bcsfe/cli/save_management.py:118](vendor/bcsfe/src/bcsfe/cli/save_management.py#L118) |
+| Source | [src/bcsfe/cli/save_management.py:100](vendor/bcsfe/src/bcsfe/cli/save_management.py#L100) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.adb_push`.
 
@@ -335,7 +335,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.adb_push`.
 | Implementation | Unavailable on Vercel (`unavailable_in_vercel`) |
 | Edit actions | None |
 | HTTP endpoints | None |
-| Source | [src/bcsfe/cli/save_management.py:199](vendor/bcsfe/src/bcsfe/cli/save_management.py#L199) |
+| Source | [src/bcsfe/cli/save_management.py:169](vendor/bcsfe/src/bcsfe/cli/save_management.py#L169) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.adb_push_rerun`.
 
@@ -351,7 +351,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.adb_push_rerun`.
 | Implementation | Unavailable on Vercel (`unavailable_in_vercel`) |
 | Edit actions | None |
 | HTTP endpoints | None |
-| Source | [src/bcsfe/cli/save_management.py:162](vendor/bcsfe/src/bcsfe/cli/save_management.py#L162) |
+| Source | [src/bcsfe/cli/save_management.py:138](vendor/bcsfe/src/bcsfe/cli/save_management.py#L138) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.root_push`.
 
@@ -367,7 +367,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.root_push`.
 | Implementation | Unavailable on Vercel (`unavailable_in_vercel`) |
 | Edit actions | None |
 | HTTP endpoints | None |
-| Source | [src/bcsfe/cli/save_management.py:217](vendor/bcsfe/src/bcsfe/cli/save_management.py#L217) |
+| Source | [src/bcsfe/cli/save_management.py:184](vendor/bcsfe/src/bcsfe/cli/save_management.py#L184) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.root_push_rerun`.
 
@@ -383,7 +383,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.root_push_rerun`.
 | Implementation | Implemented (`implemented`) |
 | Edit actions | None |
 | HTTP endpoints | `POST /v2/save/export` |
-| Source | [src/bcsfe/cli/save_management.py:235](vendor/bcsfe/src/bcsfe/cli/save_management.py#L235) |
+| Source | [src/bcsfe/cli/save_management.py:199](vendor/bcsfe/src/bcsfe/cli/save_management.py#L199) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.export_save`.
 
@@ -398,7 +398,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.export_save`.
 | Implementation | Adapted to HTTP (`adapted`) |
 | Edit actions | None |
 | HTTP endpoints | `POST /v2/save/inspect`; `POST /v2/save/import`; `POST /v2/save/from-transfer` |
-| Source | [src/bcsfe/cli/save_management.py:488](vendor/bcsfe/src/bcsfe/cli/save_management.py#L488) |
+| Source | [src/bcsfe/cli/save_management.py:439](vendor/bcsfe/src/bcsfe/cli/save_management.py#L439) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.load_save`.
 
@@ -416,7 +416,7 @@ Change the save's country code through BCSFE set_cc.
 | Implementation | Adapted to HTTP (`adapted`) |
 | Edit actions | [save.region](https://battle-cats-save-file-editor-api.vercel.app/docs#reference?view=actions&entry=save.region) |
 | HTTP endpoints | `POST /v2/save/edit`; `POST /v2/account/convert-region` |
-| Source | [src/bcsfe/cli/save_management.py:504](vendor/bcsfe/src/bcsfe/cli/save_management.py#L504) |
+| Source | [src/bcsfe/cli/save_management.py:452](vendor/bcsfe/src/bcsfe/cli/save_management.py#L452) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.convert_save_cc`.
 
@@ -435,7 +435,7 @@ Change the version used to serialize the save.
 | Implementation | Implemented (`implemented`) |
 | Edit actions | [save.version](https://battle-cats-save-file-editor-api.vercel.app/docs#reference?view=actions&entry=save.version) |
 | HTTP endpoints | `POST /v2/save/edit` |
-| Source | [src/bcsfe/cli/save_management.py:516](vendor/bcsfe/src/bcsfe/cli/save_management.py#L516) |
+| Source | [src/bcsfe/cli/save_management.py:464](vendor/bcsfe/src/bcsfe/cli/save_management.py#L464) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.convert_save_gv`.
 
@@ -711,7 +711,7 @@ Set talent-orb inventory counts by exact orb ID or by metadata component filters
 | Implementation | Implemented (`implemented`) |
 | Edit actions | [cats.orbs](https://battle-cats-save-file-editor-api.vercel.app/docs#reference?view=actions&entry=cats.orbs) |
 | HTTP endpoints | `POST /v2/save/edit` |
-| Source | [src/bcsfe/core/game/catbase/talent_orbs.py:703](vendor/bcsfe/src/bcsfe/core/game/catbase/talent_orbs.py#L703) |
+| Source | [src/bcsfe/core/game/catbase/talent_orbs.py:595](vendor/bcsfe/src/bcsfe/core/game/catbase/talent_orbs.py#L595) |
 
 Original function: `bcsfe.core.game.catbase.talent_orbs.SaveOrbs.edit_talent_orbs`.
 
@@ -879,7 +879,7 @@ Set story chapter clear counts or exact chapter progress.
 | Implementation | Implemented (`implemented`) |
 | Edit actions | [stages.story](https://battle-cats-save-file-editor-api.vercel.app/docs#reference?view=actions&entry=stages.story) |
 | HTTP endpoints | `POST /v2/save/edit` |
-| Source | [src/bcsfe/core/game/map/story.py:556](vendor/bcsfe/src/bcsfe/core/game/map/story.py#L556) |
+| Source | [src/bcsfe/core/game/map/story.py:547](vendor/bcsfe/src/bcsfe/core/game/map/story.py#L547) |
 
 Original function: `bcsfe.core.game.map.story.StoryChapters.clear_story`.
 
@@ -988,7 +988,7 @@ Set treasure levels on selected story stages or treasure groups.
 | Implementation | Implemented (`implemented`) |
 | Edit actions | [stages.treasures](https://battle-cats-save-file-editor-api.vercel.app/docs#reference?view=actions&entry=stages.treasures) |
 | HTTP endpoints | `POST /v2/save/edit` |
-| Source | [src/bcsfe/core/game/map/story.py:908](vendor/bcsfe/src/bcsfe/core/game/map/story.py#L908) |
+| Source | [src/bcsfe/core/game/map/story.py:899](vendor/bcsfe/src/bcsfe/core/game/map/story.py#L899) |
 
 Original function: `bcsfe.core.game.map.story.StoryChapters.edit_treasures`.
 
@@ -1042,7 +1042,7 @@ Set Into the Future timed scores on selected stages.
 | Implementation | Implemented (`implemented`) |
 | Edit actions | [stages.itf_scores](https://battle-cats-save-file-editor-api.vercel.app/docs#reference?view=actions&entry=stages.itf_scores) |
 | HTTP endpoints | `POST /v2/save/edit` |
-| Source | [src/bcsfe/core/game/map/story.py:939](vendor/bcsfe/src/bcsfe/core/game/map/story.py#L939) |
+| Source | [src/bcsfe/core/game/map/story.py:930](vendor/bcsfe/src/bcsfe/core/game/map/story.py#L930) |
 
 Original function: `bcsfe.core.game.map.story.StoryChapters.edit_itf_timed_scores`.
 
@@ -1430,7 +1430,7 @@ Original function: `bcsfe.core.game.gamoto.cat_shrine.CatShrine.edit_catshrine`.
 | Implementation | Implemented (`implemented`) |
 | Edit actions | None |
 | HTTP endpoints | `POST /v2/account/new` |
-| Source | [src/bcsfe/cli/save_management.py:90](vendor/bcsfe/src/bcsfe/cli/save_management.py#L90) |
+| Source | [src/bcsfe/cli/save_management.py:78](vendor/bcsfe/src/bcsfe/cli/save_management.py#L78) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.unban_account`.
 
@@ -1446,7 +1446,7 @@ Original function: `bcsfe.cli.save_management.SaveManagement.unban_account`.
 | Implementation | Implemented (`implemented`) |
 | Edit actions | None |
 | HTTP endpoints | `POST /v2/account/upload-items` |
-| Source | [src/bcsfe/cli/save_management.py:250](vendor/bcsfe/src/bcsfe/cli/save_management.py#L250) |
+| Source | [src/bcsfe/cli/save_management.py:211](vendor/bcsfe/src/bcsfe/cli/save_management.py#L211) |
 
 Original function: `bcsfe.cli.save_management.SaveManagement.upload_items`.
 
@@ -1880,7 +1880,7 @@ Original function: `bcsfe.core.manage_game_data`.
 | Implementation | Not applicable to HTTP (`not_applicable_to_http`) |
 | Edit actions | None |
 | HTTP endpoints | None |
-| Source | [src/bcsfe/cli/main.py:266](vendor/bcsfe/src/bcsfe/cli/main.py#L266) |
+| Source | [src/bcsfe/cli/main.py:248](vendor/bcsfe/src/bcsfe/cli/main.py#L248) |
 
 Original function: `bcsfe.cli.main.Main.exit_editor`.
 
@@ -1897,4 +1897,4 @@ Every registered typed action has at least one offline real-SaveFile binary inte
 - Malformed or non-stable save round trips and edits that lose fields during serialization are rejected.
 - The original parser/serializer and game-version branches are vendored from the provided source; supported fields still depend on the input game version.
 
-Source: the user-supplied BCSFE source, version label `3.6.0`. The feature registry SHA-256 recorded in the inventory is `bddcc9232dbbe8ccb4cea4998df410e57588d5dea817f368ad535fdadfff063c`. [SOURCE_MANIFEST.json](vendor/bcsfe/SOURCE_MANIFEST.json) records the vendored source hashes. BCSFE is credited to fieryhenry and retains its GNU GPL-3.0-or-later license.
+Source: the BCSFE source snapshot, version label `3.6.0`. The feature registry SHA-256 recorded in the inventory is `16310df3c4ca96c4fbd39fa827f20d3cefd42f0690714aaa2ee81e85c50f7432`. [SOURCE_MANIFEST.json](vendor/bcsfe/SOURCE_MANIFEST.json) records both the upstream snapshot hashes and the current source hashes after removing comments and docstrings. BCSFE is credited to fieryhenry and retains its GNU GPL-3.0-or-later license.

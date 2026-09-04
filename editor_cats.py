@@ -1,9 +1,3 @@
-"""Typed, non-interactive cat editors for the vendored BCSFE models.
-
-Only the caller's working SaveFile is edited. No account transport or file I/O is
-performed. Optional CLI side effects are explicit flags rather than global config.
-Cat/slot/talent IDs are zero-based; displayed cat levels/forms are one-based.
-"""
 from __future__ import annotations
 
 import functools
@@ -44,7 +38,7 @@ SELECTION = array(SELECT_STEP)
 
 
 def validate(value, schema, path="args"):
-    """Reject unknown keys, coercions and bool-as-int even without jsonschema."""
+
     if "anyOf" in schema:
         failures = []
         for alternative in schema["anyOf"]:
@@ -128,7 +122,7 @@ def _picture_book(sf):
 
 
 def select_cats(sf, steps):
-    """Resolve all original CLI selectors; combine steps using replace/and/or."""
+
     validate(steps, SELECTION, "select")
     selected = set()
     required = {"ids": {"ids"}, "name": {"name"}, "rarity": {"rarities"}, "banner": {"ids"}, "banner_name": {"name"}}
@@ -296,7 +290,7 @@ def forms(sf, args):
 
 
 class _PowerUp(core.PowerUpHelper):
-    """Original power-up arithmetic, without the CLI's implicit auto-unlock."""
+
     def __init__(self, cat, sf, strict):
         self.strict = strict
         super().__init__(cat, sf)

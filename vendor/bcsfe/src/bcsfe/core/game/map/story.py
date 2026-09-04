@@ -303,16 +303,7 @@ class StoryChapters:
             chapter.write_treasure_festival_type(stream)
 
     def read_itf_timed_scores(self, stream: core.Data):
-        # 0: eoc 1
-        # 1: eoc 2
-        # 2: eoc 3
-        # 3: _
-        # 4: itf 1
-        # 5: itf 2
-        # 6: itf 3
-        # 7: cotc 1
-        # 8: cotc 2
-        # 9: cotc 3
+
 
         for i, chapter in enumerate(self.chapters):
             if i > 3 and i < 7:
@@ -501,28 +492,28 @@ class StoryChapters:
         8: cotc 3 - requires eoc 1 + itf 1 + cotc 1 + cotc 2
 
         """
-        if chapter_id == 1:  # eoc 2
+        if chapter_id == 1:
             chapters[0].clear_chapter()
-        elif chapter_id == 2:  # eoc 3
+        elif chapter_id == 2:
             chapters[0].clear_chapter()
             chapters[1].clear_chapter()
-        elif chapter_id == 3:  # itf 1
+        elif chapter_id == 3:
             chapters[0].clear_chapter()
-        elif chapter_id == 4:  # itf 2
+        elif chapter_id == 4:
             chapters[0].clear_chapter()
             chapters[3].clear_chapter()
-        elif chapter_id == 5:  # itf 3
+        elif chapter_id == 5:
             chapters[0].clear_chapter()
             chapters[3].clear_chapter()
             chapters[4].clear_chapter()
-        elif chapter_id == 6:  # cotc 1
+        elif chapter_id == 6:
             chapters[0].clear_chapter()
             chapters[3].clear_chapter()
-        elif chapter_id == 7:  # cotc 2
+        elif chapter_id == 7:
             chapters[0].clear_chapter()
             chapters[3].clear_chapter()
             chapters[6].clear_chapter()
-        elif chapter_id == 8:  # cotc 3
+        elif chapter_id == 8:
             chapters[0].clear_chapter()
             chapters[3].clear_chapter()
             chapters[6].clear_chapter()
@@ -887,18 +878,18 @@ class StoryChapters:
                     lambda _: StoryChapters.edit_treasure_group_ind(
                         save_file,
                         chapter_id,
-                        treasure_group_data,  # type: ignore
+                        treasure_group_data,
                         chapter,
-                        selected_treasure_groups,  # type: ignore
+                        selected_treasure_groups,
                     ),
                 )
                 .add_new_key(
                     "group_all_at_once",
                     lambda _: StoryChapters.edit_treasure_group_many(
                         save_file,
-                        treasure_group_data,  # type: ignore
+                        treasure_group_data,
                         chapter,
-                        selected_treasure_groups,  # type: ignore
+                        selected_treasure_groups,
                     ),
                 ),
                 "select_treasure_groups_individual",

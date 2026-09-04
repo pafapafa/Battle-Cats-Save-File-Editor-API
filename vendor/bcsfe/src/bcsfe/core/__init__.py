@@ -357,7 +357,7 @@ def get_game_data_path() -> Path | None:
 
 
 def update_external_content(_: Any = None):
-    """Updates external content."""
+
 
     color.color_print_key("checking_bcsfe_update", app_name=__app_name__)
     Main.check_update()

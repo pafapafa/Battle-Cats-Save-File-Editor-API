@@ -120,7 +120,7 @@ class Data:
     def __getitem__(self, key: int | slice) -> int | Data:
         if isinstance(key, int):
             return self.data[key]
-        elif isinstance(key, slice):  # type: ignore
+        elif isinstance(key, slice):
             return Data(self.data[key])
         else:
             raise TypeError("key must be int or slice")

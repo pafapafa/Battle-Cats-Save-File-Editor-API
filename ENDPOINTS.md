@@ -953,7 +953,7 @@ Synthetic response preview:
 
 - Multipart alternative: file=@account.save, country_code=auto, name=Starter. Name defaults to Backup and must be 1–100 characters after trimming.
 
-- country_code defaults to kr for compatibility; auto detects kr/en/jp/tw from the original checksum. The response stores the actual region.
+- country_code defaults to kr; auto detects kr/en/jp/tw from the original checksum. The response stores the actual region.
 
 - clone_ready=false permits storage and download, but copy issuance will fail its serialization check.
 
@@ -1093,7 +1093,7 @@ Issue account copies and retrieve attempt, issuance, and recovery records.
 
 ### `POST /v1/templates/{template_id}/clones`
 
-Issue a separate account from a template; do not auto-retry. Experimental upstream account creation. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.
+Issue a separate account from a template; do not auto-retry. Requests account creation using the BCSFE transport. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.
 
 Authentication: `TemplateToken` Bearer token.
 
@@ -1571,19 +1571,19 @@ Synthetic response preview:
 
 
 
-## Legacy compatibility
+## Transfer workflows
 
-Transfer-based compatibility routes using existing field names.
+Receive account transfers, inspect their saves, or edit and issue replacement codes.
 
 ### `POST /info`
 
-Receive a transfer and read legacy resource totals. Consumes the supplied transfer code, refreshes credentials, and returns resource totals plus original/current Base64 saves. It does not issue replacement codes. Prefer /v2/save/inspect for file-only reads.
+Receive a transfer and read resource totals. Consumes the supplied transfer code, refreshes credentials, and returns resource totals plus original/current Base64 saves. It does not issue replacement codes. Prefer /v2/save/inspect for file-only reads.
 
 Authentication: `EditorToken` Bearer token.
 
 Request body: required. Supported media types: `application/json`.
 
-Provide a transfer-code alias and a confirmation-code alias. Repeated aliases must have identical values. Uses game_version=150500; the legacy routes do not accept a game_version field.
+Provide a transfer-code alias and a confirmation-code alias. Repeated aliases must have identical values. Uses game_version=150500; the transfer routes do not accept a game_version field.
 
 | JSON field | Required | Type / behavior |
 | --- | --- | --- |
@@ -1591,7 +1591,7 @@ Provide a transfer-code alias and a confirmation-code alias. Repeated aliases mu
 | `tc` | no / conditional | string; Alias for transfer_code. |
 | `confirmation_code` | no / conditional | string; Transfer confirmation code/PIN. Aliases: confirmation_pin, cc. |
 | `confirmation_pin` | no / conditional | string; Alias for confirmation_code. |
-| `cc` | no / conditional | string; Legacy alias for confirmation_code; this field is not a region. |
+| `cc` | no / conditional | string; Alias for confirmation_code; this field is not a region. |
 | `country_code` | no / conditional | string; default "kr"; values "kr", "en", "jp", "tw"; Source region. Aliases: country, cc_str. |
 | `country` | no / conditional | string; values "kr", "en", "jp", "tw"; Alias for country_code; defaults to kr when every region alias is absent. |
 | `cc_str` | no / conditional | string; values "kr", "en", "jp", "tw"; Alias for country_code. |
@@ -1639,7 +1639,7 @@ Synthetic response preview:
 | 400 | application/json — Invalid/missing credentials or no effective edit. |
 | 401 | application/json — Missing or invalid editor token. |
 | 413 | application/json — Request or received file exceeds the limit. |
-| 422 | application/json — Invalid legacy input/save, transfer rejection, or persistence check failed. |
+| 422 | application/json — Invalid transfer input/save, transfer rejection, or persistence check failed. |
 | 429 | application/json — Deployment request limit reached. |
 | 500 | application/json — Unexpected service failure. |
 | 502 | application/json — Remote outcome not confirmed; preserve available recovery bytes. |
@@ -1649,7 +1649,7 @@ Synthetic response preview:
 
 - Transfer aliases: transfer_code/tc, confirmation_code/confirmation_pin/cc, country_code/country/cc_str. cc is the PIN, not a region.
 
-- Conflicting aliases and extra fields fail. Uses game_version=150500; game_version is not an accepted legacy input.
+- Conflicting aliases and extra fields fail. Uses game_version=150500; game_version is not an accepted transfer input.
 
 - Consumes the transfer code and returns refreshed save data. Does not issue replacement codes.
 
@@ -1657,13 +1657,13 @@ Synthetic response preview:
 
 ### `POST /edit`
 
-Receive, edit and re-upload using legacy fields. Converts legacy fields to typed edits, receives the transfer, applies edits, runs requested remote flags, and requests replacement transfer codes. Consumes the input code. Preserve returned recovery bytes and do not automatically repeat uncertain requests. Changes are limited to 1,000 entries; change_count is the full count.
+Receive, edit and re-upload using transfer-edit fields. Converts transfer-edit fields to typed edits, receives the transfer, applies edits, runs requested remote flags, and requests replacement transfer codes. Consumes the input code. Preserve returned recovery bytes and do not automatically repeat uncertain requests. Changes are limited to 1,000 entries; change_count is the full count.
 
 Authentication: `EditorToken` Bearer token.
 
 Request body: required. Supported media types: `application/json`.
 
-Compatibility payload. At least one effective edit or remote flag is required. Unknown fields, conflicting aliases, wrong types, and invalid action arguments fail before transfer reception where possible. Nested legacy alternatives are semantically validated by the converter; see LEGACY.md and the corresponding typed action for exact ID/range rules.
+Transfer-edit payload. At least one effective edit or remote flag is required. Unknown fields, conflicting aliases, wrong types, and invalid action arguments fail before transfer reception where possible. Nested input alternatives are semantically validated by the converter; see TRANSFERS.md and the corresponding typed action for exact ID/range rules.
 
 | JSON field | Required | Type / behavior |
 | --- | --- | --- |
@@ -1671,7 +1671,7 @@ Compatibility payload. At least one effective edit or remote flag is required. U
 | `tc` | no / conditional | string; Alias for transfer_code. |
 | `confirmation_code` | no / conditional | string; Transfer confirmation code/PIN. Aliases: confirmation_pin, cc. |
 | `confirmation_pin` | no / conditional | string; Alias for confirmation_code. |
-| `cc` | no / conditional | string; Legacy alias for confirmation_code; this field is not a region. |
+| `cc` | no / conditional | string; Alias for confirmation_code; this field is not a region. |
 | `country_code` | no / conditional | string; default "kr"; values "kr", "en", "jp", "tw"; Source region. Aliases: country, cc_str. |
 | `country` | no / conditional | string; values "kr", "en", "jp", "tw"; Alias for country_code; defaults to kr when every region alias is absent. |
 | `cc_str` | no / conditional | string; values "kr", "en", "jp", "tw"; Alias for country_code. |
@@ -1703,30 +1703,30 @@ Compatibility payload. At least one effective edit or remote flag is required. U
 | `battle_items` | no / conditional | alternatives; Collection quantity, prefix array, or index-to-quantity object; unspecified entries are preserved.  |
 | `treasure_chests` | no / conditional | alternatives; Collection quantity, prefix array, or index-to-quantity object; unspecified entries are preserved.  |
 | `labyrinth_medals` | no / conditional | alternatives; Collection quantity, prefix array, or index-to-quantity object; unspecified entries are preserved.  |
-| `fix_gamatoto_crash` | no / conditional | boolean; When true, requests fixes.gamatoto. False performs no action. See LEGACY.md for the exact selection scope. |
-| `fix_ototo_crash` | no / conditional | boolean; When true, requests fixes.ototo. False performs no action. See LEGACY.md for the exact selection scope. |
-| `fix_time_errors` | no / conditional | boolean; When true, requests fixes.time. False performs no action. See LEGACY.md for the exact selection scope. |
-| `fix_officer_pass_crash` | no / conditional | boolean; When true, requests fixes.officer_pass. False performs no action. See LEGACY.md for the exact selection scope. |
-| `unlock_equip_menu` | no / conditional | boolean; When true, requests fixes.equip_menu. False performs no action. See LEGACY.md for the exact selection scope. |
-| `reset_gambling_events` | no / conditional | boolean; When true, requests gambling.reset. False performs no action. See LEGACY.md for the exact selection scope. |
-| `reset_golden_cat_cpus` | no / conditional | boolean; When true, requests items.golden_cpu_count. False performs no action. See LEGACY.md for the exact selection scope. |
-| `unlock_aku_realm` | no / conditional | boolean; When true, requests stages.unlock_aku. False performs no action. See LEGACY.md for the exact selection scope. |
-| `filibuster_reclearing` | no / conditional | boolean; When true, requests stages.filibuster. False performs no action. See LEGACY.md for the exact selection scope. |
-| `clear_tutorial` | no / conditional | boolean; When true, requests stages.tutorial. False performs no action. See LEGACY.md for the exact selection scope. |
-| `clear_story_all` | no / conditional | boolean; When true, requests stages.story. False performs no action. See LEGACY.md for the exact selection scope. |
-| `clear_into_the_future` | no / conditional | boolean; When true, requests stages.story. False performs no action. See LEGACY.md for the exact selection scope. |
-| `clear_cats_of_the_cosmos` | no / conditional | boolean; When true, requests stages.story. False performs no action. See LEGACY.md for the exact selection scope. |
-| `unlock_cats` | no / conditional | boolean; When true, requests cats.unlock. False performs no action. See LEGACY.md for the exact selection scope. |
-| `max_cat_levels` | no / conditional | boolean; When true, requests cats.levels. False performs no action. See LEGACY.md for the exact selection scope. |
-| `true_form_all` | no / conditional | boolean; When true, requests cats.forms. False performs no action. See LEGACY.md for the exact selection scope. |
-| `max_special_skills` | no / conditional | boolean; When true, requests skills.set. False performs no action. See LEGACY.md for the exact selection scope. |
-| `claim_all_rewards` | no / conditional | boolean; When true, requests rewards.claim. False performs no action. See LEGACY.md for the exact selection scope. |
-| `complete_missions` | no / conditional | boolean; When true, requests missions.set. False performs no action. See LEGACY.md for the exact selection scope. |
-| `max_all_talents` | no / conditional | boolean; When true, requests cats.talents. False performs no action. See LEGACY.md for the exact selection scope. |
-| `max_talent_orbs` | no / conditional | boolean; When true, requests cats.orbs. False performs no action. See LEGACY.md for the exact selection scope. |
-| `max_castle_development` | no / conditional | boolean; When true, requests ototo.cannons. False performs no action. See LEGACY.md for the exact selection scope. |
-| `max_treasures` | no / conditional | boolean; When true, requests stages.treasures. False performs no action. See LEGACY.md for the exact selection scope. |
-| `unlock_cat_guide` | no / conditional | boolean; When true, requests cats.guide. False performs no action. See LEGACY.md for the exact selection scope. |
+| `fix_gamatoto_crash` | no / conditional | boolean; When true, requests fixes.gamatoto. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `fix_ototo_crash` | no / conditional | boolean; When true, requests fixes.ototo. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `fix_time_errors` | no / conditional | boolean; When true, requests fixes.time. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `fix_officer_pass_crash` | no / conditional | boolean; When true, requests fixes.officer_pass. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `unlock_equip_menu` | no / conditional | boolean; When true, requests fixes.equip_menu. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `reset_gambling_events` | no / conditional | boolean; When true, requests gambling.reset. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `reset_golden_cat_cpus` | no / conditional | boolean; When true, requests items.golden_cpu_count. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `unlock_aku_realm` | no / conditional | boolean; When true, requests stages.unlock_aku. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `filibuster_reclearing` | no / conditional | boolean; When true, requests stages.filibuster. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `clear_tutorial` | no / conditional | boolean; When true, requests stages.tutorial. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `clear_story_all` | no / conditional | boolean; When true, requests stages.story. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `clear_into_the_future` | no / conditional | boolean; When true, requests stages.story. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `clear_cats_of_the_cosmos` | no / conditional | boolean; When true, requests stages.story. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `unlock_cats` | no / conditional | boolean; When true, requests cats.unlock. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `max_cat_levels` | no / conditional | boolean; When true, requests cats.levels. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `true_form_all` | no / conditional | boolean; When true, requests cats.forms. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `max_special_skills` | no / conditional | boolean; When true, requests skills.set. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `claim_all_rewards` | no / conditional | boolean; When true, requests rewards.claim. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `complete_missions` | no / conditional | boolean; When true, requests missions.set. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `max_all_talents` | no / conditional | boolean; When true, requests cats.talents. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `max_talent_orbs` | no / conditional | boolean; When true, requests cats.orbs. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `max_castle_development` | no / conditional | boolean; When true, requests ototo.cannons. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `max_treasures` | no / conditional | boolean; When true, requests stages.treasures. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `unlock_cat_guide` | no / conditional | boolean; When true, requests cats.guide. False performs no action. See TRANSFERS.md for the exact selection scope. |
 | `sol` | no / conditional | alternatives; True clears all valid maps/crowns in sol; false performs no action. An object uses stages.sol arguments. Use top-level enable_safety for limits. |
 | `event` | no / conditional | alternatives; True clears all valid maps/crowns in event; false performs no action. An object uses stages.event arguments. Use top-level enable_safety for limits. |
 | `collab` | no / conditional | alternatives; True clears all valid maps/crowns in collab; false performs no action. An object uses stages.collab arguments. Use top-level enable_safety for limits. |
@@ -1768,7 +1768,7 @@ Compatibility payload. At least one effective edit or remote flag is required. U
 | `clear_chapters` | no / conditional | array; Chapter IDs or {chapter, clear_amount/clears} records. Chapters 0..8 are story; 9 selects all Aku maps/crowns. Clear count defaults to 1. |
 | `clear_stages` | no / conditional | array; {chapter, stage, clear_amount/clears} records. For chapter 9 only, map/aku_map selects Aku map and star is zero-based; defaults map=0, star=0, clears=1. |
 | `max_chapter_treasures` | no / conditional | array; Story chapter IDs (0..8) or {chapter, treasure} records; treasure defaults to 3. |
-| `stage_treasures` | no / conditional | array; {chapter, stage, treasure} records. Legacy stage uses raw treasure slot 0..47, unlike the typed action menu ordering. Treasure defaults to 3. |
+| `stage_treasures` | no / conditional | array; {chapter, stage, treasure} records. This stage field uses raw treasure slot 0..47, unlike the typed action menu ordering. Treasure defaults to 3. |
 | `itf_timed_scores` | no / conditional | integer / object; Score for all Into the Future chapters or full stages.itf_scores arguments. |
 | `event_tickets` | no / conditional | boolean / object; False performs no action. Otherwise use {items: {game_item_id: quantity}} or that item mapping directly; true is invalid. |
 | `cat_storage` | no / conditional | boolean / object; False performs no action. Otherwise use {operation: "add"\|"remove"\|"clear", ...cats.storage action arguments}; true is invalid. |
@@ -1780,9 +1780,9 @@ Compatibility payload. At least one effective edit or remote flag is required. U
 | `enable_safety` | no / conditional | boolean; default false; Defaults to false. True applies recommended maxima only to actions supporting them. Save-format and metadata constraints always apply. |
 | `stones` | no / conditional | object; Alias for behemoth_stones. Required shape: {item_ids: {game_item_id: quantity}}. IDs must belong to evolution items; no guessed stone offsets. |
 | `cat_forms` | no / conditional | array / object; Alias for cat_evolutions. Cat-ID to form mapping, records with id/cat_id and form/evolution (1..4), or cats.forms object with select. |
-| `max_cat_evolutions` | no / conditional | boolean; Alias for true_form_all. When true, requests cats.forms. False performs no action. See LEGACY.md for the exact selection scope. |
-| `claim_rewards` | no / conditional | boolean; Alias for claim_all_rewards. When true, requests rewards.claim. False performs no action. See LEGACY.md for the exact selection scope. |
-| `max_talents` | no / conditional | boolean; Alias for max_all_talents. When true, requests cats.talents. False performs no action. See LEGACY.md for the exact selection scope. |
+| `max_cat_evolutions` | no / conditional | boolean; Alias for true_form_all. When true, requests cats.forms. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `claim_rewards` | no / conditional | boolean; Alias for claim_all_rewards. When true, requests rewards.claim. False performs no action. See TRANSFERS.md for the exact selection scope. |
+| `max_talents` | no / conditional | boolean; Alias for max_all_talents. When true, requests cats.talents. False performs no action. See TRANSFERS.md for the exact selection scope. |
 | `talents` | no / conditional | array / object; Alias for cat_talents. Cat-ID to talent-ID/level mapping, records with id/cat_id and levels/talents, or cats.talents object with select. |
 | `orbs` | no / conditional | object; Alias for talent_orbs. Orb-ID quantity mapping or full cats.orbs arguments. Unspecified orbs are preserved. |
 | `base_materials` | no / conditional | integer / array / object; Alias for ototo_materials. Quantities for ototo.materials.values. Supports its scalar, array, and index-object forms. |
@@ -1828,7 +1828,7 @@ Synthetic response preview:
 | 400 | application/json — Invalid/missing credentials or no effective edit. |
 | 401 | application/json — Missing or invalid editor token. |
 | 413 | application/json — Request or received file exceeds the limit. |
-| 422 | application/json — Invalid legacy input/save, transfer rejection, or persistence check failed. |
+| 422 | application/json — Invalid transfer input/save, transfer rejection, or persistence check failed. |
 | 429 | application/json — Deployment request limit reached. |
 | 500 | application/json — Unexpected service failure. |
 | 502 | application/json — Remote outcome not confirmed; preserve available recovery bytes. |
@@ -1840,9 +1840,9 @@ Synthetic response preview:
 
 - enable_safety defaults to false; actual save-format and metadata bounds still apply. Unknown fields and invalid types are rejected rather than silently ignored.
 
-- See LegacyEditRequest in OpenAPI for every accepted top-level key and LEGACY.md for nested alternatives, aliases, and conversion rules.
+- See TransferEditRequest in OpenAPI for every accepted top-level key and TRANSFERS.md for nested alternatives, aliases, and conversion rules.
 
-- Consumes the original transfer and uploads the result to issue replacement codes. Changes are truncated at 1,000 entries; this legacy response has no changes_truncated flag.
+- Consumes the original transfer and uploads the result to issue replacement codes. Changes are truncated at 1,000 entries; this transfer-edit response has no changes_truncated flag.
 
 
 
@@ -1883,4 +1883,4 @@ An unconfirmed clone returns HTTP 502. The current save may still equal the orig
 }
 ```
 
-Use [TEMPLATES.md](TEMPLATES.md) for storage setup and order reservation, [LEGACY.md](LEGACY.md) for nested legacy inputs, and `/v2/features` for complete action-specific schemas.
+Use [TEMPLATES.md](TEMPLATES.md) for storage setup and order reservation, [TRANSFERS.md](TRANSFERS.md) for nested transfer inputs, and `/v2/features` for complete action-specific schemas.

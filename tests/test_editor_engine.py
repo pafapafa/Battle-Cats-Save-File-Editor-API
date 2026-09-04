@@ -1,4 +1,3 @@
-"""Cache isolation for real region/version changes inside a single edit batch."""
 import datetime
 import unittest
 from types import SimpleNamespace as NS

@@ -305,7 +305,7 @@ class CatEditor:
                 "banner_txt", name=name
             )
             formatted_names.append(formatted_name)
-        # TODO: include ids?
+
         gatya_option_ids = dialog_creator.multi_select_indexes_key(
             formatted_names,
             dialog="select_gatya_banner",

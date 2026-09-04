@@ -121,11 +121,8 @@ class OrbInfo:
         self.effect = effect
 
     def __str__(self) -> str:
-        """Get the string representation of the OrbInfo
 
-        Returns:
-            str: The string representation of the OrbInfo
-        """
+
         target_color = color_from_enemy_type(self.raw_orb_info.target_id).value
         rank_color = color_from_grade(self.raw_orb_info.rank_id).value
         effect_color = color_from_effect(self.raw_orb_info.effect_id)
@@ -139,23 +136,14 @@ class OrbInfo:
         return f"{effect}"
 
     def to_colortext(self) -> str:
-        """Get the string representation of the OrbInfo with color
 
-        Returns:
-            str: The string representation of the OrbInfo with color
-        """
+
         return str(self)
 
     @staticmethod
     def create_unknown(orb_id: int) -> OrbInfo:
-        """Create an unknown OrbInfo
 
-        Args:
-            orb_id (int): The id of the orb
 
-        Returns:
-            OrbInfo: The unknown OrbInfo
-        """
         return OrbInfo(
             RawOrbInfo(orb_id, 0, 0, [], 0),
             "???",
@@ -171,23 +159,14 @@ class OrbInfoList:
     effect_list_file_name = "resLocal/equipment_explonation.tsv"
 
     def __init__(self, orb_info_list: list[OrbInfo]):
-        """Initialize the OrbInfoList class
 
-        Args:
-            orb_info_list (list[OrbInfo]): The list of OrbInfo
-        """
+
         self.orb_info_list = orb_info_list
 
     @staticmethod
     def create(save_file: core.SaveFile) -> OrbInfoList | None:
-        """Create an OrbInfoList
 
-        Args:
-            save_file (core.SaveFile): The save file
 
-        Returns:
-            OrbInfoList | None: The OrbInfoList
-        """
         gdg = core.core_data.get_game_data_getter(save_file)
         json_data_file = gdg.download_from_path(OrbInfoList.equipment_data_file_name)
         grade_list_file = gdg.download_from_path(OrbInfoList.grade_list_file_name)
@@ -212,14 +191,8 @@ class OrbInfoList:
 
     @staticmethod
     def parse_json_data(json_data: core.Data) -> list[RawOrbInfo] | None:
-        """Parse the json data of the equipment
 
-        Args:
-            json_data (core.Data): The json data
 
-        Returns:
-            list[RawOrbInfo]: The list of RawOrbInfo
-        """
         try:
             data: dict[str, Any] = core.JsonFile.from_data(json_data).as_object()
         except json.JSONDecodeError:
@@ -240,17 +213,8 @@ class OrbInfoList:
         attribute_data: core.Data,
         effect_data: core.Data,
     ) -> list[OrbInfo]:
-        """Load the names of the equipment
 
-        Args:
-            raw_orb_info (list[RawOrbInfo]): The list of RawOrbInfo
-            grade_data (core.Data): Raw data of the grade list
-            attribute_data (core.Data): Raw data of the attribute list
-            effect_data (core.Data): Raw data of the effect list
 
-        Returns:
-            list[OrbInfo]: The list of OrbInfo
-        """
         grade_csv = core.CSV(grade_data)
         attribute_tsv = core.CSV(attribute_data, "\t")
         effect_csv = core.CSV(effect_data, "\t")
@@ -268,14 +232,8 @@ class OrbInfoList:
         return orb_info_list
 
     def get_orb_info(self, orb_id: int) -> OrbInfo | None:
-        """Get the OrbInfo from the id
 
-        Args:
-            orb_id (int): The id of the orb
 
-        Returns:
-            OrbInfo | None: The OrbInfo
-        """
         try:
             return self.orb_info_list[orb_id]
         except IndexError:
@@ -287,16 +245,8 @@ class OrbInfoList:
         attribute: str | None,
         effect: str,
     ) -> OrbInfo | None:
-        """Get the OrbInfo from the components
 
-        Args:
-            grade (str): The grade of the orb
-            attribute (str | None): The attribute of the orb. None if applies to all attributes
-            effect (str): The effect of the orb
 
-        Returns:
-            OrbInfo | None: The OrbInfo
-        """
         for orb in self.orb_info_list:
             if orb.rank == grade and orb.target == attribute and orb.effect == effect:
                 return orb
@@ -319,16 +269,8 @@ class OrbInfoList:
         attribute: str | None,
         effect: str,
     ) -> list[OrbInfo]:
-        """Get the OrbInfo from the components matching the first word of the effect and lowercased
 
-        Args:
-            grade (str): The grade of the orb
-            attribute (str | None): The attribute of the orb. None if all
-            effect (str): The effect of the orb
 
-        Returns:
-            list[OrbInfo]: The list of OrbInfo
-        """
         orbs: list[OrbInfo] = []
         for orb in self.orb_info_list:
             if (
@@ -340,11 +282,7 @@ class OrbInfoList:
         return orbs
 
     def get_all_grades(self) -> list[str]:
-        """Get all the grades
 
-        Returns:
-            list[str]: The list of grades
-        """
 
         data = list(
             set([(orb.rank, orb.raw_orb_info.rank_id) for orb in self.orb_info_list])
@@ -355,11 +293,7 @@ class OrbInfoList:
         return [orb[0] for orb in data]
 
     def get_all_attributes(self) -> list[str | None]:
-        """Get all the attributes
 
-        Returns:
-            list[str]: The list of attributes
-        """
 
         data = list(
             set(
@@ -376,11 +310,7 @@ class OrbInfoList:
         return [orb[0] for orb in data]
 
     def get_all_effects(self) -> list[str]:
-        """Get all the effects
 
-        Returns:
-            list[str]: The list of effects
-        """
 
         data = list(
             set(
@@ -394,15 +324,11 @@ class OrbInfoList:
 
 
 class SaveOrb:
-    """Represents a saved orb in the save file"""
+
 
     def __init__(self, orb: OrbInfo, count: int):
-        """Initialize the SaveOrb class
 
-        Args:
-            orb (OrbInfo): The OrbInfo
-            count (int): The amount of the orb
-        """
+
         self.count = count
         self.orb = orb
 
@@ -452,28 +378,7 @@ def color_from_grade(grade_id: int) -> color.ColorHex:
 
 
 def color_from_effect(effect_id: int) -> str:
-    # if effect_id == 0:
-    #     return color.ColorHex.RED
-    # elif effect_id == 1:
-    #     return color.ColorHex.GREEN
-    # elif effect_id == 2:
-    #     return color.ColorHex.DARK_GREY
-    # elif effect_id == 3:
-    #     return color.ColorHex.LIGHT_GREY
-    # elif effect_id == 4:
-    #     return color.ColorHex.YELLOW
-    # elif effect_id == 5:
-    #     return color.ColorHex.BLUE
-    # elif effect_id == 6:
-    #     return color.ColorHex.MAGENTA
-    # elif effect_id == 7:
-    #     return color.ColorHex.DARK_GREEN
-    # elif effect_id == 8:
-    #     return color.ColorHex.WHITE
-    # elif effect_id == 9:
-    #     return color.ColorHex.DARK_MAGENTA
-    # elif effect_id == 10:
-    #     return color.ColorHex.ORANGE
+
 
     return "@t"
 
@@ -484,25 +389,15 @@ class SaveOrbs:
         orbs: dict[int, SaveOrb],
         orb_info_list: OrbInfoList,
     ):
-        """Initialize the SaveOrbs class
 
-        Args:
-            orbs (dict[int, SaveOrb]): The orbs
-            orb_info_list (OrbInfoList): The orb info list
-        """
+
         self.orbs = orbs
         self.orb_info_list = orb_info_list
 
     @staticmethod
     def from_save_file(save_file: core.SaveFile) -> SaveOrbs | None:
-        """Create a SaveOrbs from the save stats
 
-        Args:
-            save_file (core.SaveFile): The save file
 
-        Returns:
-            SaveOrbs | None: The SaveOrbs
-        """
         orb_info_list = OrbInfoList.create(save_file)
         if orb_info_list is None:
             return None
@@ -517,7 +412,7 @@ class SaveOrbs:
         return SaveOrbs(orbs, orb_info_list)
 
     def print(self):
-        """Print the orbs as a formatted list"""
+
         self.sort_orbs()
         total_orbs = sum([orb.count for orb in self.orbs.values()])
         color.color_print_key("total_current_orbs", total_orbs=total_orbs)
@@ -527,7 +422,7 @@ class SaveOrbs:
             color.color_print(f"<@q>{orb.count}</> {orb.orb.to_colortext()}")
 
     def sort_orbs(self):
-        """Sort the orbs by attribute, effect, grade and id in that order with attribute being the most important"""
+
         orbs = list(self.orbs.values())
         orbs.sort(key=lambda orb: orb.orb.raw_orb_info.orb_id)
         orbs.sort(key=lambda orb: orb.orb.raw_orb_info.rank_id)
@@ -567,8 +462,8 @@ class SaveOrbs:
             self.orbs[orb_id] = SaveOrb(orb, orb_count)
 
     def edit(self):
-        """Edit the orbs"""
-        # this code sucks quit a lot, but it works and i can't be bothered making it better atm
+
+
         self.print()
         all_grades = self.orb_info_list.get_all_grades()
         all_grades = [grade for grade in all_grades]
@@ -691,22 +586,15 @@ class SaveOrbs:
         self.print()
 
     def save(self, save_file: core.SaveFile):
-        """Save the orbs to the save_stats
 
-        Args:
-            save_file (core.SaveFile): The save_stats to save the orbs to
-        """
+
         for orb_id, orb in self.orbs.items():
             save_file.talent_orbs.orbs[orb_id] = core.TalentOrb(orb_id, orb.count)
 
     @staticmethod
     def edit_talent_orbs(save_file: core.SaveFile):
-        """Edit the talent orbs
 
-        Args:
-            save_file (core.SaveFile): The save_stats to edit the orbs of
 
-        """
         save_orbs = SaveOrbs.from_save_file(save_file)
         if save_orbs is None:
             color.color_print_key("failed_to_load_orbs")

@@ -4,7 +4,7 @@ A backup preserves the original save file. A private template stores that file i
 
 API base URL: `https://battle-cats-save-file-editor-api.vercel.app`. The [HTTP API reference](https://battle-cats-save-file-editor-api.vercel.app/docs) and [ENDPOINTS.md](ENDPOINTS.md) document the route contracts. For edits to a downloaded file, use the categorized [action reference](ACTIONS.md); [FEATURES.md](FEATURES.md) maps the original BCSFE menus.
 
-The file workflow uses raw saves produced by BCSFE. It does not call the legacy `/edit` handler. Downloads provide recovery files; they do not automatically restore data inside the game app.
+The file workflow uses raw saves produced by BCSFE. It does not call the `/edit` handler. Downloads provide recovery files; they do not automatically restore data inside the game app.
 
 ## HTTP workflow
 

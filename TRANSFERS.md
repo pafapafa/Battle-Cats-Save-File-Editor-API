@@ -1,8 +1,24 @@
-# Legacy `/edit` migration reference
+# Transfer workflows
 
-Legacy field names are converted by `editor_legacy.legacy_to_operations(payload)` into validated editing actions. Each of the 115 keys read by the old parser, including credentials and aliases, has either a conversion path or an explicit validation error. Accepted-but-ignored fields are not reported as successful edits.
+`POST /info` receives a game transfer and returns resource totals plus the original and refreshed save. `POST /edit` receives a transfer, applies requested edits, and uploads the result to obtain replacement transfer codes. Both are authenticated API workflows.
 
-Use Bearer authentication with the compatibility routes. `/edit` and `/info` include transfer reception, which uses the supplied transfer code. Preserve returned save and recovery data. This reference describes input conversion; it does not guarantee live game-server transfer acceptance or every in-game display/reward outcome.
+API base URL: `https://battle-cats-save-file-editor-api.vercel.app`. Use `Authorization: Bearer <EDITOR_API_KEY>`, or the configured `TEMPLATE_API_KEY` fallback. Transfer reception consumes the supplied code. Keep the returned save and recovery data; the refreshed file may contain new credentials.
+
+Transfer-edit fields are converted by `editor_transfer.transfer_to_operations(payload)` into validated actions. The contract includes resource, cat, stage, account, and workflow fields, plus their aliases. [ENDPOINTS.md](ENDPOINTS.md) documents the complete HTTP request/response shapes and [ACTIONS.md](ACTIONS.md) explains the resulting edits. The following examples show edit fields to combine with the required transfer credentials.
+
+## Receive or edit a transfer
+
+```json
+{
+  "transfer_code": "TRANSFER1",
+  "confirmation_code": "1234",
+  "country_code": "kr"
+}
+```
+
+Replace the illustrative codes with your own, then send this body to `/info` for a transfer inspection. For `/edit`, add at least one effective edit or remote-operation flag, such as `"xp": 1000`. These two routes use game version `150500` and do not accept `game_version`; use `/v2/save/from-transfer` when choosing a reception version explicitly.
+
+`/info` returns the received save and current credentials without issuing replacement transfer codes. `/edit` returns replacement codes after confirmed upload, plus save/backup data and persisted changes. Remote failures may return recovery data and `retry_safe: false`; retain them and inspect the result before sending another request. A local file inspection or edit can instead use `/v2/save/inspect` or `/v2/save/edit`.
 
 ## Common rules
 
@@ -90,7 +106,7 @@ An ID must belong to the relevant evolution-material or event-ticket category fo
 
 Base and plus levels in `cat_levels` are independent. An omitted plus level is preserved. Level editing does not automatically unlock a cat: use `unlock_cat_ids` or `"unlock": true` on the level entry when required.
 
-| Legacy field | Contract |
+| Transfer field | Contract |
 | --- | --- |
 | `unlock_cats: true` | Unlock cats identified as obtainable by the version's metadata |
 | `max_cat_levels: true` | Maximize metadata-defined base and plus levels for unlocked, obtainable cats |
@@ -108,7 +124,7 @@ Base and plus levels in `cat_levels` are independent. An omitted plus level is p
 }
 ```
 
-`cat_storage: true` no longer clears storage and fills it with 64 basic cats. Supply an explicit operation:
+`cat_storage` requires an explicit `add`, `remove`, or `clear` operation:
 
 ```json
 {"cat_storage": {"operation": "add", "items": [{"kind": "cat", "id": 0, "quantity": 2}]}}
@@ -124,9 +140,9 @@ Base and plus levels in `cat_levels` are independent. An omitted plus level is p
 
 ## Stages and treasures
 
-Story chapter IDs `0..2` are Empire of Cats, `3..5` are Into the Future, and `6..8` are Cats of the Cosmos. Chapter `9` in legacy `clear_chapters`/`clear_stages` refers to the Aku Realm.
+Story chapter IDs `0..2` are Empire of Cats, `3..5` are Into the Future, and `6..8` are Cats of the Cosmos. Chapter `9` in `clear_chapters`/`clear_stages` refers to the Aku Realm.
 
-Map and stage IDs are zero-based. The new `crowns`/`crown` arguments are one-based. Only the legacy Aku `clear_stages[].star` retains its zero-based convention.
+Map and stage IDs are zero-based. The `crowns`/`crown` arguments are one-based. The Aku `clear_stages[].star` retains its zero-based convention.
 
 ```json
 {
@@ -136,7 +152,7 @@ Map and stage IDs are zero-based. The new `crowns`/`crown` arguments are one-bas
 }
 ```
 
-**Legacy `stage_treasures[].stage` remains a storage-slot index.** The v2 `stages.treasures` action uses BCSFE's geographical menu order. The compatibility converter maps the old storage slot to the new order so the same treasure is edited.
+**`stage_treasures[].stage` is a raw storage-slot index.** The v2 `stages.treasures` action uses BCSFE's geographical menu order. The converter maps the raw storage slot to the typed action's menu order so the requested treasure is edited.
 
 `max_treasures` and `max_chapter_treasures` edit treasures only. Use `itf_timed_scores` to change Into the Future scores:
 
@@ -144,9 +160,9 @@ Map and stage IDs are zero-based. The new `crowns`/`crown` arguments are one-bas
 {"max_treasures": true, "itf_timed_scores": {"chapters": [3], "stages": [0], "score": 6000}}
 ```
 
-For the following legacy map fields, `true` clears every valid map and crown in the category. An argument object selects a smaller scope.
+For the following transfer map fields, `true` clears every valid map and crown in the category. An argument object selects a smaller scope.
 
-| Legacy field | v2 action |
+| Transfer field | v2 action |
 | --- | --- |
 | `sol`, `event`, `collab` | `stages.sol`, `stages.event`, `stages.collab` |
 | `gauntlets`, `collab_gauntlets` | The corresponding `stages.*` action |
@@ -213,19 +229,15 @@ Map IDs, crown counts, and stage availability are checked against the BCSFE mode
 - An integer `playtime` is the stored frame count. `{hours, minutes, seconds}` and `{frames}` objects are also supported.
 - `outbreaks`, `medals`, `missions`, `enemy_guide`, and `scheme_items` accept execution flags or the corresponding action arguments. For example: `{"outbreaks": {"chapters": [0], "cleared": false}}`.
 
-## Corrected behavior
+## Validation and persistence
 
-| Previous behavior | Current contract |
-| --- | --- |
-| Coerced numeric strings/booleans and reduced out-of-range inputs | Validate exact types and ranges; return an error |
-| XP edits also changed pass, lineup, tutorial, and time fields | Perform only the requested editing actions |
-| Partial Catseye edits reset unspecified entries | Preserve unspecified indexes |
-| True-form requests called fourth-form code | Convert to the true-form action |
-| Treasure maximization also changed timed scores | Edit treasures only |
-| Storage requests replaced existing items with 64 basic cats | Require `add`, `remove`, or `clear` with explicit targets |
-| `clear_all_stages` handled only some categories | Request all categories or an explicit scope selection |
-| Unsupported menu booleans appeared successful | Require concrete values/objects or return an error |
-| Gacha seeds lost the highest unsigned bit | Preserve the full unsigned 32-bit range |
-| Stage resets used incorrect boundaries or nonserialized fields | Update the correct boundary and serialized fields |
+- Numeric inputs use exact types and storage ranges; out-of-range values return errors.
+- Only requested actions run; unrequested pass, lineup, tutorial, and time fields are preserved.
+- Partial item edits preserve unspecified indexes, and treasure edits preserve timed scores.
+- True-form and fourth-form requests use their corresponding action rules.
+- Storage edits require an explicit operation and preserve physical capacity.
+- `clear_all_stages` requests all documented scopes or an explicit scope selection.
+- Gacha seeds preserve the full unsigned 32-bit range.
+- Serialized output is reparsed and checked before a successful edit response is returned.
 
-Verification covers the fixed legacy-key inventory, generated-action schema validity, invalid-input rejection, partial-resource and treasure-slot preservation, and real BCSFE stage-model serialization. Live account issuance and game-server uploads are separate verification steps.
+Verification covers the fixed transfer-field inventory, generated-action schema validity, invalid-input rejection, partial-resource and treasure-slot preservation, and real BCSFE stage-model serialization. Live account issuance and game-server uploads are separate verification steps.

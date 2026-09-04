@@ -1,36 +1,111 @@
-interface EditRequest {
-  transfer_code: string;
-  confirmation_code: string;
-  country_code: string;
-  catfood?: number;
-  unlock_cats?: boolean;
-}
+const fs = require('node:fs');
+const http = require('node:http');
+const https = require('node:https');
 
-interface EditResponse {
-  success: boolean;
-  message: string;
-  transfer_code?: string;
-  confirmation_code?: string;
-}
+const MAX_BYTES = 2 * 1024 * 1024;
 
-async function run(): Promise<void> {
-  const payload: EditRequest = {
-    transfer_code: "1a2b3c4d5",
-    confirmation_code: "1234",
-    country_code: "kr",
-    catfood: 45000,
-    unlock_cats: true
-  };
-
-  const response = await fetch("https://battle-cats-save-file-editor-api.vercel.app/edit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+function download(url: URL, token: string, body: Buffer): Promise<Buffer> {
+  return new Promise<Buffer>((resolve, reject) => {
+    const transport = url.protocol === 'https:' ? https : http;
+    const request = transport.request(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/octet-stream',
+        'Content-Length': body.length,
+      },
+    });
+    const totalTimer = setTimeout(() => request.destroy(new Error('Request timed out')), 120000);
+    const connectTimer = setTimeout(() => request.destroy(new Error('Connection timed out')), 15000);
+    function cleanup() {
+      clearTimeout(totalTimer);
+      clearTimeout(connectTimer);
+    }
+    request.on('socket', (socket) => {
+      socket.once(url.protocol === 'https:' ? 'secureConnect' : 'connect', () => clearTimeout(connectTimer));
+    });
+    request.once('error', (error) => {
+      cleanup();
+      reject(error);
+    });
+    request.once('response', (response) => {
+      const status = response.statusCode || 0;
+      const contentType = (response.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+      if (status < 200 || status >= 300 || contentType !== 'application/octet-stream') {
+        request.destroy(new Error(`Expected a binary success response; HTTP ${status}`));
+        return;
+      }
+      const chunks: Buffer[] = [];
+      let size = 0;
+      response.on('data', (chunk) => {
+        size += chunk.length;
+        if (size > MAX_BYTES) {
+          request.destroy(new Error('Response exceeds 2 MiB'));
+          return;
+        }
+        chunks.push(chunk);
+      });
+      response.once('error', (error) => {
+        cleanup();
+        reject(error);
+      });
+      response.once('end', () => {
+        cleanup();
+        resolve(Buffer.concat(chunks));
+      });
+    });
+    request.end(body);
   });
-
-  const data: EditResponse = await response.json();
-  console.log("Success:", data.success);
-  console.log("Transfer Code:", data.transfer_code);
 }
 
-run();
+async function main() {
+  if (process.argv.length !== 4) throw new Error('Usage: node example.ts REQUEST_JSON OUTPUT_SAVE');
+  const [input, output] = process.argv.slice(2);
+  try {
+    fs.lstatSync(output);
+    throw new Error('Output already exists');
+  } catch (error: any) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+  const token = (process.env.EDITOR_API_KEY || '').trim() || (process.env.TEMPLATE_API_KEY || '').trim();
+  if (!token) throw new Error('Set EDITOR_API_KEY or TEMPLATE_API_KEY');
+  const base = (process.env.BCSFE_API_URL || 'https://battle-cats-save-file-editor-api.vercel.app').replace(/\/+$/, '');
+  const url = new URL(`${base}/v2/save/edit`);
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
+    throw new Error('BCSFE_API_URL must be an HTTP(S) base URL without credentials, query, or fragment');
+  }
+  if (fs.statSync(input).size > MAX_BYTES) throw new Error('Request exceeds 2 MiB');
+  const body = fs.readFileSync(input);
+  if (body.length > MAX_BYTES) throw new Error('Request exceeds 2 MiB');
+  let payload;
+  try {
+    payload = JSON.parse(body.toString('utf8'));
+  } catch {
+    throw new Error('Request must be valid UTF-8 JSON');
+  }
+  if (!payload || typeof payload !== 'object' || payload.output !== 'file' ||
+      typeof payload.country_code !== 'string' || typeof payload.save_base64 !== 'string' || !Array.isArray(payload.operations)) {
+    throw new Error('Request needs country_code, save_base64, operations, and output:"file"');
+  }
+  const data = await download(url, token, body);
+  let descriptor: number | undefined;
+  let created = false;
+  try {
+    descriptor = fs.openSync(output, 'wx', 0o600);
+    created = true;
+    fs.writeFileSync(descriptor, data);
+    fs.closeSync(descriptor);
+    descriptor = undefined;
+  } catch (error: any) {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+    if (created) fs.unlinkSync(output);
+    throw error;
+  }
+  console.log(`Saved ${data.length} bytes to ${output}`);
+}
+
+main().catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});

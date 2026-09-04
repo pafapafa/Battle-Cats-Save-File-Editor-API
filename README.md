@@ -1,6 +1,6 @@
 # BCSFE API
 
-A Flask API for save-file backups, private templates, and BCSFE editing. The project uses the supplied BCSFE source in `vendor/bcsfe`; it does not reimplement the save parser or its field offsets.
+A Flask API for save-file backups, private templates, transfer workflows, and BCSFE editing. The vendored BCSFE implementation supplies the parser, serializer, game models, and version-specific field layouts.
 
 API base URL: `https://battle-cats-save-file-editor-api.vercel.app`
 
@@ -14,8 +14,9 @@ The English [HTTP API reference](https://battle-cats-save-file-editor-api.vercel
 | [ENDPOINTS.md](ENDPOINTS.md) | HTTP methods, authentication, request and response bodies, errors, and file/account/metadata routes |
 | [FEATURES.md](FEATURES.md) | All 99 original BCSFE menu features, grouped by source menu, with API mappings and implementation limits |
 | [TEMPLATES.md](TEMPLATES.md) | Persistent backups, original downloads, account-copy requests, record pagination, and recovery |
+| [TRANSFERS.md](TRANSFERS.md) | Transfer inspection and editing with `/info` and `/edit`, including field aliases and recovery rules |
 | [DOCS.md](DOCS.md) | Reference navigation, common limits, authentication, and transfer behavior |
-| [EXAMPLES.md](EXAMPLES.md) | Remote Python clients and the status of historical language examples |
+| [EXAMPLES.md](EXAMPLES.md) | Python and 16 other language clients, request preparation, dependencies, and execution commands |
 
 The action categories cover resources, gacha seeds, cats/forms/talents/orbs, storage, lineups, special skills, story, event/challenge maps, Gamatoto, Ototo, collection progress, account/save fields, and explicit repairs. Choose a category before selecting an action; its notes explain save-version and metadata requirements.
 
@@ -81,7 +82,7 @@ Actions that expose `respect_maxima` apply BCSFE's recommended limits by default
 
 Ordinary file editing does not consume transfer codes. Transfer reception does: retain the returned save containing refreshed credentials. Server-side authentication failures do not automatically create a replacement account; account creation requires an explicit request.
 
-[ENDPOINTS.md](ENDPOINTS.md) documents the full HTTP contracts. [DOCS.md](DOCS.md) lists shared input limits and error handling; [LEGACY.md](LEGACY.md) documents the compatibility routes.
+[ENDPOINTS.md](ENDPOINTS.md) documents the full HTTP contracts. [DOCS.md](DOCS.md) lists shared input limits and error handling; [TRANSFERS.md](TRANSFERS.md) documents the `/info` and `/edit` transfer workflows.
 
 ## Python clients
 
@@ -95,7 +96,7 @@ py cli.py inspect original.save --country kr
 py cli.py edit original.save operations.json edited.save --country kr
 ```
 
-`operations.json` contains the `operations` array from the request above. The default API origin is `https://battle-cats-save-file-editor-api.vercel.app`; use `--url` before the command to select another deployment. These commands run an API client. See [EXAMPLES.md](EXAMPLES.md) for export/import commands and the status of older language examples.
+`operations.json` contains the `operations` array from the request above. The default API origin is `https://battle-cats-save-file-editor-api.vercel.app`; use `--url` before the command to select another deployment. These commands run an API client. The 16 other language clients accept a complete request JSON file and an output save path; [EXAMPLES.md](EXAMPLES.md) documents their shared contract and build/run commands.
 
 ## Coverage and verification
 
@@ -115,6 +116,6 @@ Four device operations involving ADB/root or restarting the game are unavailable
 
 ## Source and license
 
-Original project: BCSFE by fieryhenry. The supplied source is retained in `vendor/bcsfe`; [SOURCE_MANIFEST.json](vendor/bcsfe/SOURCE_MANIFEST.json) records its SHA-256 hashes. Installation uses this source rather than relying on a matching PyPI version label.
+Original project: BCSFE by fieryhenry. The runtime in `vendor/bcsfe` preserves the original parser's executable behavior. Comments and docstrings have been removed and blank lines normalized, so the runtime files are not byte-identical to the upstream source. [SOURCE_MANIFEST.json](vendor/bcsfe/SOURCE_MANIFEST.json) records `upstream_sha256` for the supplied original and `sha256` for the current file. Installation uses the vendored runtime.
 
 The GNU GPL-3.0-or-later license and original `LICENSE` are retained.

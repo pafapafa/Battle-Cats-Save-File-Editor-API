@@ -58,7 +58,7 @@ class MapOption:
     def from_csv(csv: core.CSV) -> MapOption:
         data: dict[int, MapOptionLine] = {}
 
-        for line in csv.lines[1:]:  # skip headers
+        for line in csv.lines[1:]:
             item = MapOptionLine.from_line(line)
             data[item.map_id] = item
 

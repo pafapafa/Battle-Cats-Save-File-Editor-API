@@ -1,12 +1,3 @@
-"""Small authenticated v2 SDK example: bytes in, edited bytes to a NEW file.
-
-Set EDITOR_API_KEY or TEMPLATE_API_KEY, then run:
-  python example.py original.save edited.save
-  python example.py --url https://battle-cats-save-file-editor-api.vercel.app original.save edited.save
-
-Change OPERATIONS to actions returned by GET /v2/features. This example does not
-receive transfer codes, create accounts, or upload a save to a game server.
-"""
 import argparse
 import os
 import sys
@@ -20,7 +11,7 @@ OPERATIONS = [
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(description="Edit a save through the BCSFE API and write a new output file.")
     parser.add_argument("input")
     parser.add_argument("output")
     parser.add_argument("--url", default=DEFAULT_URL)

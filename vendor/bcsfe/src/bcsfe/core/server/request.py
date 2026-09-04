@@ -41,7 +41,7 @@ class MultipartForm:
 
 
 class RequestHandler:
-    """Handles HTTP requests."""
+
 
     def __init__(
         self,
@@ -50,13 +50,8 @@ class RequestHandler:
         data: core.Data | None = None,
         form: MultipartForm | None = None,
     ):
-        """Initializes a new instance of the RequestHandler class.
 
-        Args:
-            url (str): URL to request.
-            headers (dict[str, str] | None, optional): Headers to send with the request. Defaults to None.
-            data (core.Data | None, optional): Data to send with the request. Defaults to None.
-        """
+
         if data is None:
             data = core.Data()
         self.url = url
@@ -77,11 +72,8 @@ class RequestHandler:
         stream: bool = False,
         no_timeout: bool = False,
     ) -> requests.Response | None:
-        """Sends a GET request.
 
-        Returns:
-            requests.Response: Response from the server.
-        """
+
         try:
             return requests.get(
                 self.url,
@@ -97,11 +89,8 @@ class RequestHandler:
             return None
 
     def post(self, no_timeout: bool = False) -> requests.Response | None:
-        """Sends a POST request.
 
-        Returns:
-            requests.Response: Response from the server.
-        """
+
         try:
             return requests.post(
                 self.url,

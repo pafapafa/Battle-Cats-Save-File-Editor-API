@@ -105,7 +105,7 @@ class SpecialSkills:
 
         if (
             valid_skill_id == 0
-        ):  # if it is a cat cannon power upgrade, mirror the upgrade to the hidden cat cannon power special skill
+        ):
             self.skills[1].set_upgrade(u, max_base=max_base, max_plus=max_plus)
 
     @staticmethod

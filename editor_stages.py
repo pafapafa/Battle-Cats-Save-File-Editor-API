@@ -1,8 +1,3 @@
-"""Explicit stage edits using the vendored BCSFE models and game metadata.
-
-Story chapter ids are 0..8 (EoC, ItF, CotC). Stage/map ids are zero based;
-crowns are one based. No edits run simply because a save is loaded.
-"""
 from __future__ import annotations
 
 import random
@@ -111,7 +106,7 @@ def _treasures(sf, args):
                 raise ValueError("Treasure group metadata contains invalid stage ids")
         else:
             selected = _select(args.get("stages", "all"), valid, "stages")
-            # BCSFE stores treasures in reverse geographic order, unlike clear counts.
+
             selected = [core.StoryChapters.convert_stage_id(sid) for sid in selected]
         targets.extend(ch.stages[sid] for sid in selected)
     for stage in targets:
@@ -142,7 +137,6 @@ def _itf_scores(sf, args):
         stage.itf_timed_score = random.randint(low, high)
 
 
-# Prefixes and category offsets are the exact FeatureHandler/CLI registrations.
 MAPS = {
     "sol": ("event_stages", "N", 0, 0),
     "event": ("event_stages", "S", 1000, 1),
@@ -191,7 +185,7 @@ def _valid_stages(ch, names, map_id):
 
 
 def _unlock(ch, value):
-    # ZeroLegends serializes unlock_state, not chapter_unlock_state (upstream typo).
+
     field = "unlock_state" if hasattr(ch, "unlock_state") else "chapter_unlock_state"
     setattr(ch, field, value)
 
@@ -205,7 +199,7 @@ def _stage_count(stage):
 
 
 def _set_count(stage, value, ensure=False):
-    # The original Legend Quest editor couples tries to clear count; retain that behavior.
+
     stage.clear_stage(value, ensure_cleared_only=ensure)
 
 
@@ -262,7 +256,7 @@ def _map_edit(sf, args, kind):
             for index in range(highest, map_plans[0][2]):
                 ch = maps[mid].chapters[index]
                 reset_plans.append((mid, highest, index, ch, _valid_stages(ch, names, mid)))
-    # All selectors/metadata are validated before the first mutation.
+
     for mid, crown, crowns, ch, selected, progress in plans:
         if progress is not None:
             for i, sid in enumerate(selected):
@@ -287,13 +281,12 @@ def _map_edit(sf, args, kind):
             if crown < crowns:
                 nxt = maps[mid].chapters[crown]
                 _unlock(nxt, max(1, _unlock_value(nxt)))
-            # Original models unlock the next map when a map is completed.
+
             if mid + 1 < len(maps) and mid + 1 in names.map_names and maps[mid + 1].chapters:
                 nxt = maps[mid + 1].chapters[0]
                 _unlock(nxt, max(1, _unlock_value(nxt)))
 
-    # Only reset crowns after the highest selected one for each map. Doing
-    # this per selected crown would erase counts before ensure_cleared runs.
+
     for mid, highest, index, ch, valid in reset_plans:
         previous = maps[mid].chapters[highest - 1]
         complete = all(_stage_count(previous.stages[sid]) > 0 for sid in _valid_stages(previous, names, mid))
@@ -351,7 +344,7 @@ def _aku(sf, args):
 
 def _unlock_aku(sf, args):
     _args(args, set())
-    # Explicit original unlock quest ids, not inferred map or stage counts.
+
     _map_edit(sf, {"maps": [255, 256, 257, 258, 265, 266, 268], "crowns": [1], "clear_count": 1, "ensure_cleared": True}, "event")
 
 

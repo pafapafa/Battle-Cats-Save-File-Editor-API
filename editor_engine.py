@@ -1,4 +1,3 @@
-"""Validated atomic save editing and loss checks at the binary boundary."""
 from __future__ import annotations
 import copy
 import datetime
@@ -28,7 +27,7 @@ class PortableDate(datetime.datetime):
         try:
             return super().timestamp()
         except OSError:
-            # Windows mktime rejects some valid dates around the Unix epoch.
+
             naive = datetime.datetime(self.year,self.month,self.day,self.hour,self.minute,self.second,self.microsecond)
             return (naive-datetime.datetime(1970,1,1)).total_seconds()+time.timezone
 
@@ -94,7 +93,7 @@ def validate_operations(operations):
         if errors:
             error=errors[0]
             path='/'.join(map(str,error.absolute_path))
-            # jsonschema's default message may include submitted secrets.
+
             raise EditError(f'operation {index} ({name}), args/{path}: violates {error.validator}.')
     return operations
 
@@ -120,7 +119,7 @@ METADATA_CACHES = ('game_data_getter','gatya_item_names','gatya_item_buy','chara
                   'rank_gifts','treasure_text','cat_shrine_levels','medal_names','mission_names','mission_conditions')
 
 def clear_metadata_caches(sf):
-    # A batch may change its region or version between two metadata edits.
+
     for field in METADATA_CACHES:
         setattr(core.core_data,field,None)
     for field in ('unit_buy','unit_limit','nyanko_picture_book','talent_data'):

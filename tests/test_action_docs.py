@@ -1,4 +1,3 @@
-"""Keep published action examples aligned with the registered API contract."""
 import json
 from pathlib import Path
 import re

@@ -339,7 +339,7 @@ class APITests(unittest.TestCase):
         return response.get_json()
 
     def test_openapi_matches_real_metadata_lists_records_and_binary_responses(self):
-        # Exercise real JSONBinStore record/list shapes using an in-memory HTTP session.
+
         self.vault = JSONBinStore(api_key='fake-jsonbin-key', session=BinSession())
         for schema in self.spec['components']['schemas'].values():
             Draft202012Validator.check_schema(schema)

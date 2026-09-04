@@ -23,7 +23,7 @@ class FilterItem:
     def __init__(
         self,
         filter_date: FilterDate | None,
-        filter_day_flags: list[bool],  # 31 item array
+        filter_day_flags: list[bool],
         filter_week: int,
         filter_times_start_end_hhmm: list[tuple[int, int]],
     ):
@@ -245,9 +245,9 @@ class ServerItemDataItem:
     def __init__(
         self,
         filter: FilterData,
-        event_number: int,  # server item id
+        event_number: int,
         item_number: int,
-        item_unit: int,  # base quanity, not cat unit (e.g 2 XP+1000s)
+        item_unit: int,
         title: str,
         message: str,
         stage_progress: int,

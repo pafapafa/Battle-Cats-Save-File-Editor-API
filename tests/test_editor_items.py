@@ -1,4 +1,3 @@
-"""Offline item regressions against the real vendored BCSFE binary format."""
 import copy
 import math
 import unittest

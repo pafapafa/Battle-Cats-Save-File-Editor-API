@@ -1,4 +1,3 @@
-"""CLI regression tests; every HTTP operation is a mock."""
 import base64
 import contextlib
 import hashlib

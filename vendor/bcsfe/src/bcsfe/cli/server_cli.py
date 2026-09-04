@@ -19,7 +19,7 @@ class ServerCLI:
         cc = core.CountryCode.select()
         if cc is None:
             return None
-        gv = core.GameVersion(120200)  # not important
+        gv = core.GameVersion(120200)
 
         color.color_print_key(
             "downloading_save_file",
@@ -38,16 +38,8 @@ class ServerCLI:
             color.color_print_key("invalid_codes_error")
             if cc == "jp":
                 color.color_print_key("jp_tw_mixup")
-            # if dialog_creator.yes_no_key("display_response_debug_info_q"):
-            #     if result.response is not None:
-            #         color.color_print_key(
-            #             "response_text_display",
-            #             url=result.url,
-            #             request_headers=result.headers,
-            #             request_body=result.data,
-            #             response_headers=result.response.headers,
-            #             response_body=result.response.text,
-            #         )
+
+
             return
         if server_handler is None:
             return

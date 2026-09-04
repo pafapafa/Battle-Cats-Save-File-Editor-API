@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reference": {
-    "name": "User-provided BCSFE source",
+    "name": "BCSFE source",
     "version": "3.6.0",
     "feature_registry": "src/bcsfe/cli/feature_handler.py",
     "menu_entries_with_expanded_cat_submenus": 101,
@@ -10,7 +10,8 @@
       "special_skills",
       "unlock_equip_menu"
     ],
-    "sha256": "bddcc9232dbbe8ccb4cea4998df410e57588d5dea817f368ad535fdadfff063c"
+    "sha256": "16310df3c4ca96c4fbd39fa827f20d3cefd42f0690714aaa2ee81e85c50f7432",
+    "upstream_sha256": "bddcc9232dbbe8ccb4cea4998df410e57588d5dea817f368ad535fdadfff063c"
   },
   "verification_scope": "Every registered typed action has at least one offline real-SaveFile binary integration case. Static game tables are explicit fixtures; this is not exhaustive input coverage or live PONOS account verification.",
   "offline_binary_tested_actions": [
@@ -224,8 +225,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 66,
-        "function": "bcsfe.cli.save_management.SaveManagement.save_upload"
+        "line": 57,
+        "function": "bcsfe.cli.save_management.SaveManagement.save_upload",
+        "upstream_line": 66
       },
       "category": "file_account",
       "implementation": "implemented",
@@ -256,8 +258,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 38,
-        "function": "bcsfe.cli.save_management.SaveManagement.save_save_dialog"
+        "line": 35,
+        "function": "bcsfe.cli.save_management.SaveManagement.save_save_dialog",
+        "upstream_line": 38
       },
       "category": "file_account",
       "implementation": "adapted",
@@ -288,8 +291,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 54,
-        "function": "bcsfe.cli.save_management.SaveManagement.save_save_data_dir"
+        "line": 48,
+        "function": "bcsfe.cli.save_management.SaveManagement.save_save_data_dir",
+        "upstream_line": 54
       },
       "category": "file_account",
       "implementation": "adapted",
@@ -320,8 +324,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 118,
-        "function": "bcsfe.cli.save_management.SaveManagement.adb_push"
+        "line": 100,
+        "function": "bcsfe.cli.save_management.SaveManagement.adb_push",
+        "upstream_line": 118
       },
       "category": "device_cli",
       "implementation": "unavailable_in_vercel",
@@ -347,8 +352,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 199,
-        "function": "bcsfe.cli.save_management.SaveManagement.adb_push_rerun"
+        "line": 169,
+        "function": "bcsfe.cli.save_management.SaveManagement.adb_push_rerun",
+        "upstream_line": 199
       },
       "category": "device_cli",
       "implementation": "unavailable_in_vercel",
@@ -374,8 +380,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 162,
-        "function": "bcsfe.cli.save_management.SaveManagement.root_push"
+        "line": 138,
+        "function": "bcsfe.cli.save_management.SaveManagement.root_push",
+        "upstream_line": 162
       },
       "category": "device_cli",
       "implementation": "unavailable_in_vercel",
@@ -401,8 +408,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 217,
-        "function": "bcsfe.cli.save_management.SaveManagement.root_push_rerun"
+        "line": 184,
+        "function": "bcsfe.cli.save_management.SaveManagement.root_push_rerun",
+        "upstream_line": 217
       },
       "category": "device_cli",
       "implementation": "unavailable_in_vercel",
@@ -428,8 +436,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 235,
-        "function": "bcsfe.cli.save_management.SaveManagement.export_save"
+        "line": 199,
+        "function": "bcsfe.cli.save_management.SaveManagement.export_save",
+        "upstream_line": 235
       },
       "category": "file_account",
       "implementation": "implemented",
@@ -458,8 +467,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 488,
-        "function": "bcsfe.cli.save_management.SaveManagement.load_save"
+        "line": 439,
+        "function": "bcsfe.cli.save_management.SaveManagement.load_save",
+        "upstream_line": 488
       },
       "category": "file_account",
       "implementation": "adapted",
@@ -498,8 +508,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 504,
-        "function": "bcsfe.cli.save_management.SaveManagement.convert_save_cc"
+        "line": 452,
+        "function": "bcsfe.cli.save_management.SaveManagement.convert_save_cc",
+        "upstream_line": 504
       },
       "category": "file_account",
       "implementation": "adapted",
@@ -536,8 +547,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 516,
-        "function": "bcsfe.cli.save_management.SaveManagement.convert_save_gv"
+        "line": 464,
+        "function": "bcsfe.cli.save_management.SaveManagement.convert_save_gv",
+        "upstream_line": 516
       },
       "category": "file_account",
       "implementation": "implemented",
@@ -1021,8 +1033,9 @@
       ],
       "source": {
         "path": "src/bcsfe/core/game/catbase/talent_orbs.py",
-        "line": 703,
-        "function": "bcsfe.core.game.catbase.talent_orbs.SaveOrbs.edit_talent_orbs"
+        "line": 595,
+        "function": "bcsfe.core.game.catbase.talent_orbs.SaveOrbs.edit_talent_orbs",
+        "upstream_line": 703
       },
       "category": "gameplay",
       "implementation": "implemented",
@@ -1634,8 +1647,9 @@
       ],
       "source": {
         "path": "src/bcsfe/core/game/map/story.py",
-        "line": 556,
-        "function": "bcsfe.core.game.map.story.StoryChapters.clear_story"
+        "line": 547,
+        "function": "bcsfe.core.game.map.story.StoryChapters.clear_story",
+        "upstream_line": 556
       },
       "category": "gameplay",
       "implementation": "implemented",
@@ -1828,8 +1842,9 @@
       ],
       "source": {
         "path": "src/bcsfe/core/game/map/story.py",
-        "line": 908,
-        "function": "bcsfe.core.game.map.story.StoryChapters.edit_treasures"
+        "line": 899,
+        "function": "bcsfe.core.game.map.story.StoryChapters.edit_treasures",
+        "upstream_line": 908
       },
       "category": "gameplay",
       "implementation": "implemented",
@@ -1924,8 +1939,9 @@
       ],
       "source": {
         "path": "src/bcsfe/core/game/map/story.py",
-        "line": 939,
-        "function": "bcsfe.core.game.map.story.StoryChapters.edit_itf_timed_scores"
+        "line": 930,
+        "function": "bcsfe.core.game.map.story.StoryChapters.edit_itf_timed_scores",
+        "upstream_line": 939
       },
       "category": "gameplay",
       "implementation": "implemented",
@@ -2605,8 +2621,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 90,
-        "function": "bcsfe.cli.save_management.SaveManagement.unban_account"
+        "line": 78,
+        "function": "bcsfe.cli.save_management.SaveManagement.unban_account",
+        "upstream_line": 90
       },
       "category": "account",
       "implementation": "implemented",
@@ -2637,8 +2654,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/save_management.py",
-        "line": 250,
-        "function": "bcsfe.cli.save_management.SaveManagement.upload_items"
+        "line": 211,
+        "function": "bcsfe.cli.save_management.SaveManagement.upload_items",
+        "upstream_line": 250
       },
       "category": "account",
       "implementation": "implemented",
@@ -3399,8 +3417,9 @@
       ],
       "source": {
         "path": "src/bcsfe/cli/main.py",
-        "line": 266,
-        "function": "bcsfe.cli.main.Main.exit_editor"
+        "line": 248,
+        "function": "bcsfe.cli.main.Main.exit_editor",
+        "upstream_line": 266
       },
       "category": "editor_cli",
       "implementation": "not_applicable_to_http",

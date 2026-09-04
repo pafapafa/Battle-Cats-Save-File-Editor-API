@@ -1,4 +1,3 @@
-"""Backup/template routes, isolated from the existing edit patcher."""
 from __future__ import annotations
 import base64
 import binascii
@@ -35,8 +34,8 @@ def parse_save(raw, country):
     if not 32 <= len(raw) <= MAX_SAVE:
         raise APIError('Save must be 32 bytes to 1 MiB.')
     try:
-        # SaveFile detects its region from the original region-specific checksum.
-        # Passing no fallback region makes an unknown checksum fail without a CLI selector.
+
+
         cc = None if country == 'auto' else core.CountryCode.from_code(country)
         sf = core.SaveFile(core.Data(raw), cc=cc)
         if not sf.verify_hash() or (country != 'auto' and sf.cc.get_code() != country):
@@ -188,7 +187,7 @@ def clone_template(template_id):
         raise APIError('This save cannot be reserialized unchanged; backup download is available.', 422)
     source_identity = sf.inquiry_code
     handler = new_handler(sf)
-    # Persist an audit marker BEFORE touching the game server. No automatic retry.
+
     attempt_id = vault.save('attempt', {'template_id': template_id, 'order_id': data['order_id'],
                                        'created_at': now(), 'status': 'started'})
     recovery_id = None
@@ -197,7 +196,7 @@ def clone_template(template_id):
             raise APIError('New account creation was not confirmed.', 502)
         if not sf.inquiry_code or sf.inquiry_code == source_identity:
             raise APIError('A distinct account identity was not confirmed.', 502)
-        # Preserve the new credentials before requesting transfer codes.
+
         recovery_raw = sf.to_data().data
         recovery_id = vault.save('recovery', {
             'template_id': template_id, 'order_id': data['order_id'], 'attempt_id': attempt_id,
@@ -215,7 +214,7 @@ def clone_template(template_id):
         try:
             result_id = vault.save('issuance', result)
         except StoreError:
-            # The codes already exist: return them explicitly; never claim cloud persistence.
+
             return jsonify(success=True, persisted=False, retry_safe=False, **result,
                            message='Codes issued, but result persistence failed. Save this response.'), 201
         return jsonify(success=True, persisted=True, retry_safe=False, issuance_id=result_id, **result), 201

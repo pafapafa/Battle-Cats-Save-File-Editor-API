@@ -1,9 +1,3 @@
-"""Read-only source-feature coverage, exposed by GET /v2/features.
-
-coverage() returns {reference, counts, items, verification_scope, limitations}.
-Counts describe registered bindings and recorded offline examples, never a
-percentage of all possible saves/inputs or live game-account acceptance.
-"""
 from collections import Counter
 from copy import deepcopy
 import json

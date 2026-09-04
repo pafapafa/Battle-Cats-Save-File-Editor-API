@@ -1,4 +1,3 @@
-"""File-first HTTP interface for the complete typed editor."""
 from __future__ import annotations
 import base64
 import copy
@@ -192,11 +191,8 @@ def export_json():
         return jsonify(success=True,**file_metadata(raw,sf),state=to_state(sf))
 
 class JSONFloatLiteral(str):
-    """Remain text for string fields; become a number only in float writers.
 
-    The original struct.pack-based double writer calls __float__. This avoids
-    interpreting an inquiry code or password named "Infinity" as a number.
-    """
+
     def __float__(self):
         return float(str(self))
 

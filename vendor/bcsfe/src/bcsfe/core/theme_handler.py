@@ -198,11 +198,8 @@ class ExternalThemeManager:
     def save_theme(
         external_theme: ExternalTheme,
     ):
-        """Saves an external theme.
 
-        Args:
-            external_theme (ExternalTheme): External theme to save.
-        """
+
         if external_theme.git_repo is None:
             return
         file = ThemeHandler.get_theme_path(external_theme.get_full_name())
@@ -212,24 +209,15 @@ class ExternalThemeManager:
 
     @staticmethod
     def parse_external_theme(path: core.Path) -> ExternalTheme | None:
-        """Parses an external theme.
 
-        Args:
-            path (core.Path): Path to the external theme.
 
-        Returns:
-            ExternalTheme: External theme.
-        """
         json_data = core.JsonFile.from_data(path.read()).as_object()
         return ExternalTheme.from_json(json_data)
 
     @staticmethod
     def update_external_theme(external_theme: ExternalTheme):
-        """Updates an external theme.
 
-        Args:
-            external_theme (ExternalTheme): External theme to update.
-        """
+
         if external_theme.git_repo is None:
             return
         color.color_print_key(
@@ -253,7 +241,7 @@ class ExternalThemeManager:
 
     @staticmethod
     def update_all_external_themes(_: Any = None):
-        """Updates all external themes."""
+
         files = ThemeHandler.get_external_themes_folder().get_paths_dir()
         if not files:
             color.color_print_key(
@@ -273,11 +261,7 @@ class ExternalThemeManager:
 
     @staticmethod
     def get_external_theme_config() -> ExternalTheme | None:
-        """Gets the external theme from the config.
 
-        Returns:
-            ExternalTheme: External theme.
-        """
 
         theme = core.core_data.config.get_str(core.ConfigKey.THEME)
         if not theme.startswith("ext-"):
@@ -288,11 +272,7 @@ class ExternalThemeManager:
 
     @staticmethod
     def get_external_theme(theme: str) -> ExternalTheme | None:
-        """Gets the external theme from the theme code.
 
-        Returns:
-            ExternalTheme: External theme.
-        """
 
         if not theme.startswith("ext-"):
             return None

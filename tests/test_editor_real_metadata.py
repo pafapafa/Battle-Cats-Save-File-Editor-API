@@ -1,8 +1,3 @@
-"""Opt-in public BCSFE metadata integration, with no metadata/model mocks.
-
-Run: BCSFE_TEST_REAL_METADATA=1 python -m unittest discover -s tests -p test_editor_real_metadata.py
-Uses public game tables plus generated save bytes, never account-transfer servers.
-"""
 import os
 import unittest
 

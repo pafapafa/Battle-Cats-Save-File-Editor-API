@@ -1,4 +1,3 @@
-"""Actual vendored ServerHandler methods against an in-memory HTTP transport."""
 import base64
 import datetime
 import json

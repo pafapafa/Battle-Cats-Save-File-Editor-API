@@ -1,4 +1,3 @@
-"""Offline state-contract tests using real BCSFE models; no game requests."""
 import copy
 import datetime
 import socket
@@ -115,8 +114,8 @@ class MiscEditorTests(unittest.TestCase):
             self.apply("shrine.set", xp=2147483648, respect_maxima=False)
         self.apply("shrine.set", level=99, respect_maxima=False)
         self.assertEqual(self.sf.cat_shrine.xp_offering, 600)
-        # With recommended maxima enabled the original explicit table maximum
-        # can exceed int32; the save's offering-XP field is signed int64.
+
+
         levels.boundaries = [100, 300, 6000000000]
         self.apply("shrine.set", xp=5000000000)
         restored = core.SaveFile(core.Data(self.sf.to_data().data))
@@ -230,7 +229,7 @@ class MiscEditorTests(unittest.TestCase):
 
     def test_shrine_level_one_is_zero_not_negative_index_maximum(self):
         levels = self.shrine_fixture()
-        self.assertEqual(levels.get_xp_from_level(1), 600)  # Demonstrates upstream bug.
+        self.assertEqual(levels.get_xp_from_level(1), 600)
         self.apply("shrine.set", level=1)
         self.assertEqual(self.sf.cat_shrine.xp_offering, 0)
         self.assertEqual(self.sf.cat_shrine.dialogs, 0)

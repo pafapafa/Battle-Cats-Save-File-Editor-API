@@ -1,4 +1,3 @@
-"""Regression tests for stage adapters using real BCSFE model objects."""
 import copy
 import unittest
 from types import SimpleNamespace

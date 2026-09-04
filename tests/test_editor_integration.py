@@ -1,8 +1,3 @@
-"""All-action integration checks at the actual save binary boundary.
-
-The save and game models are real vendored BCSFE classes. Game tables are small,
-explicit fixtures. Socket connections are blocked and no account is contacted.
-"""
 import copy
 import datetime
 import json
@@ -171,8 +166,8 @@ class EditorIntegrationTests(unittest.TestCase):
         original = core.SaveFile(core.Data(self.raw))
         input_raw = self.raw
         if action == 'stages.unlock_aku':
-            # Only this action needs event map 268. All categories must share
-            # dimensions in the binary format. Keep other cases lightweight.
+
+
             for group in original.event_stages.chapters:
                 group.chapters = [event.EventSubChapterStars([event.EventSubChapter.init(5) for _ in range(3)]) for _ in range(269)]
             input_raw = original.to_data().data

@@ -1,4 +1,3 @@
-"""BCSFE runtime with per-operation caches and explicit server data paths."""
 from contextlib import contextmanager
 from pathlib import Path
 import os
@@ -18,7 +17,7 @@ def initialize():
         cache = Path(os.environ.get('BCSFE_DATA_DIR', str(Path(tempfile.gettempdir()) / 'bcsfe-api-data')))
         cache.mkdir(parents=True, exist_ok=True)
         core.data_dir_path = core.Path(str(cache))
-        # Both locations are official configuration hooks; do not change HOME.
+
         core.Path.get_config_folder = staticmethod(lambda: core.Path(str(cache / 'config')).generate_dirs())
         core.config_path = core.Path(str(cache / 'config' / 'config.yaml'))
         core.log_path = core.Path(str(cache / 'server.log'))
@@ -31,8 +30,8 @@ def initialize():
 @contextmanager
 def scoped_runtime():
     initialize()
-    # Upstream CoreData caches objects containing their original SaveFile.
-    # Never reuse those across saves, regions, versions, or concurrent requests.
+
+
     with LOCK:
         previous = core.core_data
         current = core.CoreData()

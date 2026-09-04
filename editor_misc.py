@@ -1,8 +1,3 @@
-"""Explicit, noninteractive adapters for the BCSFE miscellaneous editors.
-
-Every handler mutates only its supplied SaveFile. The caller owns copy-on-write
-and serialization. Missing game metadata is an error, never a successful no-op.
-"""
 from __future__ import annotations
 
 import datetime
@@ -15,7 +10,7 @@ from bcsfe.core.game.gamoto.ototo import CastleRecipeUnlock, Cannons
 
 I32 = 2**31 - 1
 I64 = 2**63 - 1
-# One helper ID occupies four bytes; the HTTP save interface is limited to 1 MiB.
+
 MAX_HELPERS_BY_SAVE_SIZE = 1024 * 1024 // 4
 
 
@@ -103,7 +98,7 @@ def gamatoto_level(sf, args):
     levels = core.core_data.get_gamatoto_levels(sf)
     maximum = _meta(levels.get_max_level(), "GamatotoExpedition_Limit.csv")
     rows = _meta(levels.get_all_levels(), "GamatotoExpedition.csv")
-    # Disabling a recommended max cannot create nonexistent XP-table rows.
+
     maximum = min(maximum if _respect(args) else I32, len(rows))
     level = _int(args["value"], "value", 1, maximum)
     xp = _meta(levels.get_xp_from_level(level), "GamatotoExpedition.csv")
@@ -143,8 +138,8 @@ def gamatoto_helpers(sf, args):
             if rarity in edits:
                 raise ValueError(f"Duplicate rarity: {rarity}")
             edits[rarity] = _int(value, "rarity count", 0, maximum)
-        # -1 is an empty slot in the source, not an unknown occupied helper.
-        # Preserve other rarity groups and occupied IDs missing from metadata.
+
+
         new_ids = [helper.id for helper in sf.gamatoto.helpers.helpers
                    if helper.is_valid() and (helper.id not in by_id or by_id[helper.id].rarity not in edits)]
         if len(new_ids) + sum(edits.values()) > maximum:
@@ -250,12 +245,12 @@ def shrine_set(sf, args):
     xp = sf.cat_shrine.xp_offering
     if "level" in args:
         level = _int(args["level"], "level", 1, len(boundaries) if respect else I32)
-        # Source get_xp_from_level(1) erroneously indexes boundaries[-1].
-        # Above-table levels use max XP, matching the source conversion helper.
+
+
         xp = 0 if level == 1 else (max(boundaries) if level > len(boundaries) else boundaries[level - 2])
     elif "xp" in args:
-        # The source uses MaxValue.i32(max_xp): DISABLE_MAXES switches
-        # to its signed-32-bit prompt ceiling even though XP is stored as long.
+
+
         xp = _int(args["xp"], "xp", 0, min(max(boundaries), I64) if respect else I32)
     if "visible" in args:
         _bool(args["visible"], "visible")
@@ -383,7 +378,7 @@ def playtime_set(sf, args):
     else:
         if not args:
             raise ValueError("Provide frames or at least one time component")
-        # Time components are a complete requested duration; omitted components are zero.
+
         hours = _int(args.get("hours", 0), "hours")
         minutes = _int(args.get("minutes", 0), "minutes")
         seconds = _int(args.get("seconds", 0), "seconds")
@@ -403,7 +398,7 @@ def gambling_reset(sf, args):
 
 def unlocked_slots(sf, args):
     _args(args, {"value", "respect_maxima"}, {"value"})
-    # Older files store exactly ten boolean flags; newer files use signed byte.
+
     hard = 10 if sf.game_version < 90700 else 127
     maximum = min(hard, sf.lineups.slot_names_length) if _respect(args) else hard
     sf.lineups.unlocked_slots = _int(args["value"], "value", 0, maximum)
@@ -487,8 +482,6 @@ ACTIONS = {
 }
 
 
-# Original MaxValue.specific consults DISABLE_MAXES for these menus.
-# Other IDs, selection ranges, enum choices, and binary widths stay validated.
 for _name in ("gamatoto.level", "gamatoto.helpers", "ototo.engineers", "ototo.materials", "ototo.cannons", "shrine.set", "lineups.unlocked_slots"):
     ACTIONS[_name]["schema"]["properties"]["respect_maxima"] = {"type": "boolean", "default": True}
     ACTIONS[_name]["description"] += " respect_maxima=false disables recommended game maxima; binary bounds and valid metadata identities still apply."

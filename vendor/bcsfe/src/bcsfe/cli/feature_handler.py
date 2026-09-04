@@ -42,7 +42,7 @@ class FeatureHandler:
                 "root_push_rerun": save_management.SaveManagement.root_push_rerun,
                 "export_save": save_management.SaveManagement.export_save,
                 "load_save": save_management.SaveManagement.load_save,
-                # "init_save": save_management.SaveManagement.init_save,
+
                 "convert_region": save_management.SaveManagement.convert_save_cc,
                 "convert_version": save_management.SaveManagement.convert_save_gv,
             },
@@ -175,7 +175,7 @@ class FeatureHandler:
                     self.search_features(
                         name,
                         path,
-                        feature,  # type: ignore
+                        feature,
                         found_features,
                     )
                 )
@@ -227,7 +227,7 @@ class FeatureHandler:
                     return [[k] for k in self.get_features().keys()]
                 feature = self.get_feature(feature_name_top)
                 if isinstance(feature, dict):
-                    for feature_name in feature.keys():  # type: ignore
+                    for feature_name in feature.keys():
                         feature_path: list[str] = current_path.copy()
                         feature_path.extend(feature_name_top + [feature_name])
                         selected_features.append(feature_path)
@@ -287,7 +287,7 @@ class FeatureHandler:
                 features_dict = self.get_features()
                 features = [[k] for k in features_dict.keys()]
 
-                core.core_data.game_data_getter = None  # reset game data getter so that if an old version is removed, it will download the new version
+                core.core_data.game_data_getter = None
 
     def do_save_actions(self):
         if core.core_data.config.get_bool(core.ConfigKey.CLEAR_TUTORIAL_ON_LOAD):

@@ -246,7 +246,7 @@ class ServerHandler:
         return self.get_password(tries + 1)
 
     def validate_auth_token(self, auth_token: str) -> bool:
-        token = jwt.decode(  # type: ignore
+        token = jwt.decode(
             auth_token,
             algorithms=["HS256"],
             options={"verify_signature": False},
@@ -316,15 +316,13 @@ class ServerHandler:
         return payload
 
     def get_save_key(self) -> dict[str, Any] | None:
-        # save_key = self.get_stored_save_key_data()
-        # if save_key and save_key.get("key", None):
-        #    return save_key
+
+
         auth_token = self.get_auth_token()
         if auth_token is None:
             return None
-        # save_key = self.get_stored_save_key_data()
-        # if save_key:
-        #    return save_key
+
+
         save_key = self.get_save_key_new(auth_token)
         if save_key is not None:
             return save_key

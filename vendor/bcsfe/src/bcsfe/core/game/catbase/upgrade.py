@@ -101,15 +101,7 @@ class Upgrade:
         usr_input = color.color_input_key("upgrade_input")
         if usr_input == core.core_data.local_manager.get_key("quit_key"):
             return None, True
-        # example:
-        # 10+20 = Upgrade(base=9, plus=20)
-        # 10+ = Upgrade(base=9, plus=-1) # -1 means no change
-        # +20 = Upgrade(base=-1, plus=20) # -1 means no change
-        # 10 = Upgrade(base=9, plus=0)
-        # 5-10+20-30 = Upgrade(base=random.randint(4, 9), plus=random.randint(20, 30))
-        # 5-10+ = Upgrade(base=random.randint(4, 9), plus=-1)
-        # +20-30 = Upgrade(base=-1, plus=random.randint(20, 30))
-        # max+max = Upgrade(base=50000, plus=50000)
+
 
         parts = usr_input.split("+")
         if len(parts) == 1:

@@ -1,8 +1,3 @@
-"""Offline regression checks using real vendored BCSFE SaveFile round trips.
-
-Only static game metadata is replaced with explicit, small fixtures. Account and
-external network operations are forbidden throughout these tests.
-"""
 import copy
 import unittest
 from contextlib import ExitStack
@@ -292,7 +287,7 @@ class CatEditorTests(unittest.TestCase):
             self.apply("cats.orbs", {"values": {"0": 128}})
         self.apply("cats.orbs", {"values": {"0": "max"}})
         self.assertEqual(self.sf.talent_orbs.orbs[0].value, 127)
-        # Test the precise old-version orb write/read path without translating the entire save version.
+
         stream = core.Data()
         self.sf.talent_orbs.orbs[0].write(stream, self.sf.game_version)
         loaded = core.TalentOrb.read(core.Data(stream.data), self.sf.game_version)

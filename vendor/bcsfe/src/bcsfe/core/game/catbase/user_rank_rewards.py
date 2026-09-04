@@ -234,7 +234,7 @@ class UserRankRewards:
             if name is None:
                 return
             description = name.replace("<br>", " ")
-            # remove span tags
+
             start = description.find("<")
             while start != -1:
                 end = description.find(">")
