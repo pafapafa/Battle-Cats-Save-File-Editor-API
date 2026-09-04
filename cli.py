@@ -24,7 +24,7 @@ from urllib.parse import urlsplit
 
 import requests
 
-DEFAULT_URL = "http://127.0.0.1:5000"
+DEFAULT_URL = "https://battle-cats-save-file-editor-api.vercel.app"
 MAX_SAVE_BYTES = 1024 * 1024
 MAX_JSON_BYTES = 16 * 1024 * 1024
 
@@ -37,7 +37,7 @@ class EditorClient:
     def __init__(self, url=DEFAULT_URL, token=None, session=None):
         parsed = urlsplit(url)
         if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in ("", "/"):
-            raise ClientError("Use the API origin as --url, for example http://127.0.0.1:5000")
+            raise ClientError("Use the API origin as --url, for example https://battle-cats-save-file-editor-api.vercel.app")
         self.url = url.rstrip("/")
         self.token = token or os.environ.get("EDITOR_API_KEY") or os.environ.get("TEMPLATE_API_KEY")
         self.session = session or requests.Session()
@@ -162,7 +162,7 @@ def write_new(path, data):
 
 def parser():
     value = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    value.add_argument("--url", default=DEFAULT_URL, help="API origin (default: http://127.0.0.1:5000)")
+    value.add_argument("--url", default=DEFAULT_URL, help="API origin (default: https://battle-cats-save-file-editor-api.vercel.app)")
     value.add_argument("--token", default=None, help="API bearer key; defaults to EDITOR_API_KEY/TEMPLATE_API_KEY")
     commands = value.add_subparsers(dest="command", required=True)
     commands.add_parser("features", help="Show action schemas and feature coverage")

@@ -2,20 +2,27 @@
 
 A Flask API for save-file backups, private templates, and BCSFE editing. The project uses the supplied BCSFE source in `vendor/bcsfe`; it does not reimplement the save parser or its field offsets.
 
-The English HTTP API reference is available at `/docs`. It documents endpoints, authentication, request bodies, and responses. Machine-readable schemas are available at `/openapi.json`.
+API base URL: `https://battle-cats-save-file-editor-api.vercel.app`
 
-## Run locally
+The English [HTTP API reference](https://battle-cats-save-file-editor-api.vercel.app/docs) documents endpoints, authentication, request bodies, and responses. The [OpenAPI document](https://battle-cats-save-file-editor-api.vercel.app/openapi.json) provides machine-readable schemas, and the [feature inventory](https://battle-cats-save-file-editor-api.vercel.app/v2/features) lists action arguments, source references, and coverage.
 
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-$env:EDITOR_API_KEY = 'replace-with-a-server-key-of-at-least-32-characters'
-.\.venv\Scripts\python.exe main.py
-```
+## Deploy from GitHub to Vercel
 
-Open `http://127.0.0.1:5000/docs`. The OpenAPI document is at `/openapi.json`; action arguments, source references, and feature coverage are at `/v2/features`.
+1. Push this project to a GitHub repository and import that repository into Vercel.
+2. Select the directory containing `main.py`, `requirements.txt`, and `vercel.json` as the project root.
+3. Configure the environment variables below for the deployment environment, then deploy. Redeploy after changing environment variables.
+4. Open `/docs` on the deployment URL and use its HTTP endpoints from your application or API client.
 
-File editing accepts `EDITOR_API_KEY`, falling back to `TEMPLATE_API_KEY` when the editor key is not configured. Backup and template routes use `TEMPLATE_API_KEY`. Private cloud templates also require `JSONBIN_API_KEY`. Environment variables take precedence over the local, gitignored `template_secrets.py` configuration. See [TEMPLATES.md](TEMPLATES.md) for setup and recovery details.
+| Environment variable | Purpose |
+| --- | --- |
+| `EDITOR_API_KEY` | Bearer key for file editing; falls back to `TEMPLATE_API_KEY` when absent |
+| `TEMPLATE_API_KEY` | Bearer key for backup and template routes; at least 32 characters |
+| `JSONBIN_API_KEY` | Existing JSONBin master key for private template storage |
+| `TEMPLATE_ENCRYPTION_KEY` | Optional explicit template encryption key; otherwise derived from the JSONBin key |
+
+The deployment entry point is the Flask `app` in `main.py`, using `vercel.json` routing. Metadata and configuration caches use temporary storage. Environment variables take precedence over the local, gitignored `template_secrets.py` configuration; that file is excluded from Git deployment. See [TEMPLATES.md](TEMPLATES.md) for storage setup and recovery details.
+
+Check the project's function duration against metadata downloads and remote operations. Runtime requirements and limits are documented in Vercel's [Python runtime documentation](https://vercel.com/docs/functions/runtimes/python) and [function limits](https://vercel.com/docs/functions/limitations). Repository test results and deployed behavior are verified separately.
 
 ## Backup and copy APIs
 
@@ -63,16 +70,17 @@ Ordinary file editing does not consume transfer codes. Transfer reception does: 
 
 ## Python clients
 
-[cli.py](cli.py) and [example.py](example.py) use the v2 file API. They refuse to overwrite an input file or an existing output file.
+[cli.py](cli.py) and [example.py](example.py) run on the caller's computer and send HTTPS requests to the deployed v2 API. They preserve the input file and refuse to overwrite an existing output file.
 
 ```powershell
 $env:EDITOR_API_KEY = 'the-key-configured-on-your-server'
-.\.venv\Scripts\python.exe cli.py features
-.\.venv\Scripts\python.exe cli.py inspect original.save --country kr
-.\.venv\Scripts\python.exe cli.py edit original.save operations.json edited.save --country kr
+py -m pip install requests
+py cli.py features
+py cli.py inspect original.save --country kr
+py cli.py edit original.save operations.json edited.save --country kr
 ```
 
-`operations.json` contains the `operations` array from the request above. The default API origin is local; use `--url` before the command to select a deployed server. See [EXAMPLES.md](EXAMPLES.md) for export/import commands and the status of older language examples.
+`operations.json` contains the `operations` array from the request above. The default API origin is `https://battle-cats-save-file-editor-api.vercel.app`; use `--url` before the command to select another deployment. These commands run an API client. See [EXAMPLES.md](EXAMPLES.md) for export/import commands and the status of older language examples.
 
 ## Coverage and verification
 
@@ -89,12 +97,6 @@ Ordinary tests do not contact game account servers. The opt-in suite uses public
 Game-account operations have tests for simulated success, failure, and recovery responses. Live account creation, transfer, and in-game acceptance remain separate verification steps.
 
 Four device operations involving ADB/root or restarting the game are unavailable on Vercel. Two terminal-only theme/exit entries do not apply to HTTP. Save paths, region conversion, configuration, and game-data management have HTTP equivalents where applicable. This project does not claim identical behavior for the entire interactive CLI.
-
-## Vercel
-
-The deployment entry point is the Flask `app` in `main.py`, using `vercel.json` routing. Metadata and configuration caches use temporary storage. Configure `EDITOR_API_KEY` or `TEMPLATE_API_KEY` for editing, and `TEMPLATE_API_KEY` plus `JSONBIN_API_KEY` for private templates. The local `template_secrets.py` file is excluded from Git deployment.
-
-Check the project's function duration against metadata downloads and remote operations. Runtime requirements and limits are documented in Vercel's [Python runtime documentation](https://vercel.com/docs/functions/runtimes/python) and [function limits](https://vercel.com/docs/functions/limitations). Local test results and deployed behavior are verified separately.
 
 ## Source and license
 

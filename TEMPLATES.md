@@ -2,6 +2,8 @@
 
 A backup preserves the original save file. A private template stores that file in JSONBin so it can be downloaded later or used to request a separate game account with the same starting progress.
 
+API base URL: `https://battle-cats-save-file-editor-api.vercel.app`. The [HTTP API reference](https://battle-cats-save-file-editor-api.vercel.app/docs) documents the deployed routes.
+
 The file workflow uses raw saves produced by BCSFE. It does not call the legacy `/edit` handler. Downloads provide recovery files; they do not automatically restore data inside the game app.
 
 ## HTTP workflow
@@ -17,7 +19,9 @@ If starting from a transfer code, first receive the save through `/v2/save/from-
 
 Copy issuance uses the supplied BCSFE account-creation implementation. Automated tests cover simulated server responses and recovery behavior; live account creation, login, and transfer acceptance require separate verification. File-editing coverage is documented at `/v2/features` and in [README.md](README.md).
 
-## Configuration
+## Vercel configuration
+
+Import the GitHub repository into Vercel and configure these values in the project's environment settings before deployment. Redeploy after changing them.
 
 | Setting | Purpose |
 | --- | --- |
@@ -27,13 +31,7 @@ Copy issuance uses the supplied BCSFE account-creation implementation. Automated
 
 Environment variables override the local `template_secrets.py` values. Existing local credentials remain usable. The template store creates new private bins; it does not update the existing user, code, or cat database bins.
 
-Retain the key used to encrypt stored records so they remain readable. `template_secrets.py` is excluded from Git. For a Vercel Git deployment, configure the required values in the project's environment settings. Clients send the template API key in `Authorization`; they do not need the JSONBin master key.
-
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m flask --app main run
-```
+Retain the key used to encrypt stored records so they remain readable. `template_secrets.py` is excluded from Git deployment. Clients send the template API key in `Authorization`; they do not need the JSONBin master key.
 
 ## Store a template through the API
 
@@ -43,7 +41,7 @@ All `/v1` routes below require `Authorization: Bearer <TEMPLATE_API_KEY>`.
 import os
 import requests
 
-base = "http://127.0.0.1:5000"
+base = "https://battle-cats-save-file-editor-api.vercel.app"
 headers = {"Authorization": "Bearer " + os.environ["TEMPLATE_API_KEY"]}
 
 with open("account.save", "rb") as file:
@@ -120,7 +118,7 @@ import os
 from examples.vending_backend import issue_once
 
 result = issue_once(
-    api_url="https://your-project.vercel.app",
+    api_url="https://battle-cats-save-file-editor-api.vercel.app",
     token=os.environ["TEMPLATE_API_KEY"],
     template_id=product["template_id"],
     order_id=order["id"],

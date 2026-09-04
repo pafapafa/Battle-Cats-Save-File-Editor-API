@@ -2,21 +2,22 @@
 
 ## Current Python clients
 
-[`cli.py`](cli.py) and [`example.py`](example.py) use the authenticated v2 file API. The default server is `http://127.0.0.1:5000`. Set `EDITOR_API_KEY`, or `TEMPLATE_API_KEY` when it is the server's configured editor fallback.
+[`cli.py`](cli.py) and [`example.py`](example.py) run on the caller's computer and call the authenticated v2 API at `https://battle-cats-save-file-editor-api.vercel.app` by default. Set `EDITOR_API_KEY`, or `TEMPLATE_API_KEY` when it is the server's configured editor fallback. The commands below are remote API client operations.
 
 ```powershell
 $env:EDITOR_API_KEY = 'the-key-configured-on-your-server'
-.\.venv\Scripts\python.exe cli.py features
-.\.venv\Scripts\python.exe cli.py inspect original.save --country kr
-.\.venv\Scripts\python.exe cli.py edit original.save operations.json edited.save --country kr
-.\.venv\Scripts\python.exe cli.py export original.save state.json --country kr
-.\.venv\Scripts\python.exe cli.py import state.json restored.save
+py -m pip install requests
+py cli.py features
+py cli.py inspect original.save --country kr
+py cli.py edit original.save operations.json edited.save --country kr
+py cli.py export original.save state.json --country kr
+py cli.py import state.json restored.save
 ```
 
-To use a deployed server, place `--url` before the command:
+To specify the deployment URL explicitly, place `--url` before the command. Replace this URL when using your own deployment:
 
 ```powershell
-.\.venv\Scripts\python.exe cli.py --url https://your-project.vercel.app inspect original.save --country kr
+py cli.py --url https://battle-cats-save-file-editor-api.vercel.app inspect original.save --country kr
 ```
 
 `operations.json` contains an array of action requests:

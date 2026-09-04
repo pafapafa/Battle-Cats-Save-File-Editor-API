@@ -2,7 +2,7 @@
 
 Set EDITOR_API_KEY or TEMPLATE_API_KEY, then run:
   python example.py original.save edited.save
-  python example.py --url https://your-api.vercel.app original.save edited.save
+  python example.py --url https://battle-cats-save-file-editor-api.vercel.app original.save edited.save
 
 Change OPERATIONS to actions returned by GET /v2/features. This example does not
 receive transfer codes, create accounts, or upload a save to a game server.

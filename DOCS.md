@@ -1,6 +1,6 @@
 # API reference
 
-Open `/docs` for the English HTTP API reference. `/openapi.json` describes file, account, backup, and template endpoints, including authentication, request bodies, responses, and the arguments for registered editing actions.
+Open the [deployed API documentation](https://battle-cats-save-file-editor-api.vercel.app/docs) for the English HTTP API reference. `/openapi.json` describes file, account, backup, and template endpoints, including authentication, request bodies, responses, and the arguments for registered editing actions.
 
 ## Documentation
 
