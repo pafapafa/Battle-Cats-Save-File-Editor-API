@@ -6,6 +6,21 @@ API base URL: `https://battle-cats-save-file-editor-api.vercel.app`
 
 The English [HTTP API reference](https://battle-cats-save-file-editor-api.vercel.app/docs) documents endpoints, authentication, request bodies, and responses. The [OpenAPI document](https://battle-cats-save-file-editor-api.vercel.app/openapi.json) provides machine-readable schemas, and the [feature inventory](https://battle-cats-save-file-editor-api.vercel.app/v2/features) lists action arguments, source references, and coverage.
 
+## Documentation by task
+
+| Reference | Use it for |
+| --- | --- |
+| [ACTIONS.md](ACTIONS.md) | All 89 save-edit actions, grouped into 13 categories, with arguments, defaults, examples, and source links |
+| [ENDPOINTS.md](ENDPOINTS.md) | HTTP methods, authentication, request and response bodies, errors, and file/account/metadata routes |
+| [FEATURES.md](FEATURES.md) | All 99 original BCSFE menu features, grouped by source menu, with API mappings and implementation limits |
+| [TEMPLATES.md](TEMPLATES.md) | Persistent backups, original downloads, account-copy requests, record pagination, and recovery |
+| [DOCS.md](DOCS.md) | Reference navigation, common limits, authentication, and transfer behavior |
+| [EXAMPLES.md](EXAMPLES.md) | Remote Python clients and the status of historical language examples |
+
+The action categories cover resources, gacha seeds, cats/forms/talents/orbs, storage, lineups, special skills, story, event/challenge maps, Gamatoto, Ototo, collection progress, account/save fields, and explicit repairs. Choose a category before selecting an action; its notes explain save-version and metadata requirements.
+
+The API documentation supports Light, Dark, and System themes and saves the choice in your browser. Direct action links preserve the selected entry, for example [items.xp](https://battle-cats-save-file-editor-api.vercel.app/docs#reference?view=actions&entry=items.xp).
+
 ## Deploy from GitHub to Vercel
 
 1. Push this project to a GitHub repository and import that repository into Vercel.
@@ -66,7 +81,7 @@ Actions that expose `respect_maxima` apply BCSFE's recommended limits by default
 
 Ordinary file editing does not consume transfer codes. Transfer reception does: retain the returned save containing refreshed credentials. Server-side authentication failures do not automatically create a replacement account; account creation requires an explicit request.
 
-[DOCS.md](DOCS.md) lists input limits and error handling. [LEGACY.md](LEGACY.md) documents the compatibility routes.
+[ENDPOINTS.md](ENDPOINTS.md) documents the full HTTP contracts. [DOCS.md](DOCS.md) lists shared input limits and error handling; [LEGACY.md](LEGACY.md) documents the compatibility routes.
 
 ## Python clients
 
@@ -84,7 +99,7 @@ py cli.py edit original.save operations.json edited.save --country kr
 
 ## Coverage and verification
 
-The feature inventory maps 79 game-editing menu entries to 89 typed actions and records the disposition of all 99 unique source menu entries. [reference_features.json](reference_features.json) and `/v2/features` provide the detailed mapping.
+The feature inventory maps 79 game-editing menu entries to 89 typed actions and records the disposition of all 99 unique source menu entries. [FEATURES.md](FEATURES.md) provides the readable category-by-category mapping; [reference_features.json](reference_features.json) and `/v2/features` expose its structured form. [ACTIONS.md](ACTIONS.md) gives an example for every registered action.
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v

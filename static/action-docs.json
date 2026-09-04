@@ -1,0 +1,1693 @@
+{
+  "categories": [
+    {
+      "id": "resources",
+      "title": "Resources and inventory",
+      "description": "Set resource balances, item quantities, timed items, and scheme rewards."
+    },
+    {
+      "id": "gacha",
+      "title": "Gacha seeds",
+      "description": "Set the independent normal, rare, and event random-number seeds stored in a save."
+    },
+    {
+      "id": "cats",
+      "title": "Cats, forms, talents, and orbs",
+      "description": "Select cats by identity or game metadata, then edit ownership, progression, guide status, or orb inventory."
+    },
+    {
+      "id": "storage",
+      "title": "Cat storage",
+      "description": "Add cats or special-skill items to existing storage slots, or remove stored entries."
+    },
+    {
+      "id": "lineups",
+      "title": "Battle lineups",
+      "description": "Edit lineup names, equipped cats, the active lineup, and the unlocked lineup count."
+    },
+    {
+      "id": "skills",
+      "title": "Base special skills",
+      "description": "Edit the displayed base and plus levels of the base's special skills."
+    },
+    {
+      "id": "story",
+      "title": "Story, treasures, and outbreaks",
+      "description": "Edit story chapter progress, treasures, timed scores, zombie outbreaks, and replay flags."
+    },
+    {
+      "id": "maps",
+      "title": "Event and challenge maps",
+      "description": "Edit legend, event, collab, gauntlet, tower, Aku, Enigma, and challenge progression."
+    },
+    {
+      "id": "gamatoto",
+      "title": "Gamatoto expeditions",
+      "description": "Edit expedition XP, its derived level, and helpers."
+    },
+    {
+      "id": "ototo",
+      "title": "Ototo construction",
+      "description": "Edit engineers, construction materials, and existing cannon development or part levels."
+    },
+    {
+      "id": "progression",
+      "title": "Rewards and collection progress",
+      "description": "Edit shrine progress, reward flags, medals, missions, the enemy guide, and gambling-event state."
+    },
+    {
+      "id": "account",
+      "title": "Account fields and save format",
+      "description": "Edit local identity fields, pass state, play time, region, or format version. These actions do not perform remote account operations."
+    },
+    {
+      "id": "fixes",
+      "title": "Explicit save repairs",
+      "description": "Apply the original targeted repairs only when requested; several reset existing progress or pass state."
+    }
+  ],
+  "actions": {
+    "items.catfood": {
+      "category": "resources",
+      "description": "Set the cat food balance.",
+      "notes": [
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Changing the value records the delta in the save's managed-item metadata. This action does not contact account servers.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.catfood",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.xp": {
+      "category": "resources",
+      "description": "Set the XP balance.",
+      "notes": [
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.xp",
+        "args": {
+          "value": 1000
+        }
+      }
+    },
+    "items.normal_tickets": {
+      "category": "resources",
+      "description": "Set the normal ticket balance.",
+      "notes": [
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.normal_tickets",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.rare_tickets": {
+      "category": "resources",
+      "description": "Set the rare ticket balance.",
+      "notes": [
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Changing the value records the delta in the save's managed-item metadata. This action does not contact account servers.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.rare_tickets",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.platinum_tickets": {
+      "category": "resources",
+      "description": "Set the platinum ticket balance.",
+      "notes": [
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Changing the value records the delta in the save's managed-item metadata. This action does not contact account servers.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.platinum_tickets",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.legend_tickets": {
+      "category": "resources",
+      "description": "Set the legend ticket balance.",
+      "notes": [
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Changing the value records the delta in the save's managed-item metadata. This action does not contact account servers.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.legend_tickets",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.platinum_shards": {
+      "category": "resources",
+      "description": "Set the platinum shard count.",
+      "notes": [
+        "With respect_maxima=true, the limit is max(0, (configured platinum-ticket maximum - current platinum tickets) * 10 + 9). It checks remaining ticket capacity but does not convert shards into tickets. false bypasses this capacity check.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.platinum_shards",
+        "args": {
+          "value": 0
+        }
+      }
+    },
+    "items.np": {
+      "category": "resources",
+      "description": "Set the NP balance.",
+      "notes": [
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.np",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.leadership": {
+      "category": "resources",
+      "description": "Set the Leadership count.",
+      "notes": [
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "The stored value is limited to 0..32767.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.leadership",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.hundred_million_ticket": {
+      "category": "resources",
+      "description": "Set the 100 Million Ticket count.",
+      "notes": [
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.hundred_million_ticket",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.restart_pack": {
+      "category": "resources",
+      "description": "Set the restart pack count.",
+      "notes": [
+        "The stored value is limited to 0..127. respect_maxima is accepted but does not change this action's limit.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.restart_pack",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.golden_cpu_count": {
+      "category": "resources",
+      "description": "Set the Gold CPU count.",
+      "notes": [
+        "The stored value is limited to 0..127. respect_maxima is accepted but does not change this action's limit.",
+        "value replaces the existing count; it is not an amount to add."
+      ],
+      "example": {
+        "action": "items.golden_cpu_count",
+        "args": {
+          "value": 10
+        }
+      }
+    },
+    "items.catamins": {
+      "category": "resources",
+      "description": "Set selected Catamin quantities.",
+      "notes": [
+        "values may be a single quantity for every stored entry, an array replacing entries from index 0, or an object such as {\"0\": 10} selecting individual zero-based storage indexes. Unspecified entries are preserved.",
+        "Array length and indexes must fit the existing save; this action does not extend the array. Object keys must be canonical decimal indexes, with no leading zeros.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies."
+      ],
+      "example": {
+        "action": "items.catamins",
+        "args": {
+          "values": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "items.catseyes": {
+      "category": "resources",
+      "description": "Set selected Catseye quantities.",
+      "notes": [
+        "values may be a single quantity for every stored entry, an array replacing entries from index 0, or an object such as {\"0\": 10} selecting individual zero-based storage indexes. Unspecified entries are preserved.",
+        "Array length and indexes must fit the existing save; this action does not extend the array. Object keys must be canonical decimal indexes, with no leading zeros.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies."
+      ],
+      "example": {
+        "action": "items.catseyes",
+        "args": {
+          "values": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "items.catfruit": {
+      "category": "resources",
+      "description": "Set selected evolution-material quantities in the catfruit array.",
+      "notes": [
+        "values may be a single quantity for every stored entry, an array replacing entries from index 0, or an object such as {\"0\": 10} selecting individual zero-based storage indexes. Unspecified entries are preserved.",
+        "Array length and indexes must fit the existing save; this action does not extend the array. Object keys must be canonical decimal indexes, with no leading zeros.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Before game version 11.4.0, the configured old catfruit limit applies to each requested quantity and to the total after the edit. Version 11.4.0 and later uses the newer per-entry cap."
+      ],
+      "example": {
+        "action": "items.catfruit",
+        "args": {
+          "values": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "items.labyrinth_medals": {
+      "category": "resources",
+      "description": "Set selected labyrinth medal quantities.",
+      "notes": [
+        "values may be a single quantity for every stored entry, an array replacing entries from index 0, or an object such as {\"0\": 10} selecting individual zero-based storage indexes. Unspecified entries are preserved.",
+        "Array length and indexes must fit the existing save; this action does not extend the array. Object keys must be canonical decimal indexes, with no leading zeros.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies."
+      ],
+      "example": {
+        "action": "items.labyrinth_medals",
+        "args": {
+          "values": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "items.treasure_chests": {
+      "category": "resources",
+      "description": "Set selected treasure chest quantities.",
+      "notes": [
+        "values may be a single quantity for every stored entry, an array replacing entries from index 0, or an object such as {\"0\": 10} selecting individual zero-based storage indexes. Unspecified entries are preserved.",
+        "Array length and indexes must fit the existing save; this action does not extend the array. Object keys must be canonical decimal indexes, with no leading zeros.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies."
+      ],
+      "example": {
+        "action": "items.treasure_chests",
+        "args": {
+          "values": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "items.event_capsules": {
+      "category": "resources",
+      "description": "Set selected event-capsule ticket quantities.",
+      "notes": [
+        "values may be a single quantity for every stored entry, an array replacing entries from index 0, or an object such as {\"0\": 10} selecting individual zero-based storage indexes. Unspecified entries are preserved.",
+        "Array length and indexes must fit the existing save; this action does not extend the array. Object keys must be canonical decimal indexes, with no leading zeros.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Uses the shared event_tickets quantity cap. These are storage indexes; items.event_tickets instead accepts original game item IDs."
+      ],
+      "example": {
+        "action": "items.event_capsules",
+        "args": {
+          "values": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "items.lucky_tickets": {
+      "category": "resources",
+      "description": "Set selected first-category lucky-ticket quantities.",
+      "notes": [
+        "values may be a single quantity for every stored entry, an array replacing entries from index 0, or an object such as {\"0\": 10} selecting individual zero-based storage indexes. Unspecified entries are preserved.",
+        "Array length and indexes must fit the existing save; this action does not extend the array. Object keys must be canonical decimal indexes, with no leading zeros.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Uses the shared event_tickets quantity cap. These are storage indexes; items.event_tickets instead accepts original game item IDs."
+      ],
+      "example": {
+        "action": "items.lucky_tickets",
+        "args": {
+          "values": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "items.event_capsules_2": {
+      "category": "resources",
+      "description": "Set selected second-category lucky-ticket quantities.",
+      "notes": [
+        "values may be a single quantity for every stored entry, an array replacing entries from index 0, or an object such as {\"0\": 10} selecting individual zero-based storage indexes. Unspecified entries are preserved.",
+        "Array length and indexes must fit the existing save; this action does not extend the array. Object keys must be canonical decimal indexes, with no leading zeros.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Uses the shared event_tickets quantity cap. These are storage indexes; items.event_tickets instead accepts original game item IDs."
+      ],
+      "example": {
+        "action": "items.event_capsules_2",
+        "args": {
+          "values": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "items.battle_items": {
+      "category": "resources",
+      "description": "Set selected battle-item quantities.",
+      "notes": [
+        "values may be a single quantity for every stored entry, an array replacing entries from index 0, or an object such as {\"0\": 10} selecting individual zero-based storage indexes. Unspecified entries are preserved.",
+        "Array length and indexes must fit the existing save; this action does not extend the array. Object keys must be canonical decimal indexes, with no leading zeros.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Only quantity fields change; item locks and existing endless-item durations are preserved."
+      ],
+      "example": {
+        "action": "items.battle_items",
+        "args": {
+          "values": {
+            "0": 10,
+            "2": 5
+          }
+        }
+      }
+    },
+    "items.endless": {
+      "category": "resources",
+      "description": "Start or replace endless battle-item durations in minutes.",
+      "notes": [
+        "minutes accepts a scalar for every stored battle item, a prefix array, or an object keyed by zero-based item indexes; unspecified items are preserved.",
+        "Each selected timer is activated with its start time set to the current UTC time and its internal endless amount set to 0. Ordinary battle-item quantities are preserved.",
+        "Use the string \"infinity\" for an unlimited end time. Numeric durations must remain finite after conversion to seconds. A duration of 0 produces equal start and end times; it does not clear the active flag."
+      ],
+      "example": {
+        "action": "items.endless",
+        "args": {
+          "minutes": {
+            "0": 60
+          }
+        }
+      }
+    },
+    "items.rare_ticket_trade": {
+      "category": "resources",
+      "description": "Prepare the original five-to-one rare-ticket trade in cat storage.",
+      "notes": [
+        "Sets trade_progress to amount * 5 and places the original trade item (item_id=1, item_type=2) in the first empty or matching storage slot. Existing rare_tickets are not increased by this action.",
+        "The save must contain an empty slot or an existing matching trade item.",
+        "The resulting rare-ticket balance (current tickets + amount) is checked against the configured maximum by default. respect_maxima=false bypasses that configured cap; integer storage limits still apply."
+      ],
+      "example": {
+        "action": "items.rare_ticket_trade",
+        "args": {
+          "amount": 2
+        }
+      }
+    },
+    "items.event_tickets": {
+      "category": "resources",
+      "description": "Set event and lucky-ticket quantities by original game item ID.",
+      "notes": [
+        "Requires item-buy metadata for the save's region/version. IDs must belong to event tickets, first lucky tickets, or second lucky tickets and map to an existing storage slot.",
+        "Use game item IDs as decimal object keys, not storage indexes. Multiple supplied IDs that resolve to one slot are rejected; unselected slots are preserved.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "The example ID is illustrative; select an event-ticket ID present in the applicable metadata."
+      ],
+      "example": {
+        "action": "items.event_tickets",
+        "args": {
+          "items": {
+            "501": 10
+          }
+        }
+      }
+    },
+    "items.evolve_by_id": {
+      "category": "resources",
+      "description": "Set evolution-material quantities, including stones, by original game item ID.",
+      "notes": [
+        "Requires item-buy metadata. Each ID must be an evolution item whose mapped catfruit-array index exists in the save. Multiple IDs resolving to the same slot are rejected.",
+        "Uses game item IDs as decimal object keys; unselected materials are preserved.",
+        "respect_maxima defaults to true and rejects quantities above the configured BCSFE maximum; false bypasses that configured cap, while the storage integer limit still applies.",
+        "Before version 11.4.0, the old catfruit cap also limits the total after the edit. Later versions use the newer per-entry cap.",
+        "The example ID is illustrative; select an evolution-item ID present in the applicable metadata."
+      ],
+      "example": {
+        "action": "items.evolve_by_id",
+        "args": {
+          "items": {
+            "601": 10
+          }
+        }
+      }
+    },
+    "items.scheme": {
+      "category": "resources",
+      "description": "Add or remove selected scheme rewards from the pending reward list.",
+      "notes": [
+        "Requires schemeItemData.tsv metadata. ids=\"all\" selects every valid ID from that table; explicit IDs must exist there.",
+        "mode=\"add\" adds missing IDs to to_obtain; mode=\"remove\" removes selected IDs from to_obtain. Both modes also remove those IDs from received, matching the original editor.",
+        "This changes the save's reward bookkeeping; it does not call a remote claim endpoint."
+      ],
+      "example": {
+        "action": "items.scheme",
+        "args": {
+          "ids": "all",
+          "mode": "add"
+        }
+      }
+    },
+    "skills.set": {
+      "category": "skills",
+      "description": "Set special-skill base and plus levels using fixed values, random ranges, or metadata maxima.",
+      "notes": [
+        "Skill keys are zero-based indexes in the visible skill list. Displayed level starts at 1; plus starts at 0. Metadata must exist for every selected skill.",
+        "Provide level and/or plus, or max=true alone. Omitted components are preserved. max=false alone is rejected.",
+        "Each component accepts an integer, \"max\", or an inclusive {\"min\": ..., \"max\": ...} range. Random draws are made separately per requested component; the hidden cannon skill receives the same chosen value as its visible counterpart.",
+        "skills=\"all\" maximizes both components of every visible skill using that skill's own metadata. \"max\" still uses metadata when respect_maxima=false.",
+        "respect_maxima defaults to true. false allows explicit values above metadata caps, up to displayed level 65536 and plus 65535.",
+        "Also sets the original rank-up sale field to 2147483647."
+      ],
+      "example": {
+        "action": "skills.set",
+        "args": {
+          "skills": {
+            "0": {
+              "level": 10,
+              "plus": 0
+            }
+          }
+        }
+      }
+    },
+    "gatya.rare_seed": {
+      "category": "gacha",
+      "description": "Set the rare gacha seed.",
+      "notes": [
+        "Accepts the complete unsigned 32-bit range 0..4294967295. It replaces the stored seed without drawing a capsule or changing the other seed fields."
+      ],
+      "example": {
+        "action": "gatya.rare_seed",
+        "args": {
+          "value": 4294967295
+        }
+      }
+    },
+    "gatya.normal_seed": {
+      "category": "gacha",
+      "description": "Set the normal gacha seed.",
+      "notes": [
+        "Accepts the complete unsigned 32-bit range 0..4294967295. It replaces the stored seed without drawing a capsule or changing the other seed fields."
+      ],
+      "example": {
+        "action": "gatya.normal_seed",
+        "args": {
+          "value": 4294967295
+        }
+      }
+    },
+    "gatya.event_seed": {
+      "category": "gacha",
+      "description": "Set the event gacha seed.",
+      "notes": [
+        "Accepts the complete unsigned 32-bit range 0..4294967295. It replaces the stored seed without drawing a capsule or changing the other seed fields."
+      ],
+      "example": {
+        "action": "gatya.event_seed",
+        "args": {
+          "value": 4294967295
+        }
+      }
+    },
+    "account.inquiry_code": {
+      "category": "account",
+      "description": "Replace the account's stored inquiry code.",
+      "notes": [
+        "Accepts a string of at most 512 characters without NUL; an empty string clears the field.",
+        "Only the local save field is changed. This action does not obtain, validate, or refresh server credentials."
+      ],
+      "example": {
+        "action": "account.inquiry_code",
+        "args": {
+          "value": "ACCOUNT_INQUIRY_CODE"
+        }
+      }
+    },
+    "account.password_refresh_token": {
+      "category": "account",
+      "description": "Replace the account's stored password refresh token.",
+      "notes": [
+        "Accepts a string of at most 512 characters without NUL; an empty string clears the field.",
+        "Only the local save field is changed. This action does not obtain, validate, or refresh server credentials."
+      ],
+      "example": {
+        "action": "account.password_refresh_token",
+        "args": {
+          "value": "ACCOUNT_REFRESH_TOKEN"
+        }
+      }
+    },
+    "save.region": {
+      "category": "account",
+      "description": "Change the save's country code through BCSFE set_cc.",
+      "notes": [
+        "Accepts kr, en, jp, or tw and clears the package-name override as the original method does.",
+        "This is a save conversion, not a server-side account transfer. The edited file must pass the API's serialization and reparse checks."
+      ],
+      "example": {
+        "action": "save.region",
+        "args": {
+          "country_code": "en"
+        }
+      }
+    },
+    "save.version": {
+      "category": "account",
+      "description": "Change the version used to serialize the save.",
+      "notes": [
+        "Use BCSFE's integer version encoding, for example 150500 for 15.5.0.",
+        "Calls set_gv on the save; it does not download or upgrade the game client. Version-dependent serialization must still pass the API's reparse and preservation checks.",
+        "Schema acceptance of a version number does not establish that the target game accepts the converted save."
+      ],
+      "example": {
+        "action": "save.version",
+        "args": {
+          "game_version": 150500
+        }
+      }
+    },
+    "cats.unlock": {
+      "category": "cats",
+      "description": "Unlock selected cats and set their gacha-seen, stage-drop, and equip-menu flags.",
+      "notes": [
+        "Cat IDs are zero-based and must exist in the input save. Selection by names, rarity, obtainability, banner, or introduction version also requires game metadata; see the shared cat-selection reference.",
+        "Requires drop_chara.csv and a compatible unit_drops array, even for an explicit ID selection. Existing levels and forms are preserved."
+      ],
+      "example": {
+        "action": "cats.unlock",
+        "args": {
+          "select": [
+            {
+              "kind": "ids",
+              "ids": [
+                0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "cats.remove": {
+      "category": "cats",
+      "description": "Remove selected cats from the unlocked collection, optionally resetting their progress and original drop flags.",
+      "notes": [
+        "Cat IDs are zero-based and must exist in the input save. Selection by names, rarity, obtainability, banner, or introduction version also requires game metadata; see the shared cat-selection reference.",
+        "reset defaults to false: only ownership is removed. reset=true invokes the original cat reset, clears new-cat flags and mapped stage-drop flags, and requires drop metadata."
+      ],
+      "example": {
+        "action": "cats.remove",
+        "args": {
+          "select": [
+            {
+              "kind": "ids",
+              "ids": [
+                0
+              ]
+            }
+          ],
+          "reset": false
+        }
+      }
+    },
+    "cats.forms": {
+      "category": "cats",
+      "description": "Grant or remove true/fourth-form state, or choose the current displayed form of selected cats.",
+      "notes": [
+        "Cat IDs are zero-based and must exist in the input save. Selection by names, rarity, obtainability, banner, or introduction version also requires game metadata; see the shared cat-selection reference.",
+        "operation=current requires form (1..4); form is rejected for other operations. Current form 3 or 4 must already be unlocked and exist in the picture-book metadata.",
+        "Grant operations true/fourth use picture-book form counts unless force=true. A fourth-form request on a cat with only three forms grants its true form; cats with fewer forms follow the original available-form behavior.",
+        "force, unlock, and set_current default to false. unlock also applies the normal cat-unlock/drop/menu changes. Current-form requests do not accept force or set_current; remove operations do not accept grant flags."
+      ],
+      "example": {
+        "action": "cats.forms",
+        "args": {
+          "select": [
+            {
+              "kind": "ids",
+              "ids": [
+                9
+              ]
+            }
+          ],
+          "operation": "true",
+          "set_current": true
+        }
+      }
+    },
+    "cats.levels": {
+      "category": "cats",
+      "description": "Set displayed base and plus levels independently, using exact values, metadata maxima, or inclusive random ranges.",
+      "notes": [
+        "Cat IDs are zero-based and must exist in the input save. Selection by names, rarity, obtainability, banner, or introduction version also requires game metadata; see the shared cat-selection reference.",
+        "At least one of base or plus is required. Omitted components stay unchanged. Base levels start at 1; plus levels start at 0. A range is {min,max}, with min <= max.",
+        "Requires UnitBuy metadata; base-level edits also require UnitLimit and rank-gift metadata. Values and range endpoints must fit each selected cat's metadata maxima.",
+        "strict defaults to false; true applies the original progression restrictions and fails if the requested level is unreachable. Base-level changes recalculate the original upgrade/catseye progression fields.",
+        "unlock defaults to false. rank_up_sale defaults to false; true explicitly sets rank_up_sale_value to 2147483647."
+      ],
+      "example": {
+        "action": "cats.levels",
+        "args": {
+          "select": [
+            {
+              "kind": "ids",
+              "ids": [
+                0
+              ]
+            }
+          ],
+          "base": 20,
+          "plus": 0
+        }
+      }
+    },
+    "cats.talents": {
+      "category": "cats",
+      "description": "Set selected talent ability IDs, maximize existing supported talents, or reset talent levels on selected cats.",
+      "notes": [
+        "Cat IDs are zero-based and must exist in the input save. Selection by names, rarity, obtainability, banner, or introduction version also requires game metadata; see the shared cat-selection reference.",
+        "operation=set requires a nonempty levels object keyed by numeric talent ability IDs, with levels or \"max\" as values. Array positions are not talent IDs. levels is rejected for max/remove.",
+        "Set/max require talent metadata and existing save talent entries. max skips cats without talent metadata; set rejects them. Omitted talent IDs stay unchanged; remove sets every existing selected-cat talent level to zero.",
+        "allow_metadata_version_mismatch defaults to false. A mismatched metadata version fails unless this flag is explicitly true. unlock defaults to false and independently applies the normal cat-unlock changes."
+      ],
+      "example": {
+        "action": "cats.talents",
+        "args": {
+          "select": [
+            {
+              "kind": "ids",
+              "ids": [
+                9
+              ]
+            }
+          ],
+          "operation": "max"
+        }
+      }
+    },
+    "cats.guide": {
+      "category": "cats",
+      "description": "Set the collected flag for selected cat-guide entries.",
+      "notes": [
+        "Cat IDs are zero-based and must exist in the input save. Selection by names, rarity, obtainability, banner, or introduction version also requires game metadata; see the shared cat-selection reference.",
+        "Only guide collection changes by default. unlock defaults to false; true also unlocks the cats, stage-drop flags, and equip menu. This action does not grant a separate guide reward item."
+      ],
+      "example": {
+        "action": "cats.guide",
+        "args": {
+          "select": [
+            {
+              "kind": "ids",
+              "ids": [
+                0
+              ]
+            }
+          ],
+          "collected": true
+        }
+      }
+    },
+    "cats.storage.add": {
+      "category": "storage",
+      "description": "Fill existing empty storage slots with requested cats or special-skill items.",
+      "notes": [
+        "Use either items, or select plus quantity. The latter adds that quantity for every selected cat; quantity is not accepted with items.",
+        "Each item requires kind, id, and quantity >= 1. Cat IDs must exist in the save. special_skill uses a zero-based special-skill storage index from game metadata.",
+        "The total quantity must fit the currently empty physical slots. Existing entries and storage capacity are preserved; no automatic storage expansion or cat unlock occurs."
+      ],
+      "example": {
+        "action": "cats.storage.add",
+        "args": {
+          "items": [
+            {
+              "kind": "cat",
+              "id": 0,
+              "quantity": 1
+            }
+          ]
+        }
+      }
+    },
+    "cats.storage.remove": {
+      "category": "storage",
+      "description": "Empty selected physical storage slots while preserving every other slot.",
+      "notes": [
+        "slots contains zero-based physical storage positions, not cat IDs. Each position must exist; both its item ID and item type are reset to zero."
+      ],
+      "example": {
+        "action": "cats.storage.remove",
+        "args": {
+          "slots": [
+            0
+          ]
+        }
+      }
+    },
+    "cats.storage.clear": {
+      "category": "storage",
+      "description": "Empty every existing cat-storage slot.",
+      "notes": [
+        "confirm must be the JSON boolean true. This clears stored cats and special-skill items, preserving the number of storage slots."
+      ],
+      "example": {
+        "action": "cats.storage.clear",
+        "args": {
+          "confirm": true
+        }
+      }
+    },
+    "cats.orbs": {
+      "category": "cats",
+      "description": "Set talent-orb inventory counts by exact orb ID or by metadata component filters.",
+      "notes": [
+        "Choose exactly one mode: a nonempty values object keyed by numeric orb IDs; all=true with count; or filters with count. count is rejected with values.",
+        "Each filter contains at least one grade, attribute, or effect. Values use the original fuzzy component matching; omitted components and \"*\" are wildcards. Multiple filters are combined as a union.",
+        "All modes require orb metadata. \"max\" uses the smaller of the configured talent-orb maximum and the storage maximum (127 before version 110400; 32767 from 110400). Unknown IDs or an empty selection fail; unselected counts are preserved."
+      ],
+      "example": {
+        "action": "cats.orbs",
+        "args": {
+          "all": true,
+          "count": 1
+        }
+      }
+    },
+    "cats.lineups": {
+      "category": "lineups",
+      "description": "Edit existing lineup names and physical cat slots, and optionally select the active lineup.",
+      "notes": [
+        "Provide lineups and/or selected. Each lineup entry requires a unique existing id and at least one name or slots change. IDs and slot keys are zero-based; slot values are cat IDs, with -1 clearing a slot.",
+        "Unspecified lineups and positions are preserved. This action does not increase the unlocked lineup count or automatically unlock equipped cats; use the separate actions for those changes."
+      ],
+      "example": {
+        "action": "cats.lineups",
+        "args": {
+          "lineups": [
+            {
+              "id": 0,
+              "name": "Main",
+              "slots": {
+                "0": 0
+              }
+            }
+          ],
+          "selected": 0
+        }
+      }
+    },
+    "stages.sol": {
+      "category": "maps",
+      "description": "Edit Stories of Legend map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 0. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested."
+      ],
+      "example": {
+        "action": "stages.sol",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.event": {
+      "category": "maps",
+      "description": "Edit event map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 1000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested."
+      ],
+      "example": {
+        "action": "stages.event",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.collab": {
+      "category": "maps",
+      "description": "Edit collaboration map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 2000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested."
+      ],
+      "example": {
+        "action": "stages.collab",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.gauntlets": {
+      "category": "maps",
+      "description": "Edit Gauntlet map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 24000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested."
+      ],
+      "example": {
+        "action": "stages.gauntlets",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.collab_gauntlets": {
+      "category": "maps",
+      "description": "Edit collaboration Gauntlet map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 27000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested."
+      ],
+      "example": {
+        "action": "stages.collab_gauntlets",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.uncanny": {
+      "category": "maps",
+      "description": "Edit Uncanny Legends map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 13000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested."
+      ],
+      "example": {
+        "action": "stages.uncanny",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.catamin": {
+      "category": "maps",
+      "description": "Edit Catamin map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 14000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested.",
+        "Alternatively, provide only maps and completion_count to set the map-level completion counter at 14000 + map_id. This separate mode does not change stage clears and cannot be combined with other arguments."
+      ],
+      "example": {
+        "action": "stages.catamin",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.behemoth": {
+      "category": "maps",
+      "description": "Edit Behemoth Culling map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 31000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested."
+      ],
+      "example": {
+        "action": "stages.behemoth",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.legend_quest": {
+      "category": "maps",
+      "description": "Edit Legend Quest map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 16000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested.",
+        "The original Legend Quest stage routine also updates tries alongside clears. ensure_cleared preserves existing nonzero values of each."
+      ],
+      "example": {
+        "action": "stages.legend_quest",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.towers": {
+      "category": "maps",
+      "description": "Edit tower map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 7000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested."
+      ],
+      "example": {
+        "action": "stages.towers",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.zero_legends": {
+      "category": "maps",
+      "description": "Edit Zero Legends map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 34000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested."
+      ],
+      "example": {
+        "action": "stages.zero_legends",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.dojo_catclaw": {
+      "category": "maps",
+      "description": "Edit Catclaw Championship map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 37000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested.",
+        "This edits Catclaw Championship stage clears, separate from the regular dojo score."
+      ],
+      "example": {
+        "action": "stages.dojo_catclaw",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.enigma_clears": {
+      "category": "maps",
+      "description": "Edit Enigma map clear counts or progress.",
+      "notes": [
+        "Provide exactly one of clear_count or progress. crowns defaults to \"all\" valid crowns; stages defaults to \"all\" valid stages when using clear_count. All selectors must exist in the save and applicable metadata.",
+        "Map and stage IDs are zero-based; crowns are one-based. Available crowns are limited by the stored structure and Map_option.csv. Placeholder or unnamed stage slots are not selected.",
+        "Map IDs are local to this category; the metadata base is 25000. Do not pass the absolute base-plus-map ID.",
+        "clear_count replaces counts in selected stages. ensure_cleared=true instead preserves existing nonzero counts and fills zero counts with the supplied positive value.",
+        "progress counts the prefix of valid stages: it ensures that prefix is cleared, retaining existing nonzero counts, and resets the remaining valid stages in each selected crown. It cannot be combined with stages, ensure_cleared, or reset_after.",
+        "reset_after=true clears valid stages after the highest selected stage. reset_following_crowns=true resets valid crowns after the highest selected crown in each map. Both default to false.",
+        "Positive clears update progress and unlock state. Completing a selected map/crown can unlock the next crown and the next map; other counts are preserved unless a reset is requested.",
+        "This edits stored Enigma clear records. Use stages.enigma to add or replace decoded Enigma maps."
+      ],
+      "example": {
+        "action": "stages.enigma_clears",
+        "args": {
+          "maps": [
+            0
+          ],
+          "crowns": [
+            1
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.story": {
+      "category": "story",
+      "description": "Set story chapter clear counts or exact chapter progress.",
+      "notes": [
+        "Chapter IDs 0..2 select Empire of Cats, 3..5 Into the Future, and 6..8 Cats of the Cosmos. Stage IDs follow in-game progress order and are limited to the real stages in each chapter.",
+        "Provide exactly one of clear_count or progress. With clear_count, stages defaults to \"all\"; unspecified stages are preserved and the chapter progress marker is adjusted.",
+        "progress sets each stage before that position to one clear and resets all remaining valid stages to zero. It cannot be combined with stages or reset_after.",
+        "reset_after defaults to false; when true with clear_count, stages after the highest selected stage are reset.",
+        "clear_prerequisites defaults to false. When enabled, BCSFE also clears the prerequisite story chapters. Treasure levels and timed scores are otherwise preserved."
+      ],
+      "example": {
+        "action": "stages.story",
+        "args": {
+          "chapters": [
+            0
+          ],
+          "stages": [
+            0
+          ],
+          "clear_count": 1
+        }
+      }
+    },
+    "stages.treasures": {
+      "category": "story",
+      "description": "Set treasure levels on selected story stages or treasure groups.",
+      "notes": [
+        "Chapter IDs use the story 0..8 mapping. Provide stages or groups, never both; omitting both selects every valid treasure stage.",
+        "Stage IDs follow in-game order. The adapter translates them into the original reverse geographic storage order.",
+        "groups uses zero-based treasure-group indexes and requires the chapter type's treasure-group metadata. Group members are resolved from that table.",
+        "Only treasure values change; clear counts, chapter progress, and timed scores are preserved."
+      ],
+      "example": {
+        "action": "stages.treasures",
+        "args": {
+          "chapters": [
+            0
+          ],
+          "stages": [
+            0
+          ],
+          "level": 3
+        }
+      }
+    },
+    "stages.itf_scores": {
+      "category": "story",
+      "description": "Set Into the Future timed scores on selected stages.",
+      "notes": [
+        "chapters may select only story IDs 3..5; \"all\" means all available Into the Future chapters. stages defaults to \"all\" valid stages.",
+        "Provide exactly one of score or score_range. score_range is [minimum, maximum], inclusive, and cannot be reversed.",
+        "Each selected stage receives its own random draw when a range is used. Clear counts and treasures are preserved."
+      ],
+      "example": {
+        "action": "stages.itf_scores",
+        "args": {
+          "chapters": [
+            3
+          ],
+          "stages": [
+            0
+          ],
+          "score_range": [
+            6000,
+            6010
+          ]
+        }
+      }
+    },
+    "stages.outbreaks": {
+      "category": "story",
+      "description": "Mark existing zombie outbreak stages cleared or uncleared.",
+      "notes": [
+        "Uses true story chapter IDs 0..8, not the internal outbreak chapter keys. Chapters and stages must already exist in the save; stages defaults to \"all\" existing outbreaks.",
+        "cleared=true also dismisses the corresponding current outbreak by clearing its current-outbreak flag, matching the original routine.",
+        "cleared=false resets the stored clear flag without creating or activating a current outbreak."
+      ],
+      "example": {
+        "action": "stages.outbreaks",
+        "args": {
+          "chapters": [
+            3
+          ],
+          "stages": [
+            0
+          ],
+          "cleared": true
+        }
+      }
+    },
+    "stages.aku": {
+      "category": "maps",
+      "description": "Set Aku Realm clear counts for selected stages or an exact prefix.",
+      "notes": [
+        "Provide exactly one of stages or progress. map defaults to 0 and crown defaults to 1; either accepts \"all\". Maps are zero-based and crowns one-based, within the save's structure.",
+        "The stages mode requires clear_count and preserves all unselected stages; clear_counts cannot be used in that mode.",
+        "The progress mode accepts a nonnegative prefix length or \"all\". It sets counts in the prefix and resets later stages to zero.",
+        "For progress, use one clear_count (default 1) or clear_counts with exactly one entry per prefix stage; the two cannot be combined.",
+        "Only clear_times are changed. Unrelated Aku state, including current_stage, is preserved."
+      ],
+      "example": {
+        "action": "stages.aku",
+        "args": {
+          "progress": 2,
+          "clear_counts": [
+            1,
+            1
+          ]
+        }
+      }
+    },
+    "stages.unlock_aku": {
+      "category": "maps",
+      "description": "Clear the original seven quests used to unlock the Aku Realm.",
+      "notes": [
+        "Accepts an empty args object. Requires matching event-map metadata and save structures for maps 255, 256, 257, 258, 265, 266, and 268.",
+        "Ensures valid stages in crown 1 of those quests have at least one clear, preserving existing nonzero counts.",
+        "Uses the shared event-map editor, including its progress and next-map/crown unlock updates. Other quest clear counts are preserved."
+      ],
+      "example": {
+        "action": "stages.unlock_aku",
+        "args": {}
+      }
+    },
+    "stages.enigma": {
+      "category": "maps",
+      "description": "Add decoded Enigma maps or replace the decoded map list.",
+      "notes": [
+        "Requires Enigma map metadata. maps contains actual sparse map IDs in category H, before adding the 25000 base; IDs are not menu positions.",
+        "replace defaults to false and appends the selected maps. replace=true discards the current list; maps=[] with replace=true removes all entries.",
+        "At most 127 entries may exist after the edit. New entries use decoded state, the current timestamp, and absolute ID 25000 + map_id.",
+        "Resets the completion counters for added maps. Replacement also resets counters for removed entries. Existing entries are not deduplicated automatically."
+      ],
+      "example": {
+        "action": "stages.enigma",
+        "args": {
+          "maps": [
+            8
+          ],
+          "replace": false
+        }
+      }
+    },
+    "stages.tutorial": {
+      "category": "story",
+      "description": "Apply BCSFE's tutorial-completion routine explicitly.",
+      "notes": [
+        "Accepts an empty args object. Raises the tutorial and introductory UI/treasure flags to the original minimum completed values.",
+        "Ensures the required dialog flags exist and marks the first story stage cleared if it was uncleared.",
+        "This routine is an explicit action; ordinary file loading and unrelated actions do not run it."
+      ],
+      "example": {
+        "action": "stages.tutorial",
+        "args": {}
+      }
+    },
+    "stages.filibuster": {
+      "category": "story",
+      "description": "Enable a replay of the Filibuster stage.",
+      "notes": [
+        "Sets filibuster_stage_enabled=true. stage_id is a zero-based valid stage index from the last real story chapter.",
+        "If stage_id is omitted, a valid stage is chosen randomly, matching the original editor.",
+        "Requires a real story chapter structure; it changes the replay flag and selected stage without clearing the stage."
+      ],
+      "example": {
+        "action": "stages.filibuster",
+        "args": {
+          "stage_id": 47
+        }
+      }
+    },
+    "stages.dojo_score": {
+      "category": "maps",
+      "description": "Set the regular dojo's stored score.",
+      "notes": [
+        "Updates only the first regular dojo stage's score. It does not submit an online ranking or edit Catclaw Championship clears."
+      ],
+      "example": {
+        "action": "stages.dojo_score",
+        "args": {
+          "score": 4000
+        }
+      }
+    },
+    "stages.challenge_score": {
+      "category": "maps",
+      "description": "Set the first challenge score and its completion state.",
+      "notes": [
+        "Requires the first challenge map, crown, and stage to exist. Creates the first score entry if absent, or replaces it while preserving later score entries.",
+        "Sets shown_popup=true, ensures the first challenge stage has a clear, advances its progress to at least 1, and marks its crown unlocked.",
+        "An existing nonzero clear count is preserved."
+      ],
+      "example": {
+        "action": "stages.challenge_score",
+        "args": {
+          "score": 5000
+        }
+      }
+    },
+    "gamatoto.xp": {
+      "category": "gamatoto",
+      "description": "Set the raw Gamatoto expedition XP total.",
+      "notes": [
+        "No game metadata is needed for the raw XP value. The skin and helper collection are preserved; use gamatoto.level for an XP-table conversion."
+      ],
+      "example": {
+        "action": "gamatoto.xp",
+        "args": {
+          "value": 1000
+        }
+      }
+    },
+    "gamatoto.level": {
+      "category": "gamatoto",
+      "description": "Convert a displayed Gamatoto level to its XP threshold using the save's game metadata.",
+      "notes": [
+        "Requires Gamatoto expedition and limit tables. A level must have an actual XP-table row even when recommended maxima are disabled. Skin and helpers stay unchanged.",
+        "respect_maxima defaults to true. Setting it to false disables recommended game maxima, but valid IDs, available save fields, and binary storage bounds still apply."
+      ],
+      "example": {
+        "action": "gamatoto.level",
+        "args": {
+          "value": 2
+        }
+      }
+    },
+    "gamatoto.helpers": {
+      "category": "gamatoto",
+      "description": "Replace the helper list or set helper counts for selected rarities.",
+      "notes": [
+        "Provide exactly one of ids or rarities. ids replaces the entire list; [] removes all helpers. Each ID must be present in helper metadata; repeated IDs are allowed.",
+        "rarities must be a nonempty mapping from numeric rarity keys to counts. Other rarity groups and occupied helpers missing from metadata are preserved. Requested helpers cycle through the known IDs in each rarity.",
+        "Requires helper-name and expedition-limit metadata. The final list must fit the allowed helper count and the 262144-entry save-size guard.",
+        "respect_maxima defaults to true. Setting it to false disables recommended game maxima, but valid IDs, available save fields, and binary storage bounds still apply."
+      ],
+      "example": {
+        "action": "gamatoto.helpers",
+        "args": {
+          "rarities": {
+            "0": 1
+          }
+        }
+      }
+    },
+    "ototo.engineers": {
+      "category": "ototo",
+      "description": "Set the number of Ototo construction engineers.",
+      "notes": [
+        "Requires CastleCustomLimit.csv; its first value supplies the recommended limit. The engineer count is independent of cannon progress and materials.",
+        "respect_maxima defaults to true. Setting it to false disables recommended game maxima, but valid IDs, available save fields, and binary storage bounds still apply."
+      ],
+      "example": {
+        "action": "ototo.engineers",
+        "args": {
+          "value": 1
+        }
+      }
+    },
+    "ototo.materials": {
+      "category": "ototo",
+      "description": "Set construction-material quantities at selected save indexes.",
+      "notes": [
+        "Use a numeric-keyed object to edit selected zero-based indexes, preserving the rest. An array must contain exactly the save's full material count. The configured base_materials limit applies by default.",
+        "respect_maxima defaults to true. Setting it to false disables recommended game maxima, but valid IDs, available save fields, and binary storage bounds still apply."
+      ],
+      "example": {
+        "action": "ototo.materials",
+        "args": {
+          "values": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "ototo.cannons": {
+      "category": "ototo",
+      "description": "Edit development state and displayed part levels for existing cannons.",
+      "notes": [
+        "Use ids plus development, levels, or max=true; alternatively use entries for per-cannon changes. entries cannot be combined with other edit fields except respect_maxima. Cannon IDs must already exist in the save and may not repeat.",
+        "development is 0..3 and cannot be edited for base cannon ID 0. Level edits promote development to at least 3; an explicitly supplied development below 3 conflicts with a level edit.",
+        "levels may be a complete part array or a partial numeric-keyed object. Part 0 uses displayed levels and stores one less; other parts use their values directly. max=true uses CastleRecipeUnlock.csv per-part limits and cannot be combined with levels.",
+        "Level/max edits require matching recipe rows, even with recommended maxima disabled. Unspecified part levels and the selected cannon/parts remain unchanged.",
+        "respect_maxima defaults to true. Setting it to false disables recommended game maxima, but valid IDs, available save fields, and binary storage bounds still apply."
+      ],
+      "example": {
+        "action": "ototo.cannons",
+        "args": {
+          "ids": [
+            0
+          ],
+          "levels": {
+            "0": 10
+          }
+        }
+      }
+    },
+    "shrine.set": {
+      "category": "progression",
+      "description": "Set Cat Shrine offering XP or its derived level, and optionally change shrine visibility.",
+      "notes": [
+        "Provide level or xp, optionally visible; visible alone is also accepted. level and xp are mutually exclusive. jinja_level.csv is required for all modes, including visibility-only changes.",
+        "Level 1 maps to zero offering XP. The shrine dialog count is recomputed from the resulting XP. With respect_maxima=false, above-table levels map to the table's maximum XP rather than inventing new levels; explicit XP is still limited to 2147483647.",
+        "Omitted visibility is preserved. respect_maxima defaults to true; its normal XP ceiling follows the shrine table and signed 64-bit storage."
+      ],
+      "example": {
+        "action": "shrine.set",
+        "args": {
+          "level": 1,
+          "visible": true
+        }
+      }
+    },
+    "rewards.claim": {
+      "category": "progression",
+      "description": "Set user-rank reward claim flags, or repair claims above the current calculated user rank.",
+      "notes": [
+        "claim/unclaim require ids (a list of reward metadata indexes or \"all\"). Only rewards available at the save's current calculated user rank and present in its reward array may be selected.",
+        "fix_claimed rejects ids and clears claimed flags only above the current user rank. Requires rankGift.csv. This action changes claim flags; it does not grant the reward's items."
+      ],
+      "example": {
+        "action": "rewards.claim",
+        "args": {
+          "mode": "fix_claimed"
+        }
+      }
+    },
+    "medals.set": {
+      "category": "progression",
+      "description": "Add or remove medals identified by the game's medal metadata.",
+      "notes": [
+        "Requires medalname.tsv. IDs are nonempty metadata row indexes; \"all\" selects all valid rows. Existing medal IDs absent from metadata are preserved."
+      ],
+      "example": {
+        "action": "medals.set",
+        "args": {
+          "ids": "all",
+          "owned": true
+        }
+      }
+    },
+    "missions.set": {
+      "category": "progression",
+      "description": "Set existing missions to reward-ready, already claimed, or incomplete.",
+      "notes": [
+        "Available IDs are the intersection of the save's mission states, mission conditions, and mission-name metadata. This action does not create unknown missions.",
+        "complete_reward writes state 2; complete_claim writes state 4. Both set the progress requirement to the metadata target. uncomplete writes state 0 and clears an existing progress requirement. No reward inventory is granted separately."
+      ],
+      "example": {
+        "action": "missions.set",
+        "args": {
+          "ids": "all",
+          "state": "complete_reward"
+        }
+      }
+    },
+    "account.gold_pass": {
+      "category": "account",
+      "description": "Apply or remove the original Gold Pass state in the save file.",
+      "notes": [
+        "enabled=true uses the server's current time, two successive 30-day periods, and the original pass popup/login-reward fields. officer_id is optional; omission chooses a random ID from 1..65535.",
+        "enabled=false rejects officer_id and clears the pass dates, flags, claimed rewards, and matching login count. Existing play time is preserved.",
+        "This is a local save edit. It does not purchase, activate, or verify a server subscription, and does not establish in-game acceptance."
+      ],
+      "example": {
+        "action": "account.gold_pass",
+        "args": {
+          "enabled": true
+        }
+      }
+    },
+    "enemy_guide.set": {
+      "category": "progression",
+      "description": "Unlock or reset enemy-guide entries selected by ID, name, or metadata validity.",
+      "notes": [
+        "Provide exactly one of ids, group, or name. With ids, id_space defaults to \"save\" (zero-based array positions); \"game\" requires game IDs >= 2 and subtracts 2 before editing. id_space is rejected for other selectors.",
+        "group=all selects the save array; valid/invalid uses enemy_dictionary_list.csv. name performs a case-insensitive substring match on enemy names and fails when nothing matches. Unselected entries are preserved."
+      ],
+      "example": {
+        "action": "enemy_guide.set",
+        "args": {
+          "ids": [
+            0
+          ],
+          "unlocked": true
+        }
+      }
+    },
+    "playtime.set": {
+      "category": "account",
+      "description": "Set the total stored play duration using frames or time components.",
+      "notes": [
+        "Provide frames alone, or at least one of hours/minutes/seconds. Omitted time components mean zero, not the current value. The conversion uses 30 frames per second, and the resulting total must be <= 2147483647 frames.",
+        "Gold Pass and officer-cat fields are preserved. Minutes and seconds are duration components; they are not restricted to a clock's 0..59 range."
+      ],
+      "example": {
+        "action": "playtime.set",
+        "args": {
+          "hours": 10,
+          "minutes": 30
+        }
+      }
+    },
+    "gambling.reset": {
+      "category": "progression",
+      "description": "Reset the completion flags, values, and start dates of selected gambling events.",
+      "notes": [
+        "events defaults to both wildcat_slots and cat_scratcher. Supplying a nonempty subset resets only those event models; no new draw is performed."
+      ],
+      "example": {
+        "action": "gambling.reset",
+        "args": {
+          "events": [
+            "wildcat_slots",
+            "cat_scratcher"
+          ]
+        }
+      }
+    },
+    "lineups.unlocked_slots": {
+      "category": "lineups",
+      "description": "Set the number of unlocked lineups without changing equipped units.",
+      "notes": [
+        "The recommended maximum is the save's lineup-name capacity. The hard limit is 10 before version 90700 and 127 from 90700, including when respect_maxima=false. This action does not purchase slots remotely.",
+        "respect_maxima defaults to true. Setting it to false disables recommended game maxima, but valid IDs, available save fields, and binary storage bounds still apply."
+      ],
+      "example": {
+        "action": "lineups.unlocked_slots",
+        "args": {
+          "value": 3
+        }
+      }
+    },
+    "fixes.gamatoto": {
+      "category": "fixes",
+      "description": "Apply the original Gamatoto crash repair by setting expedition skin to 2.",
+      "notes": [
+        "This explicitly changes the stored skin; it does not reset expedition XP or helpers and is not automatically applied by other edits."
+      ],
+      "example": {
+        "action": "fixes.gamatoto",
+        "args": {}
+      }
+    },
+    "fixes.ototo": {
+      "category": "fixes",
+      "description": "Reset the cannon collection and selected parts to the original version-specific initial state.",
+      "notes": [
+        "This replaces existing cannon development and level data. Engineer and material quantities remain separate; apply only when this reset is intended."
+      ],
+      "example": {
+        "action": "fixes.ototo",
+        "args": {}
+      }
+    },
+    "fixes.time": {
+      "category": "fixes",
+      "description": "Set the save's time-error fields to an explicit Unix timestamp or the current API server time.",
+      "notes": [
+        "timestamp is optional and must be finite and representable by the runtime's date implementation. Omission uses the API server's clock; supply the device's intended timestamp when required.",
+        "Changes date_3, timestamp, and energy_penalty_timestamp. The schema's numeric ceiling does not guarantee that every platform supports every date within it."
+      ],
+      "example": {
+        "action": "fixes.time",
+        "args": {
+          "timestamp": 1735689600
+        }
+      }
+    },
+    "fixes.officer_pass": {
+      "category": "fixes",
+      "description": "Reset officer-cat identity, play time, and Gold Pass state using the original repair routine.",
+      "notes": [
+        "Resets officer cat/form and play time to zero, removes Gold Pass dates and flags, and clears its claimed/login rewards. This is an explicit reset of those fields."
+      ],
+      "example": {
+        "action": "fixes.officer_pass",
+        "args": {}
+      }
+    },
+    "fixes.equip_menu": {
+      "category": "fixes",
+      "description": "Unlock the equipment menu with the original save-file method.",
+      "notes": [
+        "Changes the equipment-menu unlock flag only. It does not unlock cats, change lineups, or clear the tutorial."
+      ],
+      "example": {
+        "action": "fixes.equip_menu",
+        "args": {}
+      }
+    }
+  }
+}

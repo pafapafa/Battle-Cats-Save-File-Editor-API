@@ -379,46 +379,104 @@ def configuration():
 
 def register_editor_api(app,spec):
     app.register_blueprint(bp)
-    spec.setdefault('components',{}).setdefault('securitySchemes',{})['EditorToken']={
-        'type':'http','scheme':'bearer','description':'EDITOR_API_KEY, or the existing TEMPLATE_API_KEY'}
-    spec['components'].setdefault('schemas',{})['EditorOperation']={
+    components=spec.setdefault('components',{})
+    components.setdefault('securitySchemes',{})['EditorToken']={
+        'type':'http','scheme':'bearer','description':'EDITOR_API_KEY, or TEMPLATE_API_KEY when the editor key is unset. At least 32 characters.'}
+    schemas=components.setdefault('schemas',{})
+    schemas['EditorOperation']={
         'oneOf':[{'type':'object','properties':{'action':{'const':name},'args':copy.deepcopy(value['schema'])},
                   'required':['action']+([] if StrictValidator(value['schema']).is_valid({}) else ['args']),'additionalProperties':False} for name,value in sorted(ACTIONS.items())],
-        'description':'Each action has its own strict argument schema. Missing args are treated as an empty object.'}
-    base_fields={'save_base64':{'type':'string','format':'byte'},
-                 'country_code':{'type':'string','enum':['kr','en','jp','tw'],'default':'kr'}}
+        'description':'One typed edit. Each action has its own strict argument schema. Missing args means an empty object. Integer arguments require JSON integers, not booleans or numeric strings.'}
+
+    def obj(fields,required=None,closed=False):
+        result={'type':'object','properties':fields,'required':list(fields) if required is None else required}
+        if closed:result['additionalProperties']=False
+        return result
+    def ref(name):return {'$ref':'#/components/schemas/'+name}
+    def response(description,schema):return {'description':description,'content':{'application/json':{'schema':schema}}}
+    region={'type':'string','enum':['kr','en','jp','tw']}
+    base64_save={'type':'string','format':'byte','description':'Standard Base64 of the raw save, including checksum. Input must decode to 32 bytes through 1 MiB.'}
+    metadata={'country_code':region,'game_version':{'type':'integer'},'bytes':{'type':'integer','minimum':0},
+              'sha256':{'type':'string','minLength':64,'maxLength':64,'pattern':'^[0-9a-f]{64}$'}}
+    recovery={'save_base64':{**base64_save,'description':'Available save with current/refreshed credentials; preserve it.'},
+              'backup_base64':{**base64_save,'description':'Original bytes before this operation.'},'retry_safe':{'const':False}}
+    change=obj({'path':{'type':'string','description':'JSON Pointer into exported BCSFE state.'},'before':{},'after':{}})
+    schemas.update({
+        'EditorError':obj({'success':{'const':False},'message':{'type':'string'},'applied':{'const':False},**recovery},['success','message']),
+        'BCSFEState':obj({'cc':region,'game_version':{'type':'integer'}},['cc','game_version']),
+        'EditorInspection':obj({'success':{'const':True},**metadata,'state':ref('BCSFEState')}),
+        'EditorEditedSave':obj({'success':{'const':True},'applied':{'const':True},**metadata,
+            'save_base64':base64_save,'backup_base64':base64_save,'changes':{'type':'array','maxItems':1000,'items':change},
+            'change_count':{'type':'integer','minimum':0},'changes_truncated':{'type':'boolean'}}),
+        'EditorImportedSave':obj({'success':{'const':True},**metadata,'save_base64':base64_save}),
+        'EditorTransferReceived':obj({'success':{'const':True},**metadata,**recovery,'transfer_received':{'const':True},'message':{'type':'string'}}),
+        'EditorTransferIssued':obj({'success':{'const':True},**recovery,'transfer_code':{'type':'string','minLength':1},'confirmation_code':{'type':'string','minLength':1}}),
+        'EditorAccountCreated':obj({'success':{'const':True},**metadata,**recovery,'message':{'type':'string'}}),
+        'EditorRegionConverted':obj({'success':{'const':True},**metadata,**recovery}),
+        'EditorItemsUploaded':obj({'success':{'const':True},**recovery}),
+        'EditorMetadataVersions':obj({'success':{'const':True},'versions':{'type':'object','additionalProperties':{'type':'array','items':{'type':'string'}}}}),
+        'EditorMetadataPrepared':obj({'success':{'const':True},'country_code':region,'requested_version':{'type':'string'},'resolved_version':{'type':'string'},
+            'exact_match':{'type':'boolean'},'downloaded':{'type':'boolean'},'source':{'type':['string','null']},'archive_source':{'type':['string','null']}}),
+        'EditorMetadataDeleted':obj({'success':{'const':True},'country_code':region,'deleted_versions':{'type':'array','items':{'type':'string'}},'skipped_entries':{'type':'integer','minimum':0}}),
+        'EditorConfiguration':obj({'success':{'const':True},'defaults':{'type':'object'},'maxima':{'type':'object'},'scope':{'type':'string'}}),
+        'EditorFeatures':obj({'success':{'const':True},'reference':{'type':'string'},
+            'actions':{'type':'object','additionalProperties':obj({'description':{'type':'string'},'schema':{'type':'object'},'source':{'type':'string'}})},
+            'features':obj({'reference':{'type':'object'},'counts':{'type':'object'},'items':{'type':'array','items':{'type':'object'}},
+                'verification_scope':{},'limitations':{},'full_cli_behavioral_equivalence':{'type':'boolean'},'live_game_accounts_verified':{'type':'boolean'}})}),
+        'EditorCapabilities':obj({'success':{'const':True},'offline_editing':{'type':'boolean'},'json_import_export':{'type':'boolean'},'raw_download':{'type':'boolean'},
+            'account_transport':{'type':'string'},'device_push':obj({'available':{'type':'boolean'},'reason':{'type':'string'}}),
+            'external_editor_themes':obj({'available':{'type':'boolean'},'reason':{'type':'string'}})}),
+    })
+    schemas['BCSFEState']['description']='Full version-dependent object returned by inspect/export. Keep every field, nested value and numeric-key mapping when importing. Non-finite numeric values are represented as "Infinity", "-Infinity" or "NaN" strings. Additional state fields are required by the actual save model; cc and game_version alone are not an importable save.'
+    schemas['EditorError']['description']='Error envelope. applied=false is returned for rejected edit operations. Remote routes add retry_safe=false and available recovery bytes; recovery fields may be absent when reception never produced a save.'
+    schemas['EditorConfiguration']['description']='Original BCSFE default preferences and configured recommended maxima. This is read-only; per-request behavior is controlled through individual action arguments.'
+    binary={'description':'Raw save attachment; not JSON.','content':{'application/octet-stream':{'schema':{'type':'string','format':'binary'}}},
+            'headers':{'Content-Disposition':{'schema':{'type':'string'},'description':'Attachment filename.'}}}
+    base_fields={'save_base64':base64_save,'country_code':{**region,'default':'kr','description':'Region of the supplied save. Must match its checksum; v2 file routes do not accept auto.'}}
+    file_request=obj(base_fields,['save_base64'],True)
+    edit_request=obj({**base_fields,'operations':{'type':'array','minItems':1,'maxItems':100,'items':ref('EditorOperation')},
+        'output':{'type':'string','enum':['json','file'],'default':'json','description':'json returns original/edited Base64 plus changes; file returns only the edited attachment.'}},['save_base64','operations'],True)
+    transfer_request=obj({'transfer_code':{'type':'string','minLength':1,'maxLength':64,'pattern':r'^[A-Za-z0-9]{1,64}(?![\s\S])'},
+        'confirmation_code':{'type':'string','minLength':1,'maxLength':16,'pattern':r'^[A-Za-z0-9]{1,16}(?![\s\S])'},
+        'country_code':base_fields['country_code'],'game_version':{'type':'integer','minimum':1,'default':150500}},['transfer_code','confirmation_code'],True)
+    descriptions={
+        '/v2/features':('Discovery','List typed edit actions and source-feature coverage','Returns action-specific JSON Schemas, source references and recorded verification scope. Counts are not a guarantee of every possible save or live account outcome.','EditorFeatures',None),
+        '/v2/capabilities':('Discovery','Read supported service capabilities','Reports file editing, import/export and account-transport availability, plus operations requiring a device companion.','EditorCapabilities',None),
+        '/v2/save/inspect':('Save files','Inspect a save without editing it','Parses the supplied raw save and returns full BCSFE state and file metadata. Does not consume transfer codes or contact a game account.','EditorInspection',file_request),
+        '/v2/save/edit':('Save editing','Apply a batch of typed edits atomically','Validates 1–100 operations, edits a copy, serializes and reparses it, and rejects data loss. No partial output is returned on failure. Some actions download static metadata. JSON changes are limited to 1,000 entries; change_count reports the total.','EditorEditedSave',edit_request),
+        '/v2/save/export':('Save files','Export a raw save as full BCSFE JSON state','Returns the same state representation as inspect, suitable for /v2/save/import. Preserve all fields and special-number strings.','EditorInspection',file_request),
+        '/v2/save/import':('Save files','Import complete BCSFE state into a raw save','Accepts the full state from inspect/export, validates that every value survives deserialization and binary reparse, and returns Base64. Partial objects and discarded fields fail.','EditorImportedSave',obj({'state':ref('BCSFEState')},closed=True)),
+        '/v2/save/download':('Save files','Download the validated original save','Returns the exact input bytes as backup.save without editing or cloud storage.','binary',file_request),
+        '/v2/save/from-transfer':('Account transfers','Receive a transfer and preserve refreshed credentials','Contacts the game server and consumes the supplied transfer code. Returns received original bytes and a current save with refreshed credentials. Do not automatically repeat an uncertain request.','EditorTransferReceived',transfer_request),
+        '/v2/save/upload':('Account transfers','Upload a save and issue transfer codes','Validates save serialization, then calls the original upload/code issuance flow once. Returns available recovery bytes and confirmed codes. Do not automatically retry uncertain outcomes.','EditorTransferIssued',file_request),
+        '/v2/account/new':('Account transfers','Create separate account credentials from a save','Creates a new account and synchronizes managed items; success requires a changed, nonempty inquiry code. Returns the new save. Call /v2/save/upload separately to obtain transfer codes.','EditorAccountCreated',file_request),
+        '/v2/account/upload-items':('Account transfers','Upload managed-item metadata','Calls the original metadata upload operation and requires an explicit true result. Does not issue transfer codes. Preserve returned save and backup bytes.','EditorItemsUploaded',file_request),
+        '/v2/account/convert-region':('Account transfers','Convert region and create destination account credentials','Changes the save region, requests new account credentials, and verifies persisted output. Returns a new-region save; upload separately to request transfer codes.','EditorRegionConverted',obj({**base_fields,'target_country_code':region},['save_base64','target_country_code'],True)),
+        '/v2/metadata/versions':('Metadata and configuration','List available game-metadata versions','Reads the configured static game-metadata index. Version strings are grouped by region; this is not a list of locally cached versions.','EditorMetadataVersions',None),
+        '/v2/metadata/prepare':('Metadata and configuration','Prepare verified metadata for a region and version','Downloads and caches static game tables using the upstream version-selection rule. Reports requested and resolved versions, including whether they match exactly. No game account is modified.','EditorMetadataPrepared',obj({'country_code':region,'game_version':{'type':'integer','minimum':1,'maximum':999999}},closed=True)),
+        '/v2/metadata/cache':('Metadata and configuration','Delete API-owned metadata cache entries','Deletes verified cached versions for the selected region. Omit game_version or use null to clear all verified versions in that region. Unknown/unverified entries are preserved and counted. This does not delete saves or accounts.','EditorMetadataDeleted',obj({'country_code':region,'game_version':{'type':['integer','null'],'minimum':1,'maximum':999999}},['country_code'],True)),
+        '/v2/editor/config':('Metadata and configuration','Read editor defaults and recommended maxima','Returns original BCSFE configuration defaults, current recommended maximum values, and the scope of action-level settings. Does not change configuration.','EditorConfiguration',None),
+    }
     for rule in app.url_map.iter_rules():
-        if not rule.rule.startswith('/v2/'):
-            continue
+        if not rule.rule.startswith('/v2/'):continue
         path=rule.rule
+        tag,summary,description,result_name,request_schema=descriptions[path]
         for method in sorted(rule.methods-{'HEAD','OPTIONS'}):
-            op={'tags':['BCSFE Editor'],'summary':rule.endpoint.split('.')[-1].replace('_',' '),
-                'responses':{'200':{'description':'Success; account endpoints still require actual game acceptance'},
-                             '400':{'description':'Invalid request'},'401':{'description':'Unauthorized'},
-                             '422':{'description':'Invalid edit or data-loss check failed'},
-                             '502':{'description':'Upstream outcome not confirmed; do not auto-retry'}}}
-            if path not in ('/v2/features','/v2/capabilities'):
-                op['security']=[{'EditorToken':[]}]
-            if method in ('POST','DELETE'):
-                fields=copy.deepcopy(base_fields)
-                required=['save_base64']
-                if path=='/v2/save/edit':
-                    fields.update({'operations':{'type':'array','minItems':1,'maxItems':100,
-                         'items':{'$ref':'#/components/schemas/EditorOperation'}},
-                         'output':{'enum':['json','file'],'default':'json'}})
-                    required.append('operations')
-                    op['description']='Action-specific argument schemas are available at /v2/features. All file edits are applied to a copy and reparsed before success.'
-                elif path=='/v2/save/import':
-                    fields={'state':{'type':'object'}};required=['state']
-                elif path=='/v2/save/from-transfer':
-                    fields={'transfer_code':{'type':'string'},'confirmation_code':{'type':'string'},
-                            'country_code':base_fields['country_code'],'game_version':{'type':'integer','default':150500}}
-                    required=['transfer_code','confirmation_code']
-                elif path in ('/v2/metadata/prepare','/v2/metadata/cache'):
-                    fields={'country_code':base_fields['country_code'],'game_version':{'type':'integer'}}
-                    required=['country_code'] if method=='DELETE' else ['country_code','game_version']
-                elif path=='/v2/account/convert-region':
-                    fields['target_country_code']={'enum':['kr','en','jp','tw']};required.append('target_country_code')
-                op['requestBody']={'required':True,'content':{'application/json':{'schema':{
-                    'type':'object','properties':fields,'required':required,'additionalProperties':False}}}}
+            public=path in ('/v2/features','/v2/capabilities')
+            remote=path.startswith('/v2/account/') or path in ('/v2/save/from-transfer','/v2/save/upload')
+            success=copy.deepcopy(binary) if result_name=='binary' else response('Success.',ref(result_name))
+            if path=='/v2/save/edit':
+                success['content'].update(copy.deepcopy(binary['content']))
+                success['headers']={**binary['headers'],'X-Save-SHA256':{'schema':metadata['sha256'],'description':'Present for output=file; SHA-256 of the edited bytes.'}}
+                success['description']='Edited save. Content type depends on output: application/json or application/octet-stream.'
+            errors={'500':'Unexpected service failure.'}
+            if not public:errors.update({'401':'Missing or invalid editor Bearer token.','503':'Editor key is not configured.'})
+            if request_schema is not None:errors.update({'400':'Invalid or unknown request fields.','413':'Request/imported/received save exceeds the size limit.','422':'Invalid save, metadata, edit, or lossless persistence check failed.'})
+            if path=='/v2/metadata/versions':errors['422']='Metadata index could not be validated or read.'
+            if method=='POST':errors['429']='Deployment request limit reached.'
+            if remote:errors['502']='Remote outcome not confirmed. Preserve available recovery bytes; do not automatically retry.'
+            op={'tags':[tag],'summary':summary,'description':description,'security':[] if public else [{'EditorToken':[]}],
+                'responses':{'200':success,**{code:response(text,ref('EditorError')) for code,text in errors.items()}}}
+            if request_schema is not None:
+                op['requestBody']={'required':True,'content':{'application/json':{'schema':copy.deepcopy(request_schema)}}}
             spec['paths'].setdefault(path,{})[method.lower()]=op

@@ -1,0 +1,758 @@
+{
+  "categories": [
+    {
+      "id": "discovery",
+      "title": "Discovery and documentation",
+      "description": "Public service information, API contracts, and source coverage."
+    },
+    {
+      "id": "files",
+      "title": "Save files and JSON",
+      "description": "Inspect, export, import, and download existing save files."
+    },
+    {
+      "id": "editing",
+      "title": "Typed save editing",
+      "description": "Apply validated edit actions and receive persisted changes."
+    },
+    {
+      "id": "accounts",
+      "title": "Account transfers",
+      "description": "Receive transfers, create credentials, upload saves, and synchronize item metadata."
+    },
+    {
+      "id": "backups",
+      "title": "Backups and private templates",
+      "description": "Download exact backups and store immutable private originals."
+    },
+    {
+      "id": "issuance",
+      "title": "Template copies and recovery",
+      "description": "Issue account copies and retrieve attempt, issuance, and recovery records."
+    },
+    {
+      "id": "metadata",
+      "title": "Metadata and configuration",
+      "description": "Inspect available static tables, manage verified cache entries, and read defaults."
+    },
+    {
+      "id": "legacy",
+      "title": "Legacy compatibility",
+      "description": "Transfer-based compatibility routes using existing field names."
+    }
+  ],
+  "endpoints": {
+    "GET /": {
+      "category": "discovery",
+      "description": "Returns service identity and links. This does not test game-server access or JSONBin credentials.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "No Bearer token is required. Service availability does not verify upstream services."
+      ],
+      "response_example": {
+        "status": "online",
+        "service": "Battle Cats Save File Editor API",
+        "version": "2.0.0",
+        "docs": "/docs",
+        "features": "/v2/features"
+      }
+    },
+    "GET /docs": {
+      "category": "discovery",
+      "description": "Returns the API reference page as HTML. No authorization or account action is performed.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Returns text/html. This is documentation, not a backup-management application."
+      ],
+      "response_example": "<!doctype html> ... English API documentation ..."
+    },
+    "GET /openapi.json": {
+      "category": "discovery",
+      "description": "Returns all documented endpoint contracts and the shared typed edit schema. Static asset URLs and automatic HEAD/OPTIONS methods are not API entries.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "This response preview omits the actual paths and shared schemas; the live response includes them."
+      ],
+      "response_example": {
+        "openapi": "3.1.0",
+        "info": {
+          "title": "BCSFE API",
+          "version": "2.0.0"
+        },
+        "paths": {},
+        "components": {}
+      }
+    },
+    "GET /v2/features": {
+      "category": "discovery",
+      "description": "Returns action-specific JSON Schemas, source references and recorded verification scope. Counts are not a guarantee of every possible save or live account outcome.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "This preview includes one action and abbreviated coverage. The live response includes all registered actions and source-feature records."
+      ],
+      "response_example": {
+        "success": true,
+        "reference": "User-provided BCSFE 3.6.0 source",
+        "actions": {
+          "items.xp": {
+            "description": "Set xp without changing other resources.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2147483647
+                },
+                "respect_maxima": {
+                  "type": "boolean",
+                  "default": true
+                }
+              },
+              "required": [
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            "source": "cli/edits/basic_items.py:BasicItems"
+          }
+        },
+        "features": {
+          "reference": {
+            "name": "User-provided BCSFE source",
+            "version": "3.6.0"
+          },
+          "counts": {
+            "registered_typed_actions": 89
+          },
+          "items": [],
+          "verification_scope": "Offline real-save integration examples; not exhaustive live-account verification.",
+          "limitations": [],
+          "full_cli_behavioral_equivalence": false,
+          "live_game_accounts_verified": false
+        }
+      }
+    },
+    "GET /v2/capabilities": {
+      "category": "discovery",
+      "description": "Reports file editing, import/export and account-transport availability, plus operations requiring a device companion.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results."
+      ],
+      "response_example": {
+        "success": true,
+        "offline_editing": true,
+        "json_import_export": true,
+        "raw_download": true,
+        "account_transport": "implemented; actual account acceptance is not automatically guaranteed",
+        "device_push": {
+          "available": false,
+          "reason": "ADB/root require a companion running beside the device."
+        },
+        "external_editor_themes": {
+          "available": false,
+          "reason": "Terminal display customization is not used by the HTTP API."
+        }
+      }
+    },
+    "POST /v2/save/inspect": {
+      "category": "files",
+      "description": "Parses the supplied raw save and returns full BCSFE state and file metadata. Does not consume transfer codes or contact a game account.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "The state preview is abbreviated. The live response contains the complete version-dependent save object. Keep all fields when importing.",
+        "country_code defaults to kr and must match the file; auto is supported only by v1 backup/template uploads."
+      ],
+      "example": {
+        "country_code": "kr",
+        "save_base64": "BASE64_OF_SAVE_FILE"
+      },
+      "response_example": {
+        "success": true,
+        "country_code": "kr",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "state": {
+          "cc": "kr",
+          "game_version": 150500
+        }
+      }
+    },
+    "POST /v2/save/export": {
+      "category": "files",
+      "description": "Returns the same state representation as inspect, suitable for /v2/save/import. Preserve all fields and special-number strings.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "The state preview is abbreviated. The live response contains the complete version-dependent save object. Keep all fields when importing.",
+        "country_code defaults to kr and must match the file; auto is supported only by v1 backup/template uploads."
+      ],
+      "example": {
+        "country_code": "kr",
+        "save_base64": "BASE64_OF_SAVE_FILE"
+      },
+      "response_example": {
+        "success": true,
+        "country_code": "kr",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "state": {
+          "cc": "kr",
+          "game_version": 150500
+        }
+      }
+    },
+    "POST /v2/save/import": {
+      "category": "files",
+      "description": "Accepts the full state from inspect/export, validates that every value survives deserialization and binary reparse, and returns Base64. Partial objects and discarded fields fail.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "The displayed state is abbreviated for readability and is not a complete importable save. Replace it with the entire state object returned by /v2/save/export.",
+        "Use requests.post(url, json={\"state\": exported_response[\"state\"]}) to pass the complete object. Unknown or lost fields cause 422."
+      ],
+      "example": {
+        "state": {
+          "cc": "kr",
+          "game_version": 150500
+        }
+      },
+      "response_example": {
+        "success": true,
+        "country_code": "kr",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "save_base64": "BASE64_OF_IMPORTED_SAVE"
+      }
+    },
+    "POST /v2/save/download": {
+      "category": "files",
+      "description": "Returns the exact input bytes as backup.save without editing or cloud storage.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "The 200 response is application/octet-stream, not a JSON success object. Original bytes are returned unchanged."
+      ],
+      "example": {
+        "country_code": "kr",
+        "save_base64": "BASE64_OF_SAVE_FILE"
+      },
+      "response_example": "Binary original-save attachment: backup.save"
+    },
+    "POST /v2/save/edit": {
+      "category": "editing",
+      "description": "Validates 1–100 operations, edits a copy, serializes and reparses it, and rejects data loss. No partial output is returned on failure. Some actions download static metadata. JSON changes are limited to 1,000 entries; change_count reports the total.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "output defaults to json. output=file returns edited.save and X-Save-SHA256, with no JSON backup field; retain your original input file.",
+        "Use /v2/features or EditorOperation in OpenAPI for each action. IDs, metadata limits and binary persistence are checked at runtime.",
+        "A rejected batch returns no partially edited save. Some actions download static game metadata but file editing does not contact a game account."
+      ],
+      "example": {
+        "country_code": "kr",
+        "save_base64": "BASE64_OF_SAVE_FILE",
+        "operations": [
+          {
+            "action": "items.xp",
+            "args": {
+              "value": 4321
+            }
+          }
+        ],
+        "output": "json"
+      },
+      "response_example": {
+        "success": true,
+        "applied": true,
+        "country_code": "kr",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "save_base64": "BASE64_OF_EDITED_SAVE",
+        "backup_base64": "BASE64_OF_ORIGINAL_SAVE",
+        "changes": [
+          {
+            "path": "/xp",
+            "before": 1234,
+            "after": 4321
+          }
+        ],
+        "change_count": 1,
+        "changes_truncated": false
+      }
+    },
+    "POST /v2/save/from-transfer": {
+      "category": "accounts",
+      "description": "Contacts the game server and consumes the supplied transfer code. Returns received original bytes and a current save with refreshed credentials. Do not automatically repeat an uncertain request.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "This consumes the input transfer code. Store save_base64 containing refreshed credentials. backup_base64 contains the bytes received before those updates.",
+        "Defaults: country_code=kr, game_version=150500. Do not automatically retry uncertain reception."
+      ],
+      "example": {
+        "transfer_code": "SOURCE123",
+        "confirmation_code": "1234",
+        "country_code": "kr",
+        "game_version": 150500
+      },
+      "response_example": {
+        "success": true,
+        "country_code": "kr",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "save_base64": "BASE64_OF_CURRENT_SAVE",
+        "backup_base64": "BASE64_OF_ORIGINAL_SAVE",
+        "retry_safe": false,
+        "transfer_received": true,
+        "message": "Transfer reception consumes the supplied code. Preserve save_base64 with the refreshed credentials."
+      }
+    },
+    "POST /v2/save/upload": {
+      "category": "accounts",
+      "description": "Validates save serialization, then calls the original upload/code issuance flow once. Returns available recovery bytes and confirmed codes. Do not automatically retry uncertain outcomes.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Issues transfer codes through the game server. A failed or interrupted request may already have changed remote state.",
+        "The success response does not include country_code, game_version, bytes or sha256 metadata."
+      ],
+      "example": {
+        "country_code": "kr",
+        "save_base64": "BASE64_OF_SAVE_FILE"
+      },
+      "response_example": {
+        "success": true,
+        "save_base64": "BASE64_OF_CURRENT_SAVE",
+        "backup_base64": "BASE64_OF_ORIGINAL_SAVE",
+        "retry_safe": false,
+        "transfer_code": "SAMPLE_TRANSFER",
+        "confirmation_code": "1234"
+      }
+    },
+    "POST /v2/account/new": {
+      "category": "accounts",
+      "description": "Creates a new account and synchronizes managed items; success requires a changed, nonempty inquiry code. Returns the new save. Call /v2/save/upload separately to obtain transfer codes.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Creates credentials and synchronizes managed items. This route does not issue transfer codes; call /v2/save/upload separately."
+      ],
+      "example": {
+        "country_code": "kr",
+        "save_base64": "BASE64_OF_SAVE_FILE"
+      },
+      "response_example": {
+        "success": true,
+        "country_code": "kr",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "save_base64": "BASE64_OF_CURRENT_SAVE",
+        "backup_base64": "BASE64_OF_ORIGINAL_SAVE",
+        "retry_safe": false,
+        "message": "New account credentials created. Upload separately to obtain transfer codes."
+      }
+    },
+    "POST /v2/account/upload-items": {
+      "category": "accounts",
+      "description": "Calls the original metadata upload operation and requires an explicit true result. Does not issue transfer codes. Preserve returned save and backup bytes.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Uploads managed-item metadata, not a replacement transfer code."
+      ],
+      "example": {
+        "country_code": "kr",
+        "save_base64": "BASE64_OF_SAVE_FILE"
+      },
+      "response_example": {
+        "success": true,
+        "save_base64": "BASE64_OF_CURRENT_SAVE",
+        "backup_base64": "BASE64_OF_ORIGINAL_SAVE",
+        "retry_safe": false
+      }
+    },
+    "POST /v2/account/convert-region": {
+      "category": "accounts",
+      "description": "Changes the save region, requests new account credentials, and verifies persisted output. Returns a new-region save; upload separately to request transfer codes.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "country_code identifies the input file; target_country_code selects the new account region. It is required and has no default.",
+        "Returns new credentials in the save. Upload separately if you need transfer codes."
+      ],
+      "example": {
+        "country_code": "kr",
+        "save_base64": "BASE64_OF_SAVE_FILE",
+        "target_country_code": "en"
+      },
+      "response_example": {
+        "success": true,
+        "country_code": "en",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "save_base64": "BASE64_OF_CURRENT_SAVE",
+        "backup_base64": "BASE64_OF_ORIGINAL_SAVE",
+        "retry_safe": false
+      }
+    },
+    "POST /v1/backups": {
+      "category": "backups",
+      "description": "Validates the upload and returns the original bytes. Does not store a JSONBin template or create a game account.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Requires the template Bearer key. Does not require JSONBin storage and does not create a template ID.",
+        "Accepts JSON Base64 or multipart file. The 200 response is application/octet-stream even when the request is JSON."
+      ],
+      "example": {
+        "country_code": "auto",
+        "save_base64": "BASE64_OF_SAVE_FILE"
+      },
+      "response_example": "Binary original-save attachment: backup-000000000000.save"
+    },
+    "POST /v1/templates": {
+      "category": "backups",
+      "description": "Validates a raw save uploaded as JSON Base64 or multipart file, stores its unchanged bytes as an immutable private encrypted JSONBin template, and returns metadata with a template ID. country_code=auto detects the region; the default remains kr. This does not create a game account.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Returns 201 only after the immutable private template is stored. Requires the server-side JSONBin key.",
+        "Multipart alternative: file=@account.save, country_code=auto, name=Starter. Name defaults to Backup and must be 1–100 characters after trimming.",
+        "country_code defaults to kr for compatibility; auto detects kr/en/jp/tw from the original checksum. The response stores the actual region.",
+        "clone_ready=false permits storage and download, but copy issuance will fail its serialization check."
+      ],
+      "example": {
+        "country_code": "auto",
+        "save_base64": "BASE64_OF_SAVE_FILE",
+        "name": "Starter"
+      },
+      "response_example": {
+        "success": true,
+        "template_id": "0123456789abcdef01234567",
+        "name": "Starter",
+        "country_code": "kr",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "created_at": "2026-09-04T00:00:00+00:00",
+        "clone_ready": true
+      }
+    },
+    "GET /v1/templates": {
+      "category": "backups",
+      "description": "Lists template IDs and JSONBin creation times. Request each template for its name, region, checksum and clone readiness. Continue with next_cursor until it is null, even if a filtered page is empty.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Omit cursor for the first page. Continue until next_cursor is null, including when a filtered page is empty.",
+        "The list contains IDs and creation times only. Read each template for its name, region and readiness."
+      ],
+      "response_example": {
+        "success": true,
+        "templates": [
+          {
+            "template_id": "0123456789abcdef01234567",
+            "created_at": "2026-09-04T00:00:00+00:00"
+          }
+        ],
+        "next_cursor": null
+      },
+      "query_example": {
+        "cursor": "0123456789abcdef01234567"
+      }
+    },
+    "GET /v1/templates/{template_id}": {
+      "category": "backups",
+      "description": "Returns name, detected region, game version, byte length, checksum, creation time and clone readiness for one private template. Save bytes are omitted; use the download route.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Returns metadata only; save_base64 is omitted. Use /download for the original file."
+      ],
+      "response_example": {
+        "success": true,
+        "template_id": "0123456789abcdef01234567",
+        "name": "Starter",
+        "country_code": "kr",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "created_at": "2026-09-04T00:00:00+00:00",
+        "clone_ready": true
+      }
+    },
+    "GET /v1/templates/{template_id}/download": {
+      "category": "backups",
+      "description": "Loads and verifies the stored original save against its SHA-256, then returns unchanged bytes as an attachment. This does not create or modify a game account.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Returns application/octet-stream. Integrity is checked against the stored SHA-256; no game account is contacted."
+      ],
+      "response_example": "Binary original-template attachment"
+    },
+    "POST /v1/templates/{template_id}/clones": {
+      "category": "issuance",
+      "description": "Experimental upstream account creation. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Creates a separate game account and requests transfer codes from an immutable template. Source template bytes remain unchanged.",
+        "order_id is an audit label, not an idempotency key. Repeating it can create another account; reserve orders atomically in your backend.",
+        "201 with persisted=false still contains issued codes but has no issuance_id. Save that response; do not issue again because result storage failed.",
+        "502 may contain backup_base64, save_base64, recovery_serialized and nullable recovery_id. Preserve the response and inspect records before further action."
+      ],
+      "example": {
+        "order_id": "order-001"
+      },
+      "response_example": {
+        "success": true,
+        "persisted": true,
+        "retry_safe": false,
+        "issuance_id": "3123456789abcdef01234567",
+        "template_id": "0123456789abcdef01234567",
+        "order_id": "order-001",
+        "attempt_id": "1123456789abcdef01234567",
+        "created_at": "2026-09-04T00:00:00+00:00",
+        "recovery_id": "2123456789abcdef01234567",
+        "status": "issued",
+        "transfer_code": "SAMPLE_TRANSFER",
+        "confirmation_code": "1234"
+      }
+    },
+    "GET /v1/template-records": {
+      "category": "issuance",
+      "description": "Lists IDs and creation times for one record kind: issuance (default), attempt, or recovery. There is no order_id filter; inspect individual records to find the order. Follow next_cursor through empty filtered pages.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "kind defaults to issuance; accepted values are attempt, issuance and recovery. Omit cursor on the first request.",
+        "The response contains generic id fields. There is no order_id query filter; load records to inspect their order references."
+      ],
+      "response_example": {
+        "success": true,
+        "records": [
+          {
+            "id": "3123456789abcdef01234567",
+            "created_at": "2026-09-04T00:00:00+00:00"
+          }
+        ],
+        "next_cursor": null
+      },
+      "query_example": {
+        "kind": "issuance",
+        "cursor": "0123456789abcdef01234567"
+      }
+    },
+    "GET /v1/attempts/{attempt_id}": {
+      "category": "issuance",
+      "description": "Returns the immutable started marker written before a clone contacts the game server. It is not a final success/failure state; inspect issuance and recovery records for later results.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "This immutable started marker is never updated to issued/failed. Consult issuance and recovery records for later outcomes."
+      ],
+      "response_example": {
+        "success": true,
+        "template_id": "0123456789abcdef01234567",
+        "order_id": "order-001",
+        "attempt_id": "1123456789abcdef01234567",
+        "created_at": "2026-09-04T00:00:00+00:00",
+        "status": "started"
+      }
+    },
+    "GET /v1/recoveries/{recovery_id}": {
+      "category": "issuance",
+      "description": "Returns order/template/attempt references, source region, timestamp and checksum for a stored recovery save. save_base64 is omitted. Download the file separately.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Metadata excludes save_base64; obtain raw bytes from /download."
+      ],
+      "response_example": {
+        "success": true,
+        "recovery_id": "2123456789abcdef01234567",
+        "template_id": "0123456789abcdef01234567",
+        "order_id": "order-001",
+        "attempt_id": "1123456789abcdef01234567",
+        "created_at": "2026-09-04T00:00:00+00:00",
+        "country_code": "kr",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "GET /v1/recoveries/{recovery_id}/download": {
+      "category": "issuance",
+      "description": "Returns the recovery save stored after confirmed account creation and managed-item synchronization, before transfer-code issuance. The file is verified against its stored checksum; it is not automatically restored into the game.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Returns the recovery file stored after confirmed account creation/synchronization and before transfer-code issuance.",
+        "A download provides a file; it does not automatically restore it into the game."
+      ],
+      "response_example": "Binary recovery-save attachment"
+    },
+    "GET /v1/issuances/{issuance_id}": {
+      "category": "issuance",
+      "description": "Returns stored transfer and confirmation codes plus order/template/attempt/recovery references and issuance time. The immediate clone response fields persisted and retry_safe are not part of this stored result.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Returns stored codes and related record IDs. The immediate clone-response fields persisted and retry_safe are not stored here."
+      ],
+      "response_example": {
+        "success": true,
+        "issuance_id": "3123456789abcdef01234567",
+        "template_id": "0123456789abcdef01234567",
+        "order_id": "order-001",
+        "attempt_id": "1123456789abcdef01234567",
+        "created_at": "2026-09-04T00:00:00+00:00",
+        "recovery_id": "2123456789abcdef01234567",
+        "status": "issued",
+        "transfer_code": "SAMPLE_TRANSFER",
+        "confirmation_code": "1234"
+      }
+    },
+    "GET /v2/metadata/versions": {
+      "category": "metadata",
+      "description": "Reads the configured static game-metadata index. Version strings are grouped by region; this is not a list of locally cached versions.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "These are synthetic version examples. The configured index determines actual available versions.",
+        "Requires editor authentication even though /v2/features and /v2/capabilities are public."
+      ],
+      "response_example": {
+        "success": true,
+        "versions": {
+          "kr": [
+            "15.5.0"
+          ],
+          "en": [
+            "15.5.0"
+          ],
+          "jp": [
+            "15.5.0"
+          ],
+          "tw": [
+            "15.5.0"
+          ]
+        }
+      }
+    },
+    "POST /v2/metadata/prepare": {
+      "category": "metadata",
+      "description": "Downloads and caches static game tables using the upstream version-selection rule. Reports requested and resolved versions, including whether they match exactly. No game account is modified.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Both fields are required. Metadata version range is 1..999999; there is no implicit kr/default version here.",
+        "Downloads static tables and writes temporary cache files. resolved_version may differ from requested_version."
+      ],
+      "example": {
+        "country_code": "kr",
+        "game_version": 150500
+      },
+      "response_example": {
+        "success": true,
+        "country_code": "kr",
+        "requested_version": "15.5.0",
+        "resolved_version": "15.5.0",
+        "exact_match": true,
+        "downloaded": true,
+        "source": "https://metadata.example.invalid/index.json",
+        "archive_source": "https://metadata.example.invalid/kr/15.5.0.zip"
+      }
+    },
+    "DELETE /v2/metadata/cache": {
+      "category": "metadata",
+      "description": "Deletes verified cached versions for the selected region. Omit game_version or use null to clear all verified versions in that region. Unknown/unverified entries are preserved and counted. This does not delete saves or accounts.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Uses a JSON request body. country_code is required. Omit game_version or use null for all verified cached versions of that region.",
+        "Deletes API-owned cache entries only. It does not remove save files, templates or game accounts."
+      ],
+      "example": {
+        "country_code": "kr",
+        "game_version": 150500
+      },
+      "response_example": {
+        "success": true,
+        "country_code": "kr",
+        "deleted_versions": [
+          "15.5.0"
+        ],
+        "skipped_entries": 0
+      }
+    },
+    "GET /v2/editor/config": {
+      "category": "metadata",
+      "description": "Returns original BCSFE configuration defaults, current recommended maximum values, and the scope of action-level settings. Does not change configuration.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "The preview omits the many default/maxima entries. The live response includes them.",
+        "Read-only; use action arguments such as respect_maxima to choose behavior per request."
+      ],
+      "response_example": {
+        "success": true,
+        "defaults": {},
+        "maxima": {},
+        "scope": "Editing flags and limits are supplied per action. Terminal-only preferences do not affect this API."
+      }
+    },
+    "POST /info": {
+      "category": "legacy",
+      "description": "Consumes the supplied transfer code, refreshes credentials, and returns resource totals plus original/current Base64 saves. It does not issue replacement codes. Prefer /v2/save/inspect for file-only reads.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Transfer aliases: transfer_code/tc, confirmation_code/confirmation_pin/cc, country_code/country/cc_str. cc is the PIN, not a region.",
+        "Conflicting aliases and extra fields fail. Uses game_version=150500; game_version is not an accepted legacy input.",
+        "Consumes the transfer code and returns refreshed save data. Does not issue replacement codes."
+      ],
+      "example": {
+        "transfer_code": "SOURCE123",
+        "confirmation_code": "1234",
+        "country_code": "kr"
+      },
+      "response_example": {
+        "success": true,
+        "catfood": 0,
+        "xp": 0,
+        "normal_tickets": 0,
+        "rare_tickets": 0,
+        "platinum_tickets": 0,
+        "legend_tickets": 0,
+        "platinum_shards": 0,
+        "np": 0,
+        "leadership": 0,
+        "country_code": "kr",
+        "game_version": 150500,
+        "bytes": 32768,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "save_base64": "BASE64_OF_CURRENT_SAVE",
+        "backup_base64": "BASE64_OF_ORIGINAL_SAVE",
+        "retry_safe": false,
+        "message": "The supplied transfer code was consumed. Preserve save_base64; prefer /v2/save/inspect for file-only reads."
+      }
+    },
+    "POST /edit": {
+      "category": "legacy",
+      "description": "Converts legacy fields to typed edits, receives the transfer, applies edits, runs requested remote flags, and requests replacement transfer codes. Consumes the input code. Preserve returned recovery bytes and do not automatically repeat uncertain requests. Changes are limited to 1,000 entries; change_count is the full count.",
+      "notes": [
+        "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Requires an effective edit or unban_account/upload_items=true. False flags do not count as edits.",
+        "enable_safety defaults to false; actual save-format and metadata bounds still apply. Unknown fields and invalid types are rejected rather than silently ignored.",
+        "See LegacyEditRequest in OpenAPI for every accepted top-level key and LEGACY.md for nested alternatives, aliases, and conversion rules.",
+        "Consumes the original transfer and uploads the result to issue replacement codes. Changes are truncated at 1,000 entries; this legacy response has no changes_truncated flag."
+      ],
+      "example": {
+        "transfer_code": "SOURCE123",
+        "confirmation_code": "1234",
+        "country_code": "kr",
+        "xp": 4321,
+        "enable_safety": false
+      },
+      "response_example": {
+        "success": true,
+        "save_base64": "BASE64_OF_CURRENT_SAVE",
+        "backup_base64": "BASE64_OF_ORIGINAL_SAVE",
+        "retry_safe": false,
+        "transfer_code": "SAMPLE_TRANSFER",
+        "confirmation_code": "1234",
+        "changes": [
+          {
+            "path": "/xp",
+            "before": 1234,
+            "after": 4321
+          }
+        ],
+        "change_count": 1
+      }
+    }
+  }
+}
