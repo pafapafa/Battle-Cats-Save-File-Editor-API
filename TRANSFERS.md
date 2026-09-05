@@ -1,8 +1,8 @@
 # Transfer workflows
 
-`POST /info` receives a game transfer and returns resource totals plus the original and refreshed save. `POST /edit` receives a transfer, applies requested edits, and uploads the result to obtain replacement transfer codes. Both are authenticated API workflows.
+`POST /info` receives a game transfer and returns resource totals plus the original and refreshed save. `POST /edit` receives a transfer, applies requested edits, and uploads the result to obtain replacement transfer codes. Neither route requires a client API key.
 
-API base URL: `https://battle-cats-save-file-editor-api.vercel.app`. Use `Authorization: Bearer <EDITOR_API_KEY>`, or the configured `TEMPLATE_API_KEY` fallback. Transfer reception consumes the supplied code. Keep the returned save and recovery data; the refreshed file may contain new credentials.
+API base URL: `https://battle-cats-save-file-editor-api.vercel.app`. Transfer reception consumes the supplied code. Keep the returned save and recovery data; the refreshed file may contain new credentials.
 
 Transfer-edit fields are converted by `editor_transfer.transfer_to_operations(payload)` into validated actions. The contract includes resource, cat, stage, account, and workflow fields, plus their aliases. [ENDPOINTS.md](ENDPOINTS.md) documents the complete HTTP request/response shapes and [ACTIONS.md](ACTIONS.md) explains the resulting edits. The following examples show edit fields to combine with the required transfer credentials.
 

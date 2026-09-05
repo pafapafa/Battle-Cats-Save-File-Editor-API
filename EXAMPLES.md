@@ -2,10 +2,9 @@
 
 ## Python clients
 
-[`cli.py`](cli.py) and [`example.py`](example.py) run on the caller's computer and call the authenticated v2 API at `https://battle-cats-save-file-editor-api.vercel.app` by default. Set `EDITOR_API_KEY`, or `TEMPLATE_API_KEY` when it is the server's configured editor fallback. The commands below are remote API client operations.
+[`cli.py`](cli.py) and [`example.py`](example.py) run on the caller's computer and call the v2 API at `https://battle-cats-save-file-editor-api.vercel.app` by default. No API key is required. The commands below are remote API client operations.
 
 ```powershell
-$env:EDITOR_API_KEY = 'the-key-configured-on-your-server'
 py -m pip install requests
 py cli.py features
 py cli.py inspect original.save --country kr
@@ -46,7 +45,7 @@ CLIENT REQUEST_JSON OUTPUT_SAVE
 
 `REQUEST_JSON` is an existing UTF-8 JSON file containing `country_code`, `save_base64`, `operations`, and `"output": "file"`. The clients send those JSON bytes to the API and save a successful binary response at `OUTPUT_SAVE`. They reject an existing output path, HTTP errors, redirects, and a nonbinary response. They do not receive game transfers or request new accounts.
 
-Set `EDITOR_API_KEY`, or `TEMPLATE_API_KEY` when used as the server's editor fallback. `BCSFE_API_URL` optionally selects another API origin; the default is `https://battle-cats-save-file-editor-api.vercel.app`. API keys are read from the environment. The `cli.py` and `example.py` commands above retain their file-oriented interface and `--url` option.
+`BCSFE_API_URL` optionally selects another API origin; the default is `https://battle-cats-save-file-editor-api.vercel.app`. The clients do not read or send API keys. The `cli.py` and `example.py` commands above retain their file-oriented interface and `--url` option.
 
 ### Prepare a request from a real save
 

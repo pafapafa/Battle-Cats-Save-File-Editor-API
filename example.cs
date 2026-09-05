@@ -18,9 +18,6 @@ class Program
         {
             if (args.Length != 2)
                 throw new ArgumentException("Usage: example REQUEST_JSON OUTPUT_SAVE");
-            string key = Setting("EDITOR_API_KEY", Setting("TEMPLATE_API_KEY"));
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentException("Set EDITOR_API_KEY or TEMPLATE_API_KEY.");
             if (File.Exists(args[1]) || Directory.Exists(args[1]))
                 throw new IOException("Output already exists; choose a new path.");
             const int limit = 2 * 1024 * 1024;
@@ -36,7 +33,6 @@ class Program
             };
             using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(120) };
             using var request = new HttpRequestMessage(HttpMethod.Post, url);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
             request.Content = new ByteArrayContent(payload);
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");

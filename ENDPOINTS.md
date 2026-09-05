@@ -6,9 +6,9 @@ All example IDs, codes, hashes, quantities, version lists and save placeholders 
 
 ## Authentication and common behavior
 
-- Public: `GET /`, `/docs`, `/openapi.json`, `/v2/features`, `/v2/capabilities`.
-- `/v1/*`: `Authorization: Bearer <TEMPLATE_API_KEY>`.
-- Other `/v2/*`, `/edit`, `/info`: `Authorization: Bearer <EDITOR_API_KEY>`, falling back to `TEMPLATE_API_KEY` only when the editor key is unset. Configured keys require at least 32 characters.
+- Editing, file inspection, import/export, transfers, account operations, metadata reads, `POST /v1/backups`, and `POST /v1/templates` require no client API key.
+- `POST /v1/templates` returns a private `backup_token` once. Keep it with `template_id` and send `X-Backup-Token: <backup_token>` to read, download, copy, or inspect records belonging to that backup.
+- `GET /v1/templates`, `GET /v1/template-records`, and `DELETE /v2/metadata/cache` are operator-only. They use `Authorization: Bearer <TEMPLATE_API_KEY>` when that optional server key is configured.
 - JSON input uses `Content-Type: application/json`. Only the two v1 upload routes also accept multipart `file`.
 - Raw input saves: 32 bytes through 1 MiB. The deployment request-body limit is 2 MiB. POST requests are limited per process to 10/minute and 100/day per forwarded client IP. These counters are not a distributed quota.
 - Error bodies contain `success: false` and `message`. Remote failures may add recovery bytes and `retry_safe: false`; no automatic retry is safe after an uncertain account operation.
@@ -28,7 +28,6 @@ Private template via multipart:
 
 ```sh
 curl -X POST "$API_URL/v1/templates" \
-  -H "Authorization: Bearer $TEMPLATE_API_KEY" \
   -F "file=@account.save" -F "country_code=auto" -F "name=Starter"
 ```
 
@@ -36,15 +35,14 @@ Exact file backup without JSONBin storage:
 
 ```sh
 curl -X POST "$API_URL/v1/backups" \
-  -H "Authorization: Bearer $TEMPLATE_API_KEY" \
   -F "file=@account.save" -F "country_code=auto" --output backup.save
 ```
 
 Lossless JSON export/import uses the complete exported object:
 
 ```python
-exported = requests.post(base + "/v2/save/export", headers=headers, json=file_payload).json()
-imported = requests.post(base + "/v2/save/import", headers=headers, json={"state": exported["state"]})
+exported = requests.post(base + "/v2/save/export", json=file_payload).json()
+imported = requests.post(base + "/v2/save/import", json={"state": exported["state"]})
 ```
 
 ## Discovery and documentation
@@ -239,7 +237,7 @@ Inspect, export, import, and download existing save files.
 
 Inspect a save without editing it. Parses the supplied raw save and returns full BCSFE state and file metadata. Does not consume transfer codes or contact a game account.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -279,8 +277,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -298,7 +294,7 @@ Synthetic response preview:
 
 Export a raw save as full BCSFE JSON state. Returns the same state representation as inspect, suitable for /v2/save/import. Preserve all fields and special-number strings.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -338,8 +334,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -357,7 +351,7 @@ Synthetic response preview:
 
 Import complete BCSFE state into a raw save. Accepts the full state from inspect/export, validates that every value survives deserialization and binary reparse, and returns Base64. Partial objects and discarded fields fail.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -395,8 +389,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -414,7 +406,7 @@ Synthetic response preview:
 
 Download the validated original save. Returns the exact input bytes as backup.save without editing or cloud storage.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -444,8 +436,6 @@ Binary original-save attachment: backup.save
 | --- | --- |
 | 200 | application/octet-stream — Raw save attachment; not JSON. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -465,7 +455,7 @@ Apply validated edit actions and receive persisted changes.
 
 Apply a batch of typed edits atomically. Validates 1–100 operations, edits a copy, serializes and reparses it, and rejects data loss. No partial output is returned on failure. Some actions download static metadata. JSON changes are limited to 1,000 entries; change_count reports the total.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -524,8 +514,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json, application/octet-stream — Edited save. Content type depends on output: application/json or application/octet-stream. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -549,7 +537,7 @@ Receive transfers, create credentials, upload saves, and synchronize item metada
 
 Receive a transfer and preserve refreshed credentials. Contacts the game server and consumes the supplied transfer code. Returns received original bytes and a current save with refreshed credentials. Do not automatically repeat an uncertain request.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -594,8 +582,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -614,7 +600,7 @@ Synthetic response preview:
 
 Upload a save and issue transfer codes. Validates save serialization, then calls the original upload/code issuance flow once. Returns available recovery bytes and confirmed codes. Do not automatically retry uncertain outcomes.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -651,8 +637,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -671,7 +655,7 @@ Synthetic response preview:
 
 Create separate account credentials from a save. Creates a new account and synchronizes managed items; success requires a changed, nonempty inquiry code. Returns the new save. Call /v2/save/upload separately to obtain transfer codes.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -711,8 +695,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -729,7 +711,7 @@ Synthetic response preview:
 
 Upload managed-item metadata. Calls the original metadata upload operation and requires an explicit true result. Does not issue transfer codes. Preserve returned save and backup bytes.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -764,8 +746,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -782,7 +762,7 @@ Synthetic response preview:
 
 Convert region and create destination account credentials. Changes the save region, requests new account credentials, and verifies persisted output. Returns a new-region save; upload separately to request transfer codes.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -823,8 +803,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -847,7 +825,7 @@ Download exact backups and store immutable private originals.
 
 Download an exact file backup. Validates the upload and returns the original bytes. Does not store a JSONBin template or create a game account.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`, `multipart/form-data`.
 
@@ -878,7 +856,6 @@ Binary original-save attachment: backup-000000000000.save
 | --- | --- |
 | 200 | application/octet-stream — Exact save bytes as an attachment; this response is not JSON. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
 | 413 | application/json — Request body or Base64 save is too large. |
@@ -887,7 +864,7 @@ Binary original-save attachment: backup-000000000000.save
 
 
 
-- Requires the template Bearer key. Does not require JSONBin storage and does not create a template ID.
+- No API key is required. This route does not use JSONBin storage or create a template ID.
 
 - Accepts JSON Base64 or multipart file. The 200 response is application/octet-stream even when the request is JSON.
 
@@ -895,9 +872,9 @@ Binary original-save attachment: backup-000000000000.save
 
 ### `POST /v1/templates`
 
-Store an immutable private JSONBin template. Validates a raw save uploaded as JSON Base64 or multipart file, stores its unchanged bytes as an immutable private encrypted JSONBin template, and returns metadata with a template ID. country_code=auto detects the region; the default remains kr. This does not create a game account.
+Store an immutable private JSONBin template. Validates a raw save uploaded as JSON Base64 or multipart file, stores its unchanged bytes as an immutable encrypted JSONBin template, and returns a template ID plus a private backup token once. country_code=auto detects the region; the default remains kr. This does not create a game account.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`, `multipart/form-data`.
 
@@ -931,25 +908,27 @@ Synthetic response preview:
   "bytes": 32768,
   "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
   "created_at": "2026-09-04T00:00:00+00:00",
-  "clone_ready": true
+  "clone_ready": true,
+  "backup_token": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 }
 ```
 
 | Status | Content / meaning |
 | --- | --- |
-| 201 | application/json — Template stored. |
+| 201 | application/json — Template stored. Keep template_id and the one-time backup_token. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
 | 413 | application/json — Request body or Base64 save is too large. |
 | 429 | application/json — Deployment request limit reached. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 | 422 | application/json — Invalid checksum, region mismatch, unsupported save, or failed clone serialization check. |
 
 
 
-- Returns 201 only after the immutable private template is stored. Requires the server-side JSONBin key.
+- No API key is required to create a backup. The server still requires JSONBIN_API_KEY for storage.
+
+- Save the one-time backup_token with template_id; send it later as X-Backup-Token.
 
 - Multipart alternative: file=@account.save, country_code=auto, name=Starter. Name defaults to Backup and must be 1–100 characters after trimming.
 
@@ -961,9 +940,9 @@ Synthetic response preview:
 
 ### `GET /v1/templates`
 
-List template IDs (follow next_cursor). Lists template IDs and JSONBin creation times. Request each template for its name, region, checksum and clone readiness. Continue with next_cursor until it is null, even if a filtered page is empty.
+List template IDs (follow next_cursor). This operator-only global inventory lists template IDs and JSONBin creation times. Applications normally keep IDs returned by creation instead of listing every backup.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: operator `Authorization: Bearer <TEMPLATE_API_KEY>`.
 
 | Parameter | Location | Required | Type / behavior |
 | --- | --- | --- | --- |
@@ -998,16 +977,16 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Template ID page. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 403 | application/json — Administrator access is required for global listings. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 
 
 
 - Omit cursor for the first page. Continue until next_cursor is null, including when a filtered page is empty.
 
-- The list contains IDs and creation times only. Read each template for its name, region and readiness.
+- The list contains IDs and creation times only. It requires the operator key; a backup token cannot enumerate other backups.
 
 
 
@@ -1015,7 +994,7 @@ Synthetic response preview:
 
 Read template metadata. Returns name, detected region, game version, byte length, checksum, creation time and clone readiness for one private template. Save bytes are omitted; use the download route.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: `X-Backup-Token` for the associated backup. The optional operator Bearer key also grants access.
 
 | Parameter | Location | Required | Type / behavior |
 | --- | --- | --- | --- |
@@ -1043,10 +1022,9 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Template metadata without save_base64. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 
 
 
@@ -1058,7 +1036,7 @@ Synthetic response preview:
 
 Download the original save bytes. Loads and verifies the stored original save against its SHA-256, then returns unchanged bytes as an attachment. This does not create or modify a game account.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: `X-Backup-Token` for the associated backup. The optional operator Bearer key also grants access.
 
 | Parameter | Location | Required | Type / behavior |
 | --- | --- | --- | --- |
@@ -1076,10 +1054,9 @@ Binary original-template attachment
 | --- | --- |
 | 200 | application/octet-stream — Exact save bytes as an attachment; this response is not JSON. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 
 
 
@@ -1095,7 +1072,7 @@ Issue account copies and retrieve attempt, issuance, and recovery records.
 
 Issue a separate account from a template; do not auto-retry. Requests account creation using the BCSFE transport. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: `X-Backup-Token` for the associated backup. The optional operator Bearer key also grants access.
 
 | Parameter | Location | Required | Type / behavior |
 | --- | --- | --- | --- |
@@ -1142,12 +1119,11 @@ Synthetic response preview:
 | --- | --- |
 | 201 | application/json — Codes issued. Check persisted: false means result storage failed and issuance_id is absent; preserve this response. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
 | 413 | application/json — Request body or Base64 save is too large. |
 | 429 | application/json — Deployment request limit reached. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 | 422 | application/json — Invalid checksum, region mismatch, unsupported save, or failed clone serialization check. |
 | 502 | application/json — Issuance needs attention. Preserve both Base64 files and inspect the attempt; do not retry automatically. |
 
@@ -1167,7 +1143,7 @@ Synthetic response preview:
 
 List attempt, issuance or recovery record IDs. Lists IDs and creation times for one record kind: issuance (default), attempt, or recovery. There is no order_id filter; inspect individual records to find the order. Follow next_cursor through empty filtered pages.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: operator `Authorization: Bearer <TEMPLATE_API_KEY>`.
 
 | Parameter | Location | Required | Type / behavior |
 | --- | --- | --- | --- |
@@ -1204,10 +1180,10 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Record ID page for the requested kind. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 403 | application/json — Administrator access is required for global listings. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 
 
 
@@ -1221,7 +1197,7 @@ Synthetic response preview:
 
 Read an issuance attempt marker. Returns the immutable started marker written before a clone contacts the game server. It is not a final success/failure state; inspect issuance and recovery records for later results.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: `X-Backup-Token` for the associated backup. The optional operator Bearer key also grants access.
 
 | Parameter | Location | Required | Type / behavior |
 | --- | --- | --- | --- |
@@ -1246,10 +1222,9 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Immutable attempt-start metadata. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 
 
 
@@ -1261,7 +1236,7 @@ Synthetic response preview:
 
 Read recovery metadata. Returns order/template/attempt references, source region, timestamp and checksum for a stored recovery save. save_base64 is omitted. Download the file separately.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: `X-Backup-Token` for the associated backup. The optional operator Bearer key also grants access.
 
 | Parameter | Location | Required | Type / behavior |
 | --- | --- | --- | --- |
@@ -1288,10 +1263,9 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Recovery metadata without save_base64. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 
 
 
@@ -1303,7 +1277,7 @@ Synthetic response preview:
 
 Download a new-account recovery save. Returns the recovery save stored after confirmed account creation and managed-item synchronization, before transfer-code issuance. The file is verified against its stored checksum; it is not automatically restored into the game.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: `X-Backup-Token` for the associated backup. The optional operator Bearer key also grants access.
 
 | Parameter | Location | Required | Type / behavior |
 | --- | --- | --- | --- |
@@ -1321,10 +1295,9 @@ Binary recovery-save attachment
 | --- | --- |
 | 200 | application/octet-stream — Exact save bytes as an attachment; this response is not JSON. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 
 
 
@@ -1338,7 +1311,7 @@ Binary recovery-save attachment
 
 Read saved issuance codes. Returns stored transfer and confirmation codes plus order/template/attempt/recovery references and issuance time. The immediate clone response fields persisted and retry_safe are not part of this stored result.
 
-Authentication: `TemplateToken` Bearer token.
+Authentication: `X-Backup-Token` for the associated backup. The optional operator Bearer key also grants access.
 
 | Parameter | Location | Required | Type / behavior |
 | --- | --- | --- | --- |
@@ -1367,10 +1340,9 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Saved issuance result and codes. |
 | 400 | application/json — Invalid input. |
-| 401 | application/json — Missing or invalid template Bearer token. |
 | 500 | application/json — Unexpected operation failure. |
 | 503 | application/json — Storage, integrity check, or configuration unavailable. |
-| 404 | application/json — Record/storage resource not found, wrong record type, or invalid record ID/cursor. |
+| 404 | application/json — Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response. |
 
 
 
@@ -1386,7 +1358,7 @@ Inspect available static tables, manage verified cache entries, and read default
 
 List available game-metadata versions. Reads the configured static game-metadata index. Version strings are grouped by region; this is not a list of locally cached versions.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Synthetic response preview:
 
@@ -1414,15 +1386,13 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 422 | application/json — Metadata index could not be validated or read. |
 
 
 
 - These are synthetic version examples. The configured index determines actual available versions.
 
-- Requires editor authentication even though /v2/features and /v2/capabilities are public.
+- No API key is required.
 
 
 
@@ -1430,7 +1400,7 @@ Synthetic response preview:
 
 Prepare verified metadata for a region and version. Downloads and caches static game tables using the upstream version-selection rule. Reports requested and resolved versions, including whether they match exactly. No game account is modified.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -1469,8 +1439,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -1488,7 +1456,7 @@ Synthetic response preview:
 
 Delete API-owned metadata cache entries. Deletes verified cached versions for the selected region. Omit game_version or use null to clear all verified versions in that region. Unknown/unverified entries are preserved and counted. This does not delete saves or accounts.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: operator `Authorization: Bearer <TEMPLATE_API_KEY>`.
 
 Request body: required. Supported media types: `application/json`.
 
@@ -1525,8 +1493,7 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
+| 403 | application/json — Operator authorization is missing or administration is disabled. |
 | 400 | application/json — Invalid or unknown request fields. |
 | 413 | application/json — Request/imported/received save exceeds the size limit. |
 | 422 | application/json — Invalid save, metadata, edit, or lossless persistence check failed. |
@@ -1543,7 +1510,7 @@ Synthetic response preview:
 
 Read editor defaults and recommended maxima. Returns original BCSFE configuration defaults, current recommended maximum values, and the scope of action-level settings. Does not change configuration.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Synthetic response preview:
 
@@ -1560,8 +1527,6 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Success. |
 | 500 | application/json — Unexpected service failure. |
-| 401 | application/json — Missing or invalid editor Bearer token. |
-| 503 | application/json — Editor key is not configured. |
 
 
 
@@ -1579,7 +1544,7 @@ Receive account transfers, inspect their saves, or edit and issue replacement co
 
 Receive a transfer and read resource totals. Consumes the supplied transfer code, refreshes credentials, and returns resource totals plus original/current Base64 saves. It does not issue replacement codes. Prefer /v2/save/inspect for file-only reads.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -1637,13 +1602,11 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Confirmed result. |
 | 400 | application/json — Invalid/missing credentials or no effective edit. |
-| 401 | application/json — Missing or invalid editor token. |
 | 413 | application/json — Request or received file exceeds the limit. |
 | 422 | application/json — Invalid transfer input/save, transfer rejection, or persistence check failed. |
 | 429 | application/json — Deployment request limit reached. |
 | 500 | application/json — Unexpected service failure. |
 | 502 | application/json — Remote outcome not confirmed; preserve available recovery bytes. |
-| 503 | application/json — Editor key is not configured. |
 
 
 
@@ -1659,7 +1622,7 @@ Synthetic response preview:
 
 Receive, edit and re-upload using transfer-edit fields. Converts transfer-edit fields to typed edits, receives the transfer, applies edits, runs requested remote flags, and requests replacement transfer codes. Consumes the input code. Preserve returned recovery bytes and do not automatically repeat uncertain requests. Changes are limited to 1,000 entries; change_count is the full count.
 
-Authentication: `EditorToken` Bearer token.
+Authentication: none (public).
 
 Request body: required. Supported media types: `application/json`.
 
@@ -1826,13 +1789,11 @@ Synthetic response preview:
 | --- | --- |
 | 200 | application/json — Confirmed result. |
 | 400 | application/json — Invalid/missing credentials or no effective edit. |
-| 401 | application/json — Missing or invalid editor token. |
 | 413 | application/json — Request or received file exceeds the limit. |
 | 422 | application/json — Invalid transfer input/save, transfer rejection, or persistence check failed. |
 | 429 | application/json — Deployment request limit reached. |
 | 500 | application/json — Unexpected service failure. |
 | 502 | application/json — Remote outcome not confirmed; preserve available recovery bytes. |
-| 503 | application/json — Editor key is not configured. |
 
 
 

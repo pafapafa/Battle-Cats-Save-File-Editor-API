@@ -11,11 +11,6 @@ if [[ -e "$output" || -L "$output" ]]; then
   printf '%s\n' 'Output already exists' >&2
   exit 1
 fi
-key=${EDITOR_API_KEY:-${TEMPLATE_API_KEY:-}}
-if [[ -z "$key" ]]; then
-  printf '%s\n' 'Set EDITOR_API_KEY or TEMPLATE_API_KEY' >&2
-  exit 1
-fi
 base=${BCSFE_API_URL:-https://battle-cats-save-file-editor-api.vercel.app}
 while [[ "$base" == */ ]]; do base=${base%/}; done
 if [[ ! "$base" =~ ^https?://[^/?#@]+(/[^?#]*)?$ ]]; then
@@ -39,7 +34,6 @@ trap 'exit 143' TERM
 if ! metadata=$(curl --disable --silent --show-error \
   --connect-timeout 15 --max-time 120 --max-filesize 2097152 \
   --request POST "${base}/v2/save/edit" \
-  --header "Authorization: Bearer ${key}" \
   --header 'Content-Type: application/json' \
   --header 'Accept: application/octet-stream' \
   --data-binary "@${input}" --output "$temporary" \

@@ -4,7 +4,7 @@ import time
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
 from bcsfe_runtime import scoped_runtime
-from editor_api import (APIProblem, auth, b64, body, confirmed_codes, file_metadata,
+from editor_api import (APIProblem, b64, body, confirmed_codes, file_metadata,
                         handler, receive_transfer, register_editor_api, remote_recovery)
 from editor_engine import EditError, apply_operations, comparable, validate_operations
 from editor_transfer import CREDENTIAL_FIELDS, transfer_to_operations
@@ -74,7 +74,6 @@ def credentials(data):
 @app.post('/info')
 @remote_recovery
 def transfer_info():
-    auth()
     data=body()
     if set(data)-CREDENTIAL_FIELDS:
         raise APIProblem('Unknown info fields.')
@@ -90,7 +89,6 @@ def transfer_info():
 @app.post('/edit')
 @remote_recovery
 def transfer_edit():
-    auth()
     data=body()
     operations=transfer_to_operations(data)
     if not operations and not data.get('unban_account') and not data.get('upload_items'):
@@ -226,11 +224,11 @@ def register_service_docs(spec):
     for path,name,summary,description in (
         ('/info','Info','Receive a transfer and read resource totals','Consumes the supplied transfer code, refreshes credentials, and returns resource totals plus original/current Base64 saves. It does not issue replacement codes. Prefer /v2/save/inspect for file-only reads.'),
         ('/edit','Edit','Receive, edit and re-upload using resource and progression fields','Converts requested fields to typed edits, receives the transfer, applies edits, runs requested remote flags, and requests replacement transfer codes. Consumes the input code. Preserve returned recovery bytes and do not automatically repeat uncertain requests. Changes are limited to 1,000 entries; change_count is the full count.')):
-        errors={'400':'Invalid/missing credentials or no effective edit.','401':'Missing or invalid editor token.','413':'Request or received file exceeds the limit.',
+        errors={'400':'Invalid/missing credentials or no effective edit.','413':'Request or received file exceeds the limit.',
                 '422':'Invalid transfer input/save, transfer rejection, or persistence check failed.','429':'Deployment request limit reached.',
-                '500':'Unexpected service failure.','502':'Remote outcome not confirmed; preserve available recovery bytes.','503':'Editor key is not configured.'}
+                '500':'Unexpected service failure.','502':'Remote outcome not confirmed; preserve available recovery bytes.'}
         spec['paths'][path]={'post':{'tags':['Transfer workflows'],'summary':summary,'description':description,
-            'security':[{'EditorToken':[]}],'requestBody':{'required':True,'content':{'application/json':{'schema':ref('Transfer'+name+'Request')}}},
+            'security':[],'requestBody':{'required':True,'content':{'application/json':{'schema':ref('Transfer'+name+'Request')}}},
             'responses':{'200':response('Confirmed result.',ref('Transfer'+name+'Result')),
                          **{code:response(text,ref('EditorError')) for code,text in errors.items()}}}}
     health_fields={'status':{'const':'online'},'service':{'type':'string'},'version':{'type':'string'},'docs':{'type':'string'},'features':{'type':'string'}}
@@ -242,8 +240,8 @@ def register_service_docs(spec):
         'responses':{'200':response('OpenAPI document.',obj({'openapi':{'type':'string'},'info':{'type':'object'},'paths':{'type':'object'},'components':{'type':'object'}},['openapi','info','paths','components']))}}}
 
     template_descriptions={
-        ('post','/v1/templates'):'Validates a raw save uploaded as JSON Base64 or multipart file, stores its unchanged bytes as an immutable private encrypted JSONBin template, and returns metadata with a template ID. country_code=auto detects the region; the default remains kr. This does not create a game account.',
-        ('get','/v1/templates'):'Lists template IDs and JSONBin creation times. Request each template for its name, region, checksum and clone readiness. Continue with next_cursor until it is null, even if a filtered page is empty.',
+        ('post','/v1/templates'):'Validates a raw save uploaded as JSON Base64 or multipart file, stores its unchanged bytes as an immutable encrypted JSONBin template, and returns a template ID plus a private backup token once. country_code=auto detects the region; the default remains kr. This does not create a game account.',
+        ('get','/v1/templates'):'Administrator-only global listing of template IDs and JSONBin creation times. Applications normally keep the template ID returned at creation instead of listing every stored backup.',
         ('get','/v1/templates/{template_id}'):'Returns name, detected region, game version, byte length, checksum, creation time and clone readiness for one private template. Save bytes are omitted; use the download route.',
         ('get','/v1/templates/{template_id}/download'):'Loads and verifies the stored original save against its SHA-256, then returns unchanged bytes as an attachment. This does not create or modify a game account.',
         ('get','/v1/template-records'):'Lists IDs and creation times for one record kind: issuance (default), attempt, or recovery. There is no order_id filter; inspect individual records to find the order. Follow next_cursor through empty filtered pages.',

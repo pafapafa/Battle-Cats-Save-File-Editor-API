@@ -48,9 +48,6 @@ std::size_t receive(char *data, std::size_t size, std::size_t count, void *conte
 int main(int argc, char **argv) {
     try {
         if (argc != 3) throw std::runtime_error("Usage: example REQUEST_JSON OUTPUT_SAVE");
-        auto key = environment("EDITOR_API_KEY", environment("TEMPLATE_API_KEY"));
-        if (key.empty() || key.find_first_of("\r\n") != std::string::npos)
-            throw std::runtime_error("Set EDITOR_API_KEY or TEMPLATE_API_KEY.");
         if (std::filesystem::exists(argv[2]))
             throw std::runtime_error("Output already exists; choose a new path.");
         auto length = std::filesystem::file_size(argv[1]);
@@ -69,7 +66,6 @@ int main(int argc, char **argv) {
         Headers headers;
         headers.add("Content-Type: application/json");
         headers.add("Accept: application/octet-stream");
-        headers.add("Authorization: Bearer " + key);
         std::string response;
         curl_easy_setopt(curl.get(), CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers.value);

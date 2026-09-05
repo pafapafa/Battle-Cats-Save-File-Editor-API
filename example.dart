@@ -5,13 +5,12 @@ import 'dart:typed_data';
 
 const maxBytes = 2 * 1024 * 1024;
 
-Future<Uint8List> download(Uri uri, String token, Uint8List body) async {
+Future<Uint8List> download(Uri uri, Uint8List body) async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
   try {
     return await (() async {
       final request = await client.postUrl(uri);
       request.followRedirects = false;
-      request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
       request.headers.contentType = ContentType.json;
       request.headers.set(HttpHeaders.acceptHeader, 'application/octet-stream');
       request.contentLength = body.length;
@@ -44,9 +43,6 @@ Future<void> main(List<String> arguments) async {
     if (await FileSystemEntity.type(output.path, followLinks: false) != FileSystemEntityType.notFound) {
       throw const FileSystemException('Output already exists');
     }
-    var token = (Platform.environment['EDITOR_API_KEY'] ?? '').trim();
-    if (token.isEmpty) token = (Platform.environment['TEMPLATE_API_KEY'] ?? '').trim();
-    if (token.isEmpty) throw const FormatException('Set EDITOR_API_KEY or TEMPLATE_API_KEY');
     final base = (Platform.environment['BCSFE_API_URL'] ?? 'https://battle-cats-save-file-editor-api.vercel.app').replaceFirst(RegExp(r'/+$'), '');
     final uri = Uri.parse('$base/v2/save/edit');
     if (!['http', 'https'].contains(uri.scheme) || uri.host.isEmpty ||
@@ -66,7 +62,7 @@ Future<void> main(List<String> arguments) async {
         payload['country_code'] is! String || payload['save_base64'] is! String || payload['operations'] is! List) {
       throw const FormatException('Request needs country_code, save_base64, operations, and output:"file"');
     }
-    final data = await download(uri, token, body);
+    final data = await download(uri, body);
     await output.create(exclusive: true);
     created = true;
     await output.writeAsBytes(data, flush: true);

@@ -103,16 +103,17 @@ function codeBlock(title, text) {
   block.append(bar, element('pre', '', text)); return block;
 }
 function authInfo(operation) {
-  if (!operation.security?.length) return {label: 'Public · no API key', key: null};
-  const template = operation.security.some(item => Object.hasOwn(item, 'TemplateToken'));
-  return {label: template ? 'Bearer · TEMPLATE_API_KEY' : 'Bearer · EDITOR_API_KEY (or template-key fallback)', key: template ? 'TEMPLATE_API_KEY' : 'EDITOR_API_KEY'};
+  if (!operation.security?.length) return {label: 'Public · no API key', key: null, header: null};
+  if (operation.security.some(item => Object.hasOwn(item, 'BackupToken'))) return {label: 'Private backup · X-Backup-Token', key: 'BACKUP_TOKEN', header: 'X-Backup-Token'};
+  return {label: 'Operator only · TEMPLATE_API_KEY', key: 'TEMPLATE_API_KEY', header: 'Authorization'};
 }
 function curlExample(entry) {
   const auth = authInfo(entry.operation);
   let path = entry.path.replace(/\{([a-z_]+)\}/g, (_, key) => '$' + key.toUpperCase());
   const query = new URLSearchParams(entry.doc.query_example || {}); if (query.size) path += '?' + query;
   const lines = ['curl --request ' + entry.method.toUpperCase() + ' "$API_URL' + path + '"'];
-  if (auth.key) lines.push('  -H "Authorization: Bearer $' + auth.key + '"');
+  if (auth.header === 'X-Backup-Token') lines.push('  -H "X-Backup-Token: $' + auth.key + '"');
+  if (auth.header === 'Authorization') lines.push('  -H "Authorization: Bearer $' + auth.key + '"');
   if (entry.doc.example !== undefined) {
     const json = JSON.stringify(entry.doc.example, null, 2).replace(/'/g, "'\"'\"'");
     lines.push('  -H "Content-Type: application/json"', "  --data '" + json + "'");

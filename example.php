@@ -12,10 +12,6 @@ function main(array $arguments): void
     if (file_exists($output) || is_link($output)) {
         throw new RuntimeException('Output already exists');
     }
-    $token = trim(getenv('EDITOR_API_KEY') ?: '') ?: trim(getenv('TEMPLATE_API_KEY') ?: '');
-    if ($token === '') {
-        throw new RuntimeException('Set EDITOR_API_KEY or TEMPLATE_API_KEY');
-    }
     $base = rtrim(getenv('BCSFE_API_URL') ?: 'https://battle-cats-save-file-editor-api.vercel.app', '/');
     $url = $base . '/v2/save/edit';
     $parts = parse_url($url);
@@ -51,7 +47,6 @@ function main(array $arguments): void
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $body,
             CURLOPT_HTTPHEADER => [
-                'Authorization: Bearer ' . $token,
                 'Content-Type: application/json',
                 'Accept: application/octet-stream',
             ],

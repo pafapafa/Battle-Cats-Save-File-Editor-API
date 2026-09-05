@@ -1,4 +1,5 @@
 import copy
+import os
 import json
 import re
 import unittest
@@ -126,7 +127,8 @@ class EndpointDocsTests(unittest.TestCase):
             payload = {'country_code': 'kr', 'game_version': None}
             schema = self.spec['paths']['/v2/metadata/cache']['delete']['requestBody']['content']['application/json']['schema']
             self.validator(schema).validate(payload)
-            response = self.client.delete('/v2/metadata/cache', json=payload, headers=self.headers)
+            with patch.dict(os.environ, {'TEMPLATE_API_KEY': http_fixtures.TOKEN}):
+                response = self.client.delete('/v2/metadata/cache', json=payload, headers={'Authorization': 'Bearer ' + http_fixtures.TOKEN})
             self.documented_response('/v2/metadata/cache', 'delete', response)
             clear.assert_called_once_with('kr', None)
         self.documented_response('/v2/editor/config', 'get', self.client.get('/v2/editor/config', headers=self.headers))

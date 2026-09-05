@@ -18,10 +18,6 @@ try {
     if ($args.Count -ne 0) { throw 'Usage: pwsh -File example.ps1 REQUEST_JSON OUTPUT_SAVE' }
     $outputPath = [IO.Path]::GetFullPath($OutputSave)
     if (Test-Path -LiteralPath $outputPath) { throw 'Output already exists' }
-    $key = $env:EDITOR_API_KEY
-    if ([string]::IsNullOrWhiteSpace($key)) { $key = $env:TEMPLATE_API_KEY }
-    if ([string]::IsNullOrWhiteSpace($key)) { throw 'Set EDITOR_API_KEY or TEMPLATE_API_KEY' }
-    $key = $key.Trim()
     $baseUrl = $env:BCSFE_API_URL
     if ([string]::IsNullOrWhiteSpace($baseUrl)) {
         $baseUrl = 'https://battle-cats-save-file-editor-api.vercel.app'
@@ -52,7 +48,6 @@ try {
     $client.Timeout = [TimeSpan]::FromSeconds(120)
     $cancellation = [Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds(120))
     $request = [Net.Http.HttpRequestMessage]::new([Net.Http.HttpMethod]::Post, $uri)
-    $request.Headers.Authorization = [Net.Http.Headers.AuthenticationHeaderValue]::new('Bearer', $key)
     $request.Headers.Accept.ParseAdd('application/octet-stream')
     $request.Content = [Net.Http.ByteArrayContent]::new($body)
     $request.Content.Headers.ContentType = [Net.Http.Headers.MediaTypeHeaderValue]::new('application/json')

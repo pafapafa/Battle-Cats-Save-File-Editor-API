@@ -18,9 +18,6 @@ public class example {
         try {
             if (args.length != 2)
                 throw new IllegalArgumentException("Usage: java example.java REQUEST_JSON OUTPUT_SAVE");
-            String key = setting("EDITOR_API_KEY", setting("TEMPLATE_API_KEY", ""));
-            if (key.isEmpty())
-                throw new IllegalArgumentException("Set EDITOR_API_KEY or TEMPLATE_API_KEY.");
             Path source = Path.of(args[0]);
             Path destination = Path.of(args[1]);
             if (Files.exists(destination))
@@ -37,7 +34,6 @@ public class example {
                     .build();
             HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                     .timeout(Duration.ofSeconds(120))
-                    .header("Authorization", "Bearer " + key)
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/octet-stream")
                     .POST(HttpRequest.BodyPublishers.ofByteArray(payload))

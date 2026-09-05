@@ -399,7 +399,7 @@
       "description": "Validates the upload and returns the original bytes. Does not store a JSONBin template or create a game account.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
-        "Requires the template Bearer key. Does not require JSONBin storage and does not create a template ID.",
+        "No API key is required. This route does not use JSONBin storage or create a template ID.",
         "Accepts JSON Base64 or multipart file. The 200 response is application/octet-stream even when the request is JSON."
       ],
       "example": {
@@ -410,10 +410,12 @@
     },
     "POST /v1/templates": {
       "category": "backups",
-      "description": "Validates a raw save uploaded as JSON Base64 or multipart file, stores its unchanged bytes as an immutable private encrypted JSONBin template, and returns metadata with a template ID. country_code=auto detects the region; the default remains kr. This does not create a game account.",
+      "description": "Validates a raw save uploaded as JSON Base64 or multipart file, stores its unchanged bytes as an immutable encrypted JSONBin template, and returns a template ID plus a private backup token once. country_code=auto detects the region; the default remains kr. This does not create a game account.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
-        "Returns 201 only after the immutable private template is stored. Requires the server-side JSONBin key.",
+        "No API key is required to create a backup. The server still requires JSONBIN_API_KEY for storage.",
+        "Save backup_token when the backup is created. It is returned once and cannot be retrieved later.",
+        "Send backup_token as X-Backup-Token to read, download or copy this backup.",
         "Multipart alternative: file=@account.save, country_code=auto, name=Starter. Name defaults to Backup and must be 1–100 characters after trimming.",
         "country_code defaults to kr; auto detects kr/en/jp/tw from the original checksum. The response stores the actual region.",
         "clone_ready=false permits storage and download, but copy issuance will fail its serialization check."
@@ -432,14 +434,16 @@
         "bytes": 32768,
         "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
         "created_at": "2026-09-04T00:00:00+00:00",
-        "clone_ready": true
+        "clone_ready": true,
+        "backup_token": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       }
     },
     "GET /v1/templates": {
       "category": "backups",
-      "description": "Lists template IDs and JSONBin creation times. Request each template for its name, region, checksum and clone readiness. Continue with next_cursor until it is null, even if a filtered page is empty.",
+      "description": "Administrator-only global listing of template IDs and JSONBin creation times. Applications normally keep the template ID returned at creation instead of listing every stored backup.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Requires Authorization: Bearer TEMPLATE_API_KEY. A backup token cannot list other users' backups.",
         "Omit cursor for the first page. Continue until next_cursor is null, including when a filtered page is empty.",
         "The list contains IDs and creation times only. Read each template for its name, region and readiness."
       ],
@@ -462,6 +466,7 @@
       "description": "Returns name, detected region, game version, byte length, checksum, creation time and clone readiness for one private template. Save bytes are omitted; use the download route.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Send the token issued for this backup as X-Backup-Token. Missing, wrong and cross-backup tokens return the same 404 as an unknown record.",
         "Returns metadata only; save_base64 is omitted. Use /download for the original file."
       ],
       "response_example": {
@@ -481,6 +486,7 @@
       "description": "Loads and verifies the stored original save against its SHA-256, then returns unchanged bytes as an attachment. This does not create or modify a game account.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Send the token issued for this backup as X-Backup-Token.",
         "Returns application/octet-stream. Integrity is checked against the stored SHA-256; no game account is contacted."
       ],
       "response_example": "Binary original-template attachment"
@@ -490,6 +496,7 @@
       "description": "Requests account creation using the BCSFE transport. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Send the source backup's token as X-Backup-Token.",
         "Creates a separate game account and requests transfer codes from an immutable template. Source template bytes remain unchanged.",
         "order_id is an audit label, not an idempotency key. Repeating it can create another account; reserve orders atomically in your backend.",
         "201 with persisted=false still contains issued codes but has no issuance_id. Save that response; do not issue again because result storage failed.",
@@ -518,6 +525,7 @@
       "description": "Lists IDs and creation times for one record kind: issuance (default), attempt, or recovery. There is no order_id filter; inspect individual records to find the order. Follow next_cursor through empty filtered pages.",
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
+        "Requires Authorization: Bearer TEMPLATE_API_KEY. Backup tokens cannot enumerate global records.",
         "kind defaults to issuance; accepted values are attempt, issuance and recovery. Omit cursor on the first request.",
         "The response contains generic id fields. There is no order_id query filter; load records to inspect their order references."
       ],
@@ -606,7 +614,7 @@
       "notes": [
         "Examples use synthetic placeholder IDs, codes, hashes and save data; they are not live account results.",
         "These are synthetic version examples. The configured index determines actual available versions.",
-        "Requires editor authentication even though /v2/features and /v2/capabilities are public."
+        "No API key is required."
       ],
       "response_example": {
         "success": true,

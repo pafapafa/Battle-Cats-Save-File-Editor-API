@@ -36,7 +36,7 @@ class FakeHandler:
 
 class EditorHTTPTests(unittest.TestCase):
     def setUp(self):
-        self.env=patch.dict(os.environ,{'EDITOR_API_KEY':TOKEN})
+        self.env=patch.dict(os.environ,{'EDITOR_API_KEY':'','TEMPLATE_API_KEY':''})
         self.env.start();self.addCleanup(self.env.stop)
         app.testing=True
         app.config['EDITOR_HANDLER_FACTORY']=FakeHandler
@@ -46,7 +46,7 @@ class EditorHTTPTests(unittest.TestCase):
         FakeHandler.account_ok=FakeHandler.sync_ok=FakeHandler.items_ok=True
         FakeHandler.codes=('new-transfer','1234');FakeHandler.raise_method=None;FakeHandler.calls=[]
         self.client=app.test_client()
-        self.headers={'Authorization':'Bearer '+TOKEN}
+        self.headers={}
         sf=core.SaveFile(cc=core.CountryCode.from_code('kr'),gv=core.GameVersion(150500),load=False)
         for f in ('date','date_2','date_3','date_4'):setattr(sf,f,datetime.datetime(2024,1,2))
         sf.xp=1234;sf.catfood=234;sf.inquiry_code='source-account'
@@ -114,14 +114,35 @@ class EditorHTTPTests(unittest.TestCase):
         self.assertEqual(r.status_code,422,r.json)
         self.assertFalse(r.json['applied']);self.assertNotIn('save_base64',r.json)
         self.assertEqual(self.post('/v2/save/inspect').json['state']['xp'],1234)
-    def test_auth_and_public_information(self):
-        for path in ('/v2/save/inspect','/edit','/info'):
-            self.assertEqual(self.client.post(path,json=self.payload).status_code,401)
-        for path in ('/','/docs','/openapi.json','/v2/features','/v2/capabilities'):
+    def test_keyless_public_information_and_invalid_old_token(self):
+        for headers in ({}, {'Authorization': 'Bearer unused-old-client-token'}):
+            response=self.client.post('/v2/save/inspect',json=self.payload,headers=headers)
+            self.assertEqual(response.status_code,200,response.json)
+        for path in ('/','/docs','/openapi.json','/v2/features','/v2/capabilities','/v2/editor/config'):
             with self.subTest(path=path):
-                r=self.client.get(path);self.assertEqual(r.status_code,200,r.get_data(as_text=True)[:300])
-                self.assertNotIn(TOKEN,r.get_data(as_text=True))
-        self.assertEqual(self.client.get('/v2/editor/config',headers=self.headers).status_code,200)
+                response=self.client.get(path)
+                self.assertEqual(response.status_code,200,response.get_data(as_text=True)[:300])
+                self.assertNotIn(TOKEN,response.get_data(as_text=True))
+        spec=self.client.get('/openapi.json').json
+        self.assertNotIn('EditorToken',spec['components']['securitySchemes'])
+        for path,operations in spec['paths'].items():
+            if path.startswith('/v2/') and path!='/v2/metadata/cache' or path in ('/edit','/info'):
+                for operation in operations.values():
+                    self.assertEqual(operation['security'],[],path)
+                    self.assertNotIn('401',operation['responses'],path)
+    def test_cache_administration_rejects_without_operator_before_mutation(self):
+        with patch('editor_metadata.delete_metadata') as remove:
+            response=self.client.delete('/v2/metadata/cache',json={'country_code':'kr'})
+            self.assertEqual(response.status_code,403)
+            remove.assert_not_called()
+            with patch.dict(os.environ,{'TEMPLATE_API_KEY':TOKEN}):
+                denied=self.client.delete('/v2/metadata/cache',json={'country_code':'kr'},headers={'Authorization':'Bearer wrong'})
+                self.assertEqual(denied.status_code,403)
+                remove.assert_not_called()
+                remove.return_value={'country_code':'kr','deleted_versions':[],'skipped_entries':0}
+                allowed=self.client.delete('/v2/metadata/cache',json={'country_code':'kr'},headers={'Authorization':'Bearer '+TOKEN})
+                self.assertEqual(allowed.status_code,200,allowed.json)
+                remove.assert_called_once_with('kr',None)
     def test_account_unknown_fields_rejected_before_remote_call(self):
         r=self.post('/v2/account/new',{**self.payload,'xp':99999})
         self.assertEqual(r.status_code,400,r.json)

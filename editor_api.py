@@ -105,16 +105,13 @@ def remote_recovery(function):
     return wrapped
 
 
-@bp.before_request
-def auth():
-    if request.method=='OPTIONS' or (request.method=='GET' and request.path in ('/v2/features','/v2/capabilities')):
-        return
-    key=setting('EDITOR_API_KEY') or setting('TEMPLATE_API_KEY')
+def require_operator():
+    key=setting('TEMPLATE_API_KEY')
     if len(key)<32:
-        raise APIProblem('Configure EDITOR_API_KEY or TEMPLATE_API_KEY.',503)
+        raise APIProblem('Shared cache administration is disabled.',403)
     supplied=request.headers.get('Authorization','')
     if not hmac.compare_digest(supplied.encode(),('Bearer '+key).encode()):
-        raise APIProblem('A valid editor Bearer token is required.',401)
+        raise APIProblem('Operator authorization is required.',403)
 
 @bp.after_request
 def headers(response):
@@ -359,6 +356,7 @@ def prepare():
 
 @bp.delete('/metadata/cache')
 def clear_metadata():
+    require_operator()
     from editor_metadata import delete_metadata
     data=body()
     if set(data)-{'country_code','game_version'}:
@@ -376,8 +374,6 @@ def configuration():
 def register_editor_api(app,spec):
     app.register_blueprint(bp)
     components=spec.setdefault('components',{})
-    components.setdefault('securitySchemes',{})['EditorToken']={
-        'type':'http','scheme':'bearer','description':'EDITOR_API_KEY, or TEMPLATE_API_KEY when the editor key is unset. At least 32 characters.'}
     schemas=components.setdefault('schemas',{})
     schemas['EditorOperation']={
         'oneOf':[{'type':'object','properties':{'action':{'const':name},'args':copy.deepcopy(value['schema'])},
@@ -458,7 +454,7 @@ def register_editor_api(app,spec):
         path=rule.rule
         tag,summary,description,result_name,request_schema=descriptions[path]
         for method in sorted(rule.methods-{'HEAD','OPTIONS'}):
-            public=path in ('/v2/features','/v2/capabilities')
+            public=path!='/v2/metadata/cache'
             remote=path.startswith('/v2/account/') or path in ('/v2/save/from-transfer','/v2/save/upload')
             success=copy.deepcopy(binary) if result_name=='binary' else response('Success.',ref(result_name))
             if path=='/v2/save/edit':
@@ -466,12 +462,12 @@ def register_editor_api(app,spec):
                 success['headers']={**binary['headers'],'X-Save-SHA256':{'schema':metadata['sha256'],'description':'Present for output=file; SHA-256 of the edited bytes.'}}
                 success['description']='Edited save. Content type depends on output: application/json or application/octet-stream.'
             errors={'500':'Unexpected service failure.'}
-            if not public:errors.update({'401':'Missing or invalid editor Bearer token.','503':'Editor key is not configured.'})
+            if not public:errors['403']='Operator authorization is missing or administration is disabled.'
             if request_schema is not None:errors.update({'400':'Invalid or unknown request fields.','413':'Request/imported/received save exceeds the size limit.','422':'Invalid save, metadata, edit, or lossless persistence check failed.'})
             if path=='/v2/metadata/versions':errors['422']='Metadata index could not be validated or read.'
             if method=='POST':errors['429']='Deployment request limit reached.'
             if remote:errors['502']='Remote outcome not confirmed. Preserve available recovery bytes; do not automatically retry.'
-            op={'tags':[tag],'summary':summary,'description':description,'security':[] if public else [{'EditorToken':[]}],
+            op={'tags':[tag],'summary':summary,'description':description,'security':[] if public else [{'TemplateToken':[]}],
                 'responses':{'200':success,**{code:response(text,ref('EditorError')) for code,text in errors.items()}}}
             if request_schema is not None:
                 op['requestBody']={'required':True,'content':{'application/json':{'schema':copy.deepcopy(request_schema)}}}

@@ -40,14 +40,14 @@ The `/docs` reference offers Light, Dark, and System themes; the selected prefer
 
 | Request | Purpose |
 | --- | --- |
-| `POST /v1/templates` | Store a persistent original backup from multipart `file` or JSON `save_base64`; returns `template_id` |
-| `GET /v1/templates` | List stored template IDs |
+| `POST /v1/templates` | Store a persistent original backup; returns `template_id` and a one-time `backup_token` |
+| `GET /v1/templates` | Operator-only global list of stored template IDs |
 | `GET /v1/templates/{id}` | Read backup metadata |
 | `GET /v1/templates/{id}/download` | Download the original save bytes |
 | `POST /v1/templates/{id}/clones` | Request a separate game account from the backup; requires JSON `order_id` |
 | `POST /v1/backups` | Validate and return an uploaded file without cloud storage |
 
-Backup and template requests use `Authorization: Bearer <TEMPLATE_API_KEY>`. The JSONBin master key stays on the server. File-editor requests use `EDITOR_API_KEY`, falling back to `TEMPLATE_API_KEY` only when the editor key is not configured.
+Editing and backup creation require no client API key. The JSONBin master key stays on the server. Send the one-time token returned at backup creation as `X-Backup-Token` when reading, downloading, or copying that backup. The optional `TEMPLATE_API_KEY` is only for operator-only global listings and metadata-cache deletion.
 
 See [TEMPLATES.md](TEMPLATES.md) for request examples, record pagination, duplicate-order handling, and recovery behavior. Downloading a backup does not create a game account; the `/clones` request explicitly invokes account issuance.
 
@@ -62,8 +62,8 @@ See [TEMPLATES.md](TEMPLATES.md) for request examples, record pagination, duplic
 | Status | Meaning |
 | --- | --- |
 | `400` | Invalid request format |
-| `401` | Missing or incorrect authentication |
-| `404` | Requested record or route not found |
+| `403` | Operator-only route without the configured operator key |
+| `404` | Requested record is unknown, or its backup token is missing or wrong |
 | `413` | Request or save exceeds its size limit |
 | `422` | Invalid edit, unsupported save, or values that cannot be persisted |
 | `502` | A remote operation's result was not confirmed |

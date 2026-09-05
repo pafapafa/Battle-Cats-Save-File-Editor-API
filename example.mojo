@@ -25,9 +25,6 @@ def run(arguments):
     input_path, output_path = map(pathlib.Path, arguments[1:])
     if output_path.exists() or output_path.is_symlink():
         raise FileExistsError('Output already exists')
-    token = os.environ.get('EDITOR_API_KEY', '').strip() or os.environ.get('TEMPLATE_API_KEY', '').strip()
-    if not token:
-        raise ValueError('Set EDITOR_API_KEY or TEMPLATE_API_KEY')
     base = os.environ.get('BCSFE_API_URL') or 'https://battle-cats-save-file-editor-api.vercel.app'
     url = urllib.parse.urlsplit(base.rstrip('/') + '/v2/save/edit')
     if url.scheme not in ('http', 'https') or not url.hostname or url.username or url.password or url.query or url.fragment:
@@ -58,7 +55,6 @@ def run(arguments):
         active_socket = connection.sock
         active_socket.settimeout(remaining())
         connection.request('POST', url.path, body=body, headers={
-            'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json',
             'Accept': 'application/octet-stream',
         })

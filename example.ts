@@ -4,13 +4,12 @@ const https = require('node:https');
 
 const MAX_BYTES = 2 * 1024 * 1024;
 
-function download(url: URL, token: string, body: Buffer): Promise<Buffer> {
+function download(url: URL, body: Buffer): Promise<Buffer> {
   return new Promise<Buffer>((resolve, reject) => {
     const transport = url.protocol === 'https:' ? https : http;
     const request = transport.request(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
         Accept: 'application/octet-stream',
         'Content-Length': body.length,
@@ -68,8 +67,6 @@ async function main() {
   } catch (error: any) {
     if (error.code !== 'ENOENT') throw error;
   }
-  const token = (process.env.EDITOR_API_KEY || '').trim() || (process.env.TEMPLATE_API_KEY || '').trim();
-  if (!token) throw new Error('Set EDITOR_API_KEY or TEMPLATE_API_KEY');
   const base = (process.env.BCSFE_API_URL || 'https://battle-cats-save-file-editor-api.vercel.app').replace(/\/+$/, '');
   const url = new URL(`${base}/v2/save/edit`);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
@@ -88,7 +85,7 @@ async function main() {
       typeof payload.country_code !== 'string' || typeof payload.save_base64 !== 'string' || !Array.isArray(payload.operations)) {
     throw new Error('Request needs country_code, save_base64, operations, and output:"file"');
   }
-  const data = await download(url, token, body);
+  const data = await download(url, body);
   let descriptor: number | undefined;
   let created = false;
   try {

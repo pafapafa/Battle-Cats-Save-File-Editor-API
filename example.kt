@@ -15,8 +15,6 @@ fun setting(name: String, fallback: String = ""): String =
 fun main(args: Array<String>) {
     try {
         require(args.size == 2) { "Usage: java -jar example-kotlin.jar REQUEST_JSON OUTPUT_SAVE" }
-        val key = setting("EDITOR_API_KEY", setting("TEMPLATE_API_KEY"))
-        require(key.isNotEmpty()) { "Set EDITOR_API_KEY or TEMPLATE_API_KEY." }
         val source = Path.of(args[0])
         val destination = Path.of(args[1])
         if (Files.exists(destination)) throw IOException("Output already exists; choose a new path.")
@@ -31,7 +29,6 @@ fun main(args: Array<String>) {
             .build()
         val request = HttpRequest.newBuilder(URI.create(url))
             .timeout(Duration.ofSeconds(120))
-            .header("Authorization", "Bearer $key")
             .header("Content-Type", "application/json")
             .header("Accept", "application/octet-stream")
             .POST(HttpRequest.BodyPublishers.ofByteArray(payload))

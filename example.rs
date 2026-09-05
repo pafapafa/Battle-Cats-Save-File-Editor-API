@@ -19,10 +19,6 @@ fn run() -> Result<(), Box<dyn Error>> {
     if args.len() != 2 {
         return Err("Usage: example REQUEST_JSON OUTPUT_SAVE".into());
     }
-    let key = setting("EDITOR_API_KEY", &setting("TEMPLATE_API_KEY", ""));
-    if key.is_empty() {
-        return Err("Set EDITOR_API_KEY or TEMPLATE_API_KEY.".into());
-    }
     let output_path = Path::new(&args[1]);
     if output_path.try_exists()? {
         return Err("Output already exists; choose a new path.".into());
@@ -40,7 +36,6 @@ fn run() -> Result<(), Box<dyn Error>> {
         .redirect(Policy::none())
         .build()?;
     let response = client.post(url)
-        .bearer_auth(key)
         .header(CONTENT_TYPE, "application/json")
         .header(ACCEPT, "application/octet-stream")
         .body(payload)

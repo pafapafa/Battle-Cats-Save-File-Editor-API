@@ -22,24 +22,16 @@ class ClientError(ValueError):
 
 
 class EditorClient:
-    def __init__(self, url=DEFAULT_URL, token=None, session=None):
+    def __init__(self, url=None, session=None):
+        url = url or os.environ.get("BCSFE_API_URL") or DEFAULT_URL
         parsed = urlsplit(url)
         if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in ("", "/"):
             raise ClientError("Use the API origin as --url, for example https://battle-cats-save-file-editor-api.vercel.app")
         self.url = url.rstrip("/")
-        self.token = token or os.environ.get("EDITOR_API_KEY") or os.environ.get("TEMPLATE_API_KEY")
         self.session = session or requests.Session()
 
-    def redact(self, value):
-        text = str(value)
-        return text.replace(self.token, "[redacted]") if self.token else text
-
-    def request(self, method, path, payload=None, auth=True):
-        if auth and not self.token:
-            raise ClientError("Set EDITOR_API_KEY or TEMPLATE_API_KEY, or pass --token")
+    def request(self, method, path, payload=None):
         headers = {"Accept": "application/json"}
-        if self.token:
-            headers["Authorization"] = "Bearer " + self.token
         try:
             response = self.session.request(method, self.url + path, json=payload, headers=headers,
                                             timeout=(5, 60), allow_redirects=False)
@@ -50,7 +42,7 @@ class EditorClient:
             try:
                 detail = response.json()
                 if isinstance(detail, dict) and isinstance(detail.get("message"), str):
-                    message = self.redact(detail["message"])[:500]
+                    message = detail["message"][:500]
             except ValueError:
                 message = "The server did not return a JSON error"
             raise ClientError(f"HTTP {response.status_code}: {message}")
@@ -63,7 +55,7 @@ class EditorClient:
         return result
 
     def features(self):
-        return self.request("GET", "/v2/features", auth=False)
+        return self.request("GET", "/v2/features")
 
     def inspect(self, raw, country="kr"):
         return self.request("POST", "/v2/save/inspect", save_payload(raw, country))
@@ -150,8 +142,7 @@ def write_new(path, data):
 
 def parser():
     value = argparse.ArgumentParser(description="BCSFE API client for save inspection, editing, export, and import.")
-    value.add_argument("--url", default=DEFAULT_URL, help="API origin (default: https://battle-cats-save-file-editor-api.vercel.app)")
-    value.add_argument("--token", default=None, help="API bearer key; defaults to EDITOR_API_KEY/TEMPLATE_API_KEY")
+    value.add_argument("--url", default=None, help="API origin; defaults to BCSFE_API_URL or https://battle-cats-save-file-editor-api.vercel.app")
     commands = value.add_subparsers(dest="command", required=True)
     commands.add_parser("features", help="Show action schemas and feature coverage")
     inspect = commands.add_parser("inspect", help="Show file metadata without printing account state")
@@ -174,7 +165,7 @@ def main(argv=None):
     args = parser().parse_args(argv)
     client = None
     try:
-        client = EditorClient(args.url, args.token)
+        client = EditorClient(args.url)
         if args.command == "features":
             report = client.features()
         elif args.command == "inspect":
@@ -204,10 +195,10 @@ def main(argv=None):
             report = {"success": True, "output": str(target), "bytes": len(content)}
             if args.command == "edit":
                 report["change_count"] = result.get("change_count")
-        print(client.redact(json.dumps(report, ensure_ascii=False, indent=2)))
+        print(json.dumps(report, ensure_ascii=False, indent=2))
         return 0
     except (ClientError, OSError) as exc:
-        message = client.redact(str(exc)) if client else "Invalid API client configuration"
+        message = str(exc) if client else "Invalid API client configuration"
         print("Error: " + message, file=sys.stderr)
         return 1
 

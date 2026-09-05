@@ -38,7 +38,7 @@ class CLITests(unittest.TestCase):
         self.ops = self.folder / "operations.json"
         self.ops.write_text(json.dumps([{"action": "items.xp", "args": {"value": 1000}}]))
         self.target = self.folder / "new.save"
-        self.stack.enter_context(patch.dict(os.environ, {"EDITOR_API_KEY": TOKEN, "TEMPLATE_API_KEY": ""}))
+        self.stack.enter_context(patch.dict(os.environ, {"EDITOR_API_KEY": "", "TEMPLATE_API_KEY": "", "BCSFE_API_URL": ""}))
         self.session = Mock()
         self.session.request.return_value = response(save_response())
         self.stack.enter_context(patch.object(cli.requests, "Session", return_value=self.session))
@@ -47,12 +47,12 @@ class CLITests(unittest.TestCase):
         self.stack.enter_context(contextlib.redirect_stdout(self.stdout))
         self.stack.enter_context(contextlib.redirect_stderr(self.stderr))
 
-    def test_edit_uses_bearer_v2_file_payload_and_preserves_input(self):
+    def test_edit_without_key_sends_v2_file_payload_and_preserves_input(self):
         code = cli.main(["edit", str(self.source), str(self.ops), str(self.target)])
         self.assertEqual(code, 0)
         args, kwargs = self.session.request.call_args
         self.assertEqual(args, ("POST", cli.DEFAULT_URL + "/v2/save/edit"))
-        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer " + TOKEN)
+        self.assertNotIn("Authorization", kwargs["headers"])
         self.assertEqual(base64.b64decode(kwargs["json"]["save_base64"]), RAW)
         self.assertEqual(kwargs["json"]["operations"][0]["action"], "items.xp")
         self.assertNotIn("transfer_code", kwargs["json"])
@@ -61,10 +61,11 @@ class CLITests(unittest.TestCase):
         self.assertEqual(self.target.read_bytes(), EDITED)
         self.assertNotIn(TOKEN, self.stdout.getvalue() + self.stderr.getvalue())
 
-    def test_missing_auth_fails_before_http(self):
-        with patch.dict(os.environ, {"EDITOR_API_KEY": "", "TEMPLATE_API_KEY": ""}):
-            self.assertEqual(cli.main(["inspect", str(self.source)]), 1)
-        self.session.request.assert_not_called()
+    def test_inspect_without_key_succeeds(self):
+        self.session.request.return_value = response({"success": True, "bytes": len(RAW)})
+        self.assertEqual(cli.main(["inspect", str(self.source)]), 0)
+        self.assertNotIn("Authorization", self.session.request.call_args.kwargs["headers"])
+        self.assertEqual(json.loads(self.stdout.getvalue())["bytes"], len(RAW))
 
     def test_features_is_public_without_token(self):
         self.session.request.return_value = response({"success": True, "actions": {}})
@@ -72,14 +73,19 @@ class CLITests(unittest.TestCase):
             self.assertEqual(cli.main(["features"]), 0)
         self.assertNotIn("Authorization", self.session.request.call_args.kwargs["headers"])
 
-    def test_template_key_fallback_and_explicit_token(self):
-        with patch.dict(os.environ, {"EDITOR_API_KEY": "", "TEMPLATE_API_KEY": TOKEN}):
+    def test_editor_does_not_send_server_keys_from_environment(self):
+        with patch.dict(os.environ, {"EDITOR_API_KEY": TOKEN, "TEMPLATE_API_KEY": TOKEN}):
             client = cli.EditorClient()
             client.inspect(RAW)
-        self.assertEqual(self.session.request.call_args.kwargs["headers"]["Authorization"], "Bearer " + TOKEN)
-        client = cli.EditorClient(token="explicit")
-        client.inspect(RAW)
-        self.assertEqual(self.session.request.call_args.kwargs["headers"]["Authorization"], "Bearer explicit")
+        self.assertNotIn("Authorization", self.session.request.call_args.kwargs["headers"])
+        self.assertNotIn(TOKEN, str(self.session.request.call_args))
+
+    def test_environment_url_and_explicit_url_override(self):
+        with patch.dict(os.environ, {"BCSFE_API_URL": "https://custom.example"}):
+            cli.EditorClient().inspect(RAW)
+            self.assertEqual(self.session.request.call_args.args[1], "https://custom.example/v2/save/inspect")
+            cli.EditorClient("https://override.example").inspect(RAW)
+            self.assertEqual(self.session.request.call_args.args[1], "https://override.example/v2/save/inspect")
 
     def test_input_alias_or_existing_output_fails_before_http(self):
         for target in (self.source, self.folder / "existing.save"):
@@ -90,12 +96,12 @@ class CLITests(unittest.TestCase):
                 self.assertEqual(target.read_bytes(), RAW)
         self.session.request.assert_not_called()
 
-    def test_http_error_does_not_create_output_or_print_token(self):
-        self.session.request.return_value = response({"success": False, "message": "Rejected " + TOKEN}, 422)
+    def test_http_error_does_not_create_output(self):
+        self.session.request.return_value = response({"success": False, "message": "Unsupported save version"}, 422)
         self.assertEqual(cli.main(["edit", str(self.source), str(self.ops), str(self.target)]), 1)
         self.assertFalse(self.target.exists())
         self.assertIn("HTTP 422", self.stderr.getvalue())
-        self.assertNotIn(TOKEN, self.stderr.getvalue())
+        self.assertIn("Unsupported save version", self.stderr.getvalue())
         self.assertEqual(self.source.read_bytes(), RAW)
 
     def test_network_exception_is_sanitized_and_not_retried(self):
@@ -131,11 +137,11 @@ class CLITests(unittest.TestCase):
         self.assertEqual(self.target.read_bytes(), EDITED)
         self.assertEqual(self.source.read_bytes(), RAW)
 
-    def test_python_example_has_authenticated_file_edit_only(self):
+    def test_python_example_edits_without_key(self):
         self.assertEqual(example.main([str(self.source), str(self.target)]), 0)
         args, kwargs = self.session.request.call_args
         self.assertTrue(args[1].endswith("/v2/save/edit"))
-        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer " + TOKEN)
+        self.assertNotIn("Authorization", kwargs["headers"])
         self.assertEqual(self.source.read_bytes(), RAW)
         self.assertEqual(self.target.read_bytes(), EDITED)
         self.assertNotIn(TOKEN, self.stdout.getvalue())

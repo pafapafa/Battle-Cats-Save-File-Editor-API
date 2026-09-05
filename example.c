@@ -40,17 +40,11 @@ int main(int argc, char **argv) {
     struct curl_slist *headers = NULL;
     struct buffer response = {NULL, 0};
     unsigned char *payload = NULL;
-    char *url = NULL, *authorization = NULL;
-    const char *key = getenv("EDITOR_API_KEY");
+    char *url = NULL;
     const char *base = getenv("BCSFE_API_URL");
     struct stat info;
     if (argc != 3) {
         fprintf(stderr, "Usage: %s REQUEST_JSON OUTPUT_SAVE\n", argv[0]);
-        return 1;
-    }
-    if (!key || !*key) key = getenv("TEMPLATE_API_KEY");
-    if (!key || !*key || strpbrk(key, "\r\n")) {
-        fprintf(stderr, "Set EDITOR_API_KEY or TEMPLATE_API_KEY.\n");
         return 1;
     }
     if (stat(argv[2], &info) == 0) {
@@ -70,12 +64,10 @@ int main(int argc, char **argv) {
     size_t base_length = strlen(base);
     while (base_length && base[base_length - 1] == '/') --base_length;
     url = malloc(base_length + sizeof("/v2/save/edit"));
-    authorization = malloc(strlen(key) + sizeof("Authorization: Bearer "));
-    if (!url || !authorization) goto failure;
+    if (!url) goto failure;
     memcpy(url, base, base_length);
     strcpy(url + base_length, "/v2/save/edit");
-    sprintf(authorization, "Authorization: Bearer %s", key);
-    const char *values[] = {"Content-Type: application/json", "Accept: application/octet-stream", authorization};
+    const char *values[] = {"Content-Type: application/json", "Accept: application/octet-stream"};
     for (size_t index = 0; index < sizeof(values) / sizeof(values[0]); ++index) {
         struct curl_slist *next = curl_slist_append(headers, values[index]);
         if (!next) goto failure;
@@ -131,7 +123,6 @@ cleanup:
     free(response.data);
     free(payload);
     free(url);
-    free(authorization);
     curl_global_cleanup();
     return result;
 }

@@ -30,10 +30,6 @@ func run() async throws {
     guard args.count == 2 else {
         throw ClientError(message: "Usage: swift example.swift REQUEST_JSON OUTPUT_SAVE")
     }
-    let key = setting("EDITOR_API_KEY", fallback: setting("TEMPLATE_API_KEY"))
-    guard !key.isEmpty, !key.contains("\r"), !key.contains("\n") else {
-        throw ClientError(message: "Set EDITOR_API_KEY or TEMPLATE_API_KEY.")
-    }
     guard !FileManager.default.fileExists(atPath: args[1]) else {
         throw ClientError(message: "Output already exists; choose a new path.")
     }
@@ -52,7 +48,6 @@ func run() async throws {
     }
     var request = URLRequest(url: url, timeoutInterval: 120)
     request.httpMethod = "POST"
-    request.setValue("Bearer " + key, forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue("application/octet-stream", forHTTPHeaderField: "Accept")
     request.httpBody = payload

@@ -176,11 +176,11 @@ class APITests(unittest.TestCase):
         return r.get_json()['template_id']
     def clone(self, bid):
         return self.client.post('/v1/templates/' + bid + '/clones', json={'order_id': 'order-1'}, headers=self.headers)
-    def test_requires_authentication(self):
-        self.assertEqual(401, self.client.get('/v1/templates').status_code)
-    def test_missing_config_is_503(self):
+    def test_listing_requires_administrator(self):
+        self.assertEqual(403, self.client.get('/v1/templates').status_code)
+    def test_missing_admin_key_keeps_global_listing_private(self):
         with patch.dict(os.environ, {'TEMPLATE_API_KEY': ''}):
-            self.assertEqual(503, self.client.get('/v1/templates').status_code)
+            self.assertEqual(403, self.client.get('/v1/templates').status_code)
     def test_exact_file_download_and_metadata(self):
         bid = self.upload()
         result = self.client.get('/v1/templates/' + bid + '/download', headers=self.headers)
@@ -425,14 +425,16 @@ class APITests(unittest.TestCase):
             ('/v1/templates', 'post', self.client.post('/v1/templates', json={'save_base64': base64.b64encode(b'x' * 50).decode(), 'country_code': 'auto'}, headers=self.headers)),
             ('/v1/templates', 'post', self.client.post('/v1/templates', json={'save_base64': 'a' * 1398105}, headers=self.headers)),
         ]
-        self.assertEqual([401, 404, 422, 413], [response.status_code for _, _, response in samples])
+        self.assertEqual([403, 404, 422, 413], [response.status_code for _, _, response in samples])
         for path, method, response in samples:
             with self.subTest(status=response.status_code):
                 self.validate_documented_response(path, method, response)
 
     def test_openapi_security_and_upload_types(self):
         op = self.spec['paths']['/v1/templates']['post']
-        self.assertEqual([{'TemplateToken': []}], op['security'])
+        self.assertEqual([], op['security'])
+        self.assertEqual([], self.spec['paths']['/v1/backups']['post']['security'])
+        self.assertEqual([{'BackupToken': []}, {'TemplateToken': []}], self.spec['paths']['/v1/templates/{template_id}']['get']['security'])
         self.assertIn('multipart/form-data', op['requestBody']['content'])
         for path in ('/v1/templates', '/v1/backups'):
             content = self.spec['paths'][path]['post']['requestBody']['content']
@@ -452,6 +454,7 @@ class OrderTests(unittest.TestCase):
             args = ('https://example.invalid', TOKEN, 'a'*24, 'order-1', str(Path(temp)/'orders.sqlite'))
             self.assertEqual(issue_once(*args, session=client), issue_once(*args, session=client))
             self.assertEqual(1, client.post.call_count)
+            self.assertEqual({'X-Backup-Token': TOKEN}, client.post.call_args.kwargs['headers'])
             with self.assertRaises(ValueError):
                 issue_once(args[0], TOKEN, 'b'*24, 'order-1', args[-1], session=client)
     def test_timeout_never_reissued(self):

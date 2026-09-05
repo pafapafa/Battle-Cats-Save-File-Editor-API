@@ -9,9 +9,6 @@ def main
   raise 'Usage: ruby example.rb REQUEST_JSON OUTPUT_SAVE' unless ARGV.length == 2
   input, output = ARGV
   raise 'Output already exists' if File.exist?(output) || File.symlink?(output)
-  token = ENV.fetch('EDITOR_API_KEY', '').strip
-  token = ENV.fetch('TEMPLATE_API_KEY', '').strip if token.empty?
-  raise 'Set EDITOR_API_KEY or TEMPLATE_API_KEY' if token.empty?
   base = ENV.fetch('BCSFE_API_URL', 'https://battle-cats-save-file-editor-api.vercel.app').sub(%r{/+\z}, '')
   url = URI.parse("#{base}/v2/save/edit")
   unless %w[http https].include?(url.scheme) && url.host && !url.userinfo && !url.query && !url.fragment
@@ -30,7 +27,6 @@ def main
     raise 'Request needs country_code, save_base64, operations, and output:"file"'
   end
   request = Net::HTTP::Post.new(url.request_uri)
-  request['Authorization'] = "Bearer #{token}"
   request['Content-Type'] = 'application/json'
   request['Accept'] = 'application/octet-stream'
   request.body = body

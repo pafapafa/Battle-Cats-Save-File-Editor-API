@@ -6,7 +6,7 @@ API base URL: `https://battle-cats-save-file-editor-api.vercel.app`. Use the [HT
 
 ## Submit an operation
 
-Put one or more operation objects from this reference in the `operations` array. Use the editor Bearer key, or the template key when configured as the editor fallback. Supply the original file as Base64:
+Put one or more operation objects from this reference in the `operations` array. No API key is required. Supply the original file as Base64:
 
 ```json
 {

@@ -25,10 +25,6 @@ func run(args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: example REQUEST_JSON OUTPUT_SAVE")
 	}
-	key := setting("EDITOR_API_KEY", os.Getenv("TEMPLATE_API_KEY"))
-	if key == "" {
-		return fmt.Errorf("set EDITOR_API_KEY or TEMPLATE_API_KEY")
-	}
 	if _, err := os.Lstat(args[1]); err == nil {
 		return fmt.Errorf("output already exists; choose a new path")
 	} else if !os.IsNotExist(err) {
@@ -52,7 +48,6 @@ func run(args []string) error {
 	}
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/octet-stream")
-	request.Header.Set("Authorization", "Bearer "+key)
 	transport := &http.Transport{
 		Proxy:                 http.ProxyFromEnvironment,
 		DialContext:           (&net.Dialer{Timeout: 15 * time.Second}).DialContext,

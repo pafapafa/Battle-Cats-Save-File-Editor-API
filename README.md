@@ -31,8 +31,7 @@ The API documentation supports Light, Dark, and System themes and saves the choi
 
 | Environment variable | Purpose |
 | --- | --- |
-| `EDITOR_API_KEY` | Bearer key for file editing; falls back to `TEMPLATE_API_KEY` when absent |
-| `TEMPLATE_API_KEY` | Bearer key for backup and template routes; at least 32 characters |
+| `TEMPLATE_API_KEY` | Optional operator Bearer key for global backup listings and metadata-cache deletion; at least 32 characters |
 | `JSONBIN_API_KEY` | Existing JSONBin master key for private template storage |
 | `TEMPLATE_ENCRYPTION_KEY` | Optional explicit template encryption key; otherwise derived from the JSONBin key |
 
@@ -42,7 +41,7 @@ Check the project's function duration against metadata downloads and remote oper
 
 ## Backup and copy APIs
 
-Store a persistent backup with `POST /v1/templates`, using Bearer authentication and either a multipart `file` or JSON `save_base64`. The response returns a `template_id`. List stored backups with `GET /v1/templates`, inspect one with `GET /v1/templates/{id}`, and retrieve its original bytes with `GET /v1/templates/{id}/download`.
+Store a persistent backup with `POST /v1/templates`, using either a multipart `file` or JSON `save_base64`. No client API key is required. The response returns a `template_id` and a private `backup_token` once. Keep both, then send `X-Backup-Token: <backup_token>` to inspect, download, or copy that backup. Global listings use the optional operator key and are not part of the normal client workflow.
 
 `POST /v1/backups` validates and returns the uploaded file without storing it in JSONBin. For a separate game account based on a stored template, call `POST /v1/templates/{id}/clones` with an `order_id` in the JSON body. This is an account-issuance operation, distinct from downloading the original. Live account creation and transfer acceptance require separate verification.
 
@@ -50,7 +49,7 @@ See [TEMPLATES.md](TEMPLATES.md) for request examples, storage configuration, du
 
 ## Edit a file
 
-Send an authenticated request to `POST /v2/save/edit`:
+Send a request to `POST /v2/save/edit`:
 
 ```json
 {
@@ -63,7 +62,7 @@ Send an authenticated request to `POST /v2/save/edit`:
 }
 ```
 
-Use `Authorization: Bearer <EDITOR_API_KEY>`, or the configured template key when the editor key is absent. The JSON response includes `save_base64` for the edited file, `backup_base64` for the original, persisted `changes`, and `sha256`.
+No API key is required. The JSON response includes `save_base64` for the edited file, `backup_base64` for the original, persisted `changes`, and `sha256`.
 
 Operations run on a copy. The API serializes and reparses the result, checks its checksum and binary stability, and verifies that the requested values survived serialization before returning success. Failed batches are not returned as partially successful edits. Unrequested tutorial, pass, lineup, and Gamatoto skin changes are not applied automatically.
 
@@ -80,7 +79,7 @@ Actions that expose `respect_maxima` apply BCSFE's recommended limits by default
 | File backup and private templates | `/v1/backups`, `/v1/templates`; see [TEMPLATES.md](TEMPLATES.md) |
 | Game metadata | `/v2/metadata/versions`, `/v2/metadata/prepare`, `/v2/metadata/cache` |
 
-Ordinary file editing does not consume transfer codes. Transfer reception does: retain the returned save containing refreshed credentials. Server-side authentication failures do not automatically create a replacement account; account creation requires an explicit request.
+Ordinary file editing does not consume transfer codes. Transfer reception does: retain the returned save containing refreshed credentials. Upstream account-authentication failures do not automatically create a replacement account; account creation requires an explicit request.
 
 [ENDPOINTS.md](ENDPOINTS.md) documents the full HTTP contracts. [DOCS.md](DOCS.md) lists shared input limits and error handling; [TRANSFERS.md](TRANSFERS.md) documents the `/info` and `/edit` transfer workflows.
 
@@ -89,7 +88,6 @@ Ordinary file editing does not consume transfer codes. Transfer reception does: 
 [cli.py](cli.py) and [example.py](example.py) run on the caller's computer and send HTTPS requests to the deployed v2 API. They preserve the input file and refuse to overwrite an existing output file.
 
 ```powershell
-$env:EDITOR_API_KEY = 'the-key-configured-on-your-server'
 py -m pip install requests
 py cli.py features
 py cli.py inspect original.save --country kr

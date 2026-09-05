@@ -6,10 +6,11 @@ import hashlib
 import hmac
 import io
 import re
+import secrets
 from functools import wraps
 from bcsfe_runtime import scoped_runtime
 
-from flask import Blueprint, current_app, jsonify, request, send_file
+from flask import Blueprint, current_app, g, jsonify, request, send_file
 from werkzeug.exceptions import HTTPException
 from template_store import JSONBinStore, RecordNotFound, StoreError, setting
 
@@ -108,14 +109,43 @@ def isolated(function):
 
 @bp.before_request
 def authorize():
-    if request.method == 'OPTIONS':
+    if request.method == 'OPTIONS' or request.endpoint in ('templates.file_backup', 'templates.save_template'):
         return None
     key = setting('TEMPLATE_API_KEY')
-    if len(key) < 32:
-        raise APIError('Template API is not configured.', 503)
     supplied = request.headers.get('Authorization', '')
-    if not hmac.compare_digest(supplied.encode(), ('Bearer ' + key).encode()):
-        raise APIError('A valid template Bearer token is required.', 401)
+    admin = len(key) >= 32 and hmac.compare_digest(supplied.encode(), ('Bearer ' + key).encode())
+    if request.endpoint in ('templates.list_templates', 'templates.list_records'):
+        if not admin:
+            raise APIError('Administrator access is required for global listings.', 403)
+        return None
+    token = request.headers.get('X-Backup-Token', '')
+    if not admin and re.fullmatch(r'[A-Za-z0-9_-]{43}', token) is None:
+        raise APIError('Record not found.', 404)
+    routes = {
+        'templates.template_info': ('template', 'template_id'),
+        'templates.download_template': ('template', 'template_id'),
+        'templates.clone_template': ('template', 'template_id'),
+        'templates.attempt': ('attempt', 'attempt_id'),
+        'templates.recovery_info': ('recovery', 'recovery_id'),
+        'templates.issuance': ('issuance', 'issuance_id'),
+        'templates.recovery': ('recovery', 'recovery_id'),
+    }
+    target = routes.get(request.endpoint)
+    if target is None:
+        raise APIError('Record not found.', 404)
+    kind, field = target
+    vault = store()
+    try:
+        record = vault.load(request.view_args[field], kind)
+        template = record if kind == 'template' else vault.load(record.get('template_id'), 'template')
+    except RecordNotFound:
+        raise APIError('Record not found.', 404) from None
+    digest = template.get('backup_token_sha256', '')
+    if not admin and (not isinstance(digest, str) or not hmac.compare_digest(
+            digest.encode(), hashlib.sha256(token.encode()).hexdigest().encode())):
+        raise APIError('Record not found.', 404)
+    g.backup_record = record
+    g.backup_store = vault
 
 @bp.after_request
 def no_cache(response):
@@ -129,7 +159,7 @@ def bad_request(exc):
 
 @bp.errorhandler(RecordNotFound)
 def missing_record(exc):
-    return jsonify(success=False, message=str(exc)), 404
+    return jsonify(success=False, message='Record not found.'), 404
 
 @bp.errorhandler(StoreError)
 def storage_error(exc):
@@ -151,8 +181,10 @@ def file_backup():
 @isolated
 def save_template():
     record = uploaded_save()
+    token = secrets.token_urlsafe(32)
+    record['backup_token_sha256'] = hashlib.sha256(token.encode()).hexdigest()
     template_id = store().save('template', record)
-    return jsonify(success=True, **describe(record, template_id)), 201
+    return jsonify(success=True, backup_token=token, **describe(record, template_id)), 201
 
 @bp.get('/templates')
 def list_templates():
@@ -160,11 +192,11 @@ def list_templates():
 
 @bp.get('/templates/<template_id>')
 def template_info(template_id):
-    return jsonify(success=True, **describe(store().load(template_id, 'template'), template_id))
+    return jsonify(success=True, **describe(g.backup_record, template_id))
 
 @bp.get('/templates/<template_id>/download')
 def download_template(template_id):
-    record = store().load(template_id, 'template')
+    record = g.backup_record
     return attachment(unpack(record), 'template-' + template_id + '.save')
 
 def new_handler(sf):
@@ -179,8 +211,8 @@ def clone_template(template_id):
     data = request.get_json(silent=True)
     if not isinstance(data, dict) or not isinstance(data.get('order_id'), str) or not re.fullmatch(r'[A-Za-z0-9_.:-]{1,100}', data['order_id']):
         raise APIError('Provide an order_id (1-100 letters, numbers, _, ., : or -).')
-    vault = store()
-    record = vault.load(template_id, 'template')
+    vault = g.backup_store
+    record = g.backup_record
     raw = unpack(record)
     sf = parse_save(raw, record['country_code'])
     if sf.to_data().data != raw:
@@ -242,27 +274,30 @@ def list_records():
 
 @bp.get('/attempts/<attempt_id>')
 def attempt(attempt_id):
-    return jsonify(success=True, attempt_id=attempt_id, **store().load(attempt_id, 'attempt'))
+    return jsonify(success=True, attempt_id=attempt_id, **g.backup_record)
 
 @bp.get('/recoveries/<recovery_id>')
 def recovery_info(recovery_id):
-    record = store().load(recovery_id, 'recovery')
+    record = g.backup_record
     return jsonify(success=True, recovery_id=recovery_id,
                    **{k: v for k, v in record.items() if k != 'save_base64'})
 
 @bp.get('/issuances/<issuance_id>')
 def issuance(issuance_id):
-    return jsonify(success=True, issuance_id=issuance_id, **store().load(issuance_id, 'issuance'))
+    return jsonify(success=True, issuance_id=issuance_id, **g.backup_record)
 
 @bp.get('/recoveries/<recovery_id>/download')
 def recovery(recovery_id):
-    return attachment(unpack(store().load(recovery_id, 'recovery')), 'recovery-' + recovery_id + '.save')
+    return attachment(unpack(g.backup_record), 'recovery-' + recovery_id + '.save')
 
 def register_template_api(app, spec):
     app.register_blueprint(bp)
     components = spec.setdefault('components', {})
     components.setdefault('securitySchemes', {})['TemplateToken'] = {
-        'type': 'http', 'scheme': 'bearer', 'description': 'Server-side TEMPLATE_API_KEY (at least 32 characters).'}
+        'type': 'http', 'scheme': 'bearer', 'description': 'Optional administrator TEMPLATE_API_KEY (at least 32 characters). Required only for global listings or access to templates created without a backup token.'}
+    components['securitySchemes']['BackupToken'] = {
+        'type': 'apiKey', 'in': 'header', 'name': 'X-Backup-Token',
+        'description': 'The private backup_token returned once when a template is created. Grants access only to that template and its attempt, recovery and issuance records. Never put it in a URL.'}
 
     def object_schema(properties):
         return {'type': 'object', 'properties': properties, 'required': list(properties)}
@@ -312,6 +347,9 @@ def register_template_api(app, spec):
     schemas = {
         'TemplateError': object_schema({'success': {'const': False}, 'message': {'type': 'string'}}),
         'TemplateMetadata': object_schema(metadata),
+        'TemplateCreated': object_schema({**metadata, 'backup_token': {
+            'type': 'string', 'minLength': 43, 'maxLength': 43, 'pattern': '^[A-Za-z0-9_-]{43}$',
+            'description': 'Private access token returned only in this creation response. Save it with template_id and send it as X-Backup-Token for subsequent access. It cannot be retrieved later.'}}),
         'TemplateList': object_schema({'success': {'const': True},
             'templates': {'type': 'array', 'items': object_schema({'template_id': record_id, 'created_at': listed_timestamp})},
             'next_cursor': nullable_id}),
@@ -344,7 +382,7 @@ def register_template_api(app, spec):
     operations = [
         ('/v1/backups', 'post', 'Download an exact file backup', upload_schema, binary_response),
         ('/v1/templates', 'post', 'Store an immutable private JSONBin template', upload_schema,
-         json_response('Template stored.', reference('TemplateMetadata'))),
+         json_response('Template stored. Keep template_id and the one-time backup_token.', reference('TemplateCreated'))),
         ('/v1/templates', 'get', 'List template IDs (follow next_cursor)', None,
          json_response('Template ID page.', reference('TemplateList'))),
         ('/v1/templates/{template_id}', 'get', 'Read template metadata', None,
@@ -366,20 +404,31 @@ def register_template_api(app, spec):
     ]
     for path, method, summary, schema, success_response in operations:
         success_status = '201' if method == 'post' and path != '/v1/backups' else '200'
-        errors = {'400': 'Invalid input.', '401': 'Missing or invalid template Bearer token.',
+        errors = {'400': 'Invalid input.',
                   '500': 'Unexpected operation failure.', '503': 'Storage, integrity check, or configuration unavailable.'}
+        public = method == 'post' and path in ('/v1/backups', '/v1/templates')
+        listing = method == 'get' and path in ('/v1/templates', '/v1/template-records')
+        if listing:
+            errors['403'] = 'Administrator access is required for global listings.'
         if method == 'post':
             errors.update({'413': 'Request body or Base64 save is too large.', '429': 'Deployment request limit reached.'})
         if path != '/v1/backups':
-            errors['404'] = 'Record/storage resource not found, wrong record type, or invalid record ID/cursor.'
+            errors['404'] = 'Record not found, invalid record ID/cursor, or missing/wrong backup token. These cases share the same response.'
         if schema is upload_schema or '/clones' in path:
             errors['422'] = 'Invalid checksum, region mismatch, unsupported save, or failed clone serialization check.'
         responses = {success_status: success_response,
                      **{code: json_response(description, reference('TemplateError')) for code, description in errors.items()}}
         operation = {'tags': ['Backups and Templates'], 'summary': summary,
-                     'security': [{'TemplateToken': []}], 'responses': responses}
+                     'security': [] if public else ([{'TemplateToken': []}] if listing else [{'BackupToken': []}, {'TemplateToken': []}]),
+                     'responses': responses}
+        if listing:
+            operation['description'] = 'Administrator-only global listing. A backup token does not grant listing access; keep the IDs returned by creation and clone responses.'
+        elif path == '/v1/templates' and method == 'post':
+            operation['description'] = 'No API key is required. Stores encrypted immutable save bytes and returns a private backup_token once. Keep that token with template_id; future reads and clone operations require X-Backup-Token.'
+        elif not public:
+            operation['description'] = 'Send the associated template backup_token in X-Backup-Token. Missing, wrong and cross-template tokens return the same 404 as an unknown record.'
         if '/clones' in path:
-            operation['description'] = 'Experimental upstream account creation. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.'
+            operation['description'] += ' Creates a separate upstream account. order_id is an audit label, not an idempotency key. The vending backend must atomically reserve each order and never auto-retry an uncertain request.'
             responses['502'] = json_response('Issuance needs attention. Preserve both Base64 files and inspect the attempt; do not retry automatically.', reference('TemplateCloneNeedsAttention'))
         elif path == '/v1/backups':
             operation['description'] = 'Validates the upload and returns the original bytes. Does not store a JSONBin template or create a game account.'

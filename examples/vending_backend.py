@@ -16,7 +16,7 @@ def order_database(path):
     finally:
         db.close()
 
-def issue_once(api_url, token, template_id, order_id, db_path, session=None):
+def issue_once(api_url, backup_token, template_id, order_id, db_path, session=None):
     if str(db_path) == ':memory:':
         raise ValueError('A durable order database is required.')
     Path(db_path).resolve().parent.mkdir(parents=True, exist_ok=True)
@@ -38,7 +38,7 @@ def issue_once(api_url, token, template_id, order_id, db_path, session=None):
     try:
         response = client.post(api_url.rstrip('/') + '/v1/templates/' + template_id + '/clones',
                                json={'order_id': order_id},
-                               headers={'Authorization': 'Bearer ' + token},
+                               headers={'X-Backup-Token': backup_token},
                                timeout=(5, 180), allow_redirects=False)
         result = response.json()
         success = (response.status_code == 201 and isinstance(result, dict)

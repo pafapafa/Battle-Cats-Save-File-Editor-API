@@ -8,12 +8,12 @@ The file workflow uses raw saves produced by BCSFE. It does not call the `/edit`
 
 ## HTTP workflow
 
-1. Send `POST /v1/templates` with a raw multipart `file` or JSON `save_base64`. An optional name labels the backup; `country_code: "auto"` detects its region from the checksum. The API stores the original and returns `template_id`.
-2. Use `GET /v1/templates` to list stored templates and `GET /v1/templates/{id}` to inspect one.
-3. Use `GET /v1/templates/{id}/download` to retrieve the original save bytes.
-4. To request a separate game account from a template, send `POST /v1/templates/{id}/clones` with JSON `order_id`. The API records an attempt before the remote operation, then stores recovery and issuance records as those steps succeed.
+1. Send `POST /v1/templates` with a raw multipart `file` or JSON `save_base64`. An optional name labels the backup; `country_code: "auto"` detects its region from the checksum. No client key is required. The API stores the original and returns `template_id` plus a private `backup_token` once.
+2. Store both values in your application's private database. Send `X-Backup-Token: <backup_token>` with `GET /v1/templates/{id}` to inspect that backup.
+3. Send the same header to `GET /v1/templates/{id}/download` to retrieve the original save bytes.
+4. To request a separate game account from a template, send the same header to `POST /v1/templates/{id}/clones` with JSON `order_id`. The API records an attempt before the remote operation, then stores recovery and issuance records as those steps succeed.
 
-`POST /v1/backups` provides a separate nonpersistent operation: it validates and returns the uploaded original without storing it in JSONBin. All these operations are HTTP APIs; `/docs` provides their reference documentation.
+`POST /v1/backups` provides a separate public, nonpersistent operation: it validates and returns the uploaded original without storing it in JSONBin. All these operations are HTTP APIs; `/docs` provides their reference documentation.
 
 If starting from a transfer code, first receive the save through `/v2/save/from-transfer`. Reception uses that code. Register the returned save containing refreshed credentials as the template and retain the original/recovery files returned by the API.
 
@@ -25,35 +25,35 @@ Import the GitHub repository into Vercel and configure these values in the proje
 
 | Setting | Purpose |
 | --- | --- |
-| `TEMPLATE_API_KEY` | Bearer key for backup, template, and issuance routes; at least 32 characters |
+| `TEMPLATE_API_KEY` | Optional operator Bearer key for global record listings and metadata-cache deletion; at least 32 characters |
 | `JSONBIN_API_KEY` | Existing JSONBin master key, required for cloud storage |
 | `TEMPLATE_ENCRYPTION_KEY` | Optional explicit encryption key; otherwise derived from the JSONBin key |
 
 Environment variables override the local `template_secrets.py` values. Existing local credentials remain usable. The template store creates new private bins; it does not update the existing user, code, or cat database bins.
 
-Retain the key used to encrypt stored records so they remain readable. `template_secrets.py` is excluded from Git deployment. Clients send the template API key in `Authorization`; they do not need the JSONBin master key.
+Retain the JSONBin key or explicit encryption key used for stored records so they remain readable. `template_secrets.py` is excluded from Git deployment. Clients never receive the JSONBin master key or encryption key.
 
-## Store a template through the API
+## Create a backup and keep its access token
 
-All `/v1` routes below require `Authorization: Bearer <TEMPLATE_API_KEY>`.
+Creating a backup does not require a client API key. Subsequent access uses the unique token returned for that backup.
 
 ```python
-import os
 import requests
 
 base = "https://battle-cats-save-file-editor-api.vercel.app"
-headers = {"Authorization": "Bearer " + os.environ["TEMPLATE_API_KEY"]}
 
 with open("account.save", "rb") as file:
     response = requests.post(
         base + "/v1/templates",
-        headers=headers,
         files={"file": file},
         data={"name": "Starter account", "country_code": "auto"},
         timeout=120,
     )
 response.raise_for_status()
-template_id = response.json()["template_id"]
+created = response.json()
+template_id = created["template_id"]
+backup_token = created["backup_token"]
+backup_headers = {"X-Backup-Token": backup_token}
 ```
 
 JSON requests may supply `save_base64`, `name`, and `country_code` instead of a multipart file. The upload fields are:
@@ -66,7 +66,7 @@ JSON requests may supply `save_base64`, `name`, and `country_code` instead of a 
 
 An explicitly selected region must match the file. Stored and returned metadata always uses the detected `kr`, `en`, `jp`, or `tw` value, never `auto`.
 
-Creation returns **201** with metadata and no save payload. A representative response shape is shown below; IDs, digest, and file metadata are illustrative:
+Creation returns **201** with metadata, a one-time access token, and no save payload. A representative response shape is shown below; IDs, token, digest, and file metadata are illustrative:
 
 ```json
 {
@@ -78,11 +78,14 @@ Creation returns **201** with metadata and no save payload. A representative res
   "bytes": 1024,
   "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
   "created_at": "2026-09-04T00:00:00+00:00",
-  "clone_ready": true
+  "clone_ready": true,
+  "backup_token": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 }
 ```
 
-`GET /v1/templates/{id}` returns the same metadata fields with **200**. Use the download route to obtain bytes; metadata responses do not contain `save_base64`.
+The raw token is not stored and cannot be retrieved later. The encrypted template record contains only its SHA-256 hash. Treat the token like a private link: anyone with both the template ID and token can access that backup. Missing, wrong, and cross-backup tokens return the same `404` as an unknown record.
+
+`GET /v1/templates/{id}` with `X-Backup-Token` returns the same metadata fields except `backup_token` with **200**. Use the download route to obtain bytes; metadata responses do not contain `save_base64`.
 
 Records are compressed and encrypted. Large records are divided among smaller private bins, and a template ID is returned only after all required parts are stored. Downloaded originals are checked against their recorded SHA-256 checksum.
 
@@ -95,7 +98,7 @@ Use the `template_id` returned by the storage request:
 ```python
 response = requests.get(
     base + "/v1/templates/" + template_id + "/download",
-    headers=headers,
+    headers=backup_headers,
     timeout=120,
 )
 response.raise_for_status()
@@ -107,23 +110,23 @@ The response is the original binary save. This request does not create an accoun
 
 ## Routes
 
-| Method and path | Behavior |
-| --- | --- |
-| `POST /v1/backups` | Download the uploaded original; no JSONBin storage |
-| `POST /v1/templates` | Store an original and return `template_id` |
-| `GET /v1/templates` | List template IDs |
-| `GET /v1/templates/{id}` | Read name, region, version, checksum, and readiness |
-| `GET /v1/templates/{id}/download` | Download the original save |
-| `POST /v1/templates/{id}/clones` | Request a separate account; JSON body requires `order_id` |
-| `GET /v1/issuances/{id}` | Read a stored issuance result and transfer codes |
-| `GET /v1/template-records?kind=issuance` | List records; `kind` accepts `attempt`, `issuance`, or `recovery` |
-| `GET /v1/attempts/{id}` | Read an issuance-start record |
-| `GET /v1/recoveries/{id}` | Read recovery record order/template metadata |
-| `GET /v1/recoveries/{id}/download` | Download the new account's recovery save |
+| Method and path | Access | Behavior |
+| --- | --- | --- |
+| `POST /v1/backups` | Public | Download the uploaded original; no JSONBin storage |
+| `POST /v1/templates` | Public | Store an original and return `template_id` plus a one-time `backup_token` |
+| `GET /v1/templates` | Operator | Globally list template IDs |
+| `GET /v1/templates/{id}` | Backup token | Read name, region, version, checksum, and readiness |
+| `GET /v1/templates/{id}/download` | Backup token | Download the original save |
+| `POST /v1/templates/{id}/clones` | Backup token | Request a separate account; JSON body requires `order_id` |
+| `GET /v1/issuances/{id}` | Associated backup token | Read a stored issuance result and transfer codes |
+| `GET /v1/template-records?kind=issuance` | Operator | Globally list records; `kind` accepts `attempt`, `issuance`, or `recovery` |
+| `GET /v1/attempts/{id}` | Associated backup token | Read an issuance-start record |
+| `GET /v1/recoveries/{id}` | Associated backup token | Read recovery record order/template metadata |
+| `GET /v1/recoveries/{id}/download` | Associated backup token | Download the new account's recovery save |
 
 ## List and paginate records
 
-`GET /v1/templates` returns IDs and JSONBin creation times. It does not include full template metadata:
+The normal application flow does not require a list: keep the IDs returned by creation and copy requests. `GET /v1/templates` is an operator-only global inventory and requires `Authorization: Bearer <TEMPLATE_API_KEY>`. It returns IDs and JSONBin creation times, without full template metadata:
 
 ```json
 {
@@ -138,12 +141,15 @@ The response is the original binary save. This request does not create an accoun
 `created_at` is a string when available and may be `null` in a listing. Omit `cursor` or use an empty string for the first request; pass `next_cursor` unchanged on later requests. A filtered page may be empty while another underlying JSONBin page exists, so continue until `next_cursor` is `null`:
 
 ```python
+import os
+
 cursor = ""
 template_ids = []
+operator_headers = {"Authorization": "Bearer " + os.environ["TEMPLATE_API_KEY"]}
 while True:
     response = requests.get(
         base + "/v1/templates",
-        headers=headers,
+        headers=operator_headers,
         params={"cursor": cursor},
         timeout=120,
     )
@@ -155,11 +161,11 @@ while True:
         break
 ```
 
-`GET /v1/template-records?kind=issuance` follows the same pagination rules but returns `records` entries with `id` and `created_at`. `kind` defaults to `issuance` and also accepts `attempt` or `recovery`. There is no server-side `order_id` filter; retrieve each relevant record to inspect its order. Record IDs and nonempty cursors are 24 hexadecimal characters.
+`GET /v1/template-records?kind=issuance` uses the same operator authentication and pagination rules but returns `records` entries with `id` and `created_at`. `kind` defaults to `issuance` and also accepts `attempt` or `recovery`. A backup token cannot enumerate global records. There is no server-side `order_id` filter; retrieve each relevant record to inspect its order. Record IDs and nonempty cursors are 24 hexadecimal characters.
 
 ## Copy issuance and duplicate orders
 
-Send `POST /v1/templates/{id}/clones` with the template Bearer key and a JSON body:
+Send `POST /v1/templates/{id}/clones` with that template's `X-Backup-Token` header and a JSON body:
 
 ```json
 {"order_id": "order-2026-0001"}
@@ -200,7 +206,7 @@ from examples.vending_backend import issue_once
 
 result = issue_once(
     api_url="https://battle-cats-save-file-editor-api.vercel.app",
-    token=os.environ["TEMPLATE_API_KEY"],
+    backup_token=product["backup_token"],
     template_id=product["template_id"],
     order_id=order["id"],
     db_path="data/template-orders.sqlite",
@@ -215,7 +221,7 @@ All workers must use the same persistent order database. A Vercel temporary dire
 
 The workflow stores an attempt before contacting the game server, a recovery save after confirmed account creation/synchronization, and an issuance record after transfer codes are returned.
 
-- Preflight failures return `{"success": false, "message": "..."}`: `400` for invalid input, `401` for authentication, `404` for missing/wrong records, `422` for invalid or unstable saves, and `503` for required configuration/storage failures. If attempt storage fails, the account call has not begun.
+- Preflight failures return `{"success": false, "message": "..."}`: `400` for invalid input, `403` for operator-only routes, `404` for unknown records or missing/wrong backup tokens, `422` for invalid or unstable saves, and `503` for required configuration/storage failures. If attempt storage fails, the account call has not begun.
 - A failure after the attempt is stored returns `502` with `success: false`, `retry_safe: false`, `status: "needs_attention"`, `message`, `attempt_id`, nullable `recovery_id`, `backup_base64`, `save_base64`, and `recovery_serialized`. This failure response does not contain `order_id`, `template_id`, issued codes, or `persisted`; keep the original request context with it.
 - `started` on an attempt records that work began; it is not a final success state. Check the issuance record for the final stored result.
 - If only issuance-result storage fails, the response can include issued codes with `persisted: false`. Preserve that response in the order database.
@@ -236,7 +242,7 @@ Stored issuance retrieval does not repeat the immediate clone response's `persis
 
 ## Verification
 
-Automated tests cover original-byte preservation, unrelated-field preservation, authentication, input validation, encryption tampering, split records, failure reporting, and order reservation behavior under repeat requests, concurrency, and timeouts. A private-bin storage/read check used the existing JSONBin account and removed only its test bins. It did not use a real game account.
+Automated tests cover original-byte preservation, unrelated-field preservation, per-backup access isolation, input validation, encryption tampering, split records, failure reporting, and order reservation behavior under repeat requests, concurrency, and timeouts. A private-bin storage/read check used the existing JSONBin account and removed only its test bins. It did not use a real game account.
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
